@@ -53,3 +53,37 @@ export async function requireRole(min: Role): Promise<{
 
   return { session, user: { ...session.user, role } };
 }
+
+/**
+ * PAGE-level role gate (the counterpart to `requireRole`, which is for
+ * actions/route handlers). Use this at the top of a Server Component page.
+ *
+ * Why a separate helper: `requireRole` THROWS on insufficient role, which
+ * surfaces as the generic `error.tsx` boundary ("Something went wrong"). For
+ * a *page* that's a poor dead-end, and — critically — Next.js strips Server
+ * Component error messages in production, so `error.tsx` can't tell a 403
+ * apart from a real crash to render a tailored message. Redirecting is both
+ * better UX and works identically in dev and prod. The sidebar is already
+ * RBAC-filtered, so the only way to hit this is typing the URL directly.
+ *
+ *   export default async function UsersPage() {
+ *     const { user } = await requireRolePage("admin");
+ *     // ... render
+ *   }
+ */
+export async function requireRolePage(
+  min: Role,
+  opts: { redirectTo?: string } = {},
+): Promise<{ session: Session; user: Session["user"] & { role: Role } }> {
+  const session = await getServerSession();
+  if (!session) {
+    redirect("/sign-in");
+  }
+
+  const role = ((session.user as { role?: Role }).role ?? "staff") as Role;
+  if (ROLE_RANK[role] < ROLE_RANK[min]) {
+    redirect(opts.redirectTo ?? "/dashboard");
+  }
+
+  return { session, user: { ...session.user, role } };
+}

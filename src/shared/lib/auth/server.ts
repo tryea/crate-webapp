@@ -40,7 +40,12 @@ export const auth = betterAuth({
     cookieCache: { enabled: true, maxAge: 5 * 60 },
   },
   rateLimit: {
-    enabled: true,
+    // Mirrors BetterAuth's own default (`?? isProduction`): throttle the public
+    // credential endpoints in prod only. Forcing it on in dev/test trips the
+    // E2E suite — multiple parallel sign-ins from 127.0.0.1 exceed 5/15min and
+    // get 429'd, which looks like a broken sign-in. DEC-003 R2 wanted strict
+    // prod rate limiting; this keeps that while letting trusted-IP CI run clean.
+    enabled: process.env.NODE_ENV === "production",
     window: 60 * 15, // 15 min
     max: 5,
   },

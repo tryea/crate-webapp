@@ -18,7 +18,8 @@ test.describe("auth · RBAC · admin", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/sign-in");
     await page.getByLabel(/email/i).fill("admin@crate.local");
-    await page.getByLabel(/password/i).fill("ChangeMe!Admin");
+    // exact:true so we don't also match the "Show password" toggle button.
+    await page.getByLabel("Password", { exact: true }).fill("ChangeMe!Admin");
     await page.getByRole("button", { name: /sign in/i }).click();
     await expect(page).toHaveURL(/\/dashboard/);
   });
