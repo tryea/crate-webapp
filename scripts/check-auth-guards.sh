@@ -24,11 +24,14 @@ PUBLIC_ALLOWLIST=(
 repo_root="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$repo_root"
 
-# Collect every server-side handler file (portable: macOS bash 3.2 lacks mapfile)
+# Collect every server-side handler file across the FSD layout
+# (route.ts + actions.ts in app/, entities/, features/ — anywhere
+# Server Actions or route handlers can land per DEC-002).
+# Portable: macOS bash 3.2 lacks mapfile.
 handlers=()
 while IFS= read -r line; do
   handlers+=("$line")
-done < <(find src/app -type f \( -name "route.ts" -o -name "actions.ts" \) | sort)
+done < <(find src/app src/entities src/features src/widgets src/screens -type f \( -name "route.ts" -o -name "actions.ts" \) 2>/dev/null | sort)
 
 violations=0
 total=${#handlers[@]}
