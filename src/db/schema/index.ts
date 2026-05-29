@@ -11,3 +11,4 @@ export * from "./products";
 export * from "./movements";
 export * from "./purchase-orders";
 export * from "./audit";
+export * from "./settings";

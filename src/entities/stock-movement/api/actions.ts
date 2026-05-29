@@ -26,6 +26,23 @@ import {
   type StockOutFormValues,
   type TransferFormValues,
 } from "../model/movement-schemas";
+import { settings as settingsTable } from "@/db/schema";
+
+/**
+ * Read `allowBackorder` from the `settings` table directly — FSD
+ * boundaries (DEC-002) forbid entity→entity imports, so we query the
+ * raw table here rather than calling the settings entity's server fn.
+ * Default false matches COUNCIL §0 + STOCK_SETTINGS_DEFAULTS.
+ */
+async function getAllowBackorder(): Promise<boolean> {
+  const [row] = await db
+    .select({ value: settingsTable.value })
+    .from(settingsTable)
+    .where(eq(settingsTable.key, "stock"))
+    .limit(1);
+  const v = row?.value as { allowBackorder?: unknown } | null;
+  return v?.allowBackorder === true;
+}
 
 /**
  * Read current level inside a transaction (with row locks via SELECT FOR
@@ -167,10 +184,11 @@ export async function stockOutAction(
         parsed.data.productId,
         parsed.data.locationId,
       );
+      const allowBackorder = await getAllowBackorder();
       const gate = checkDecrementAllowed({
         currentLevel,
         decrementBy: parsed.data.quantity,
-        allowBackorder: false,
+        allowBackorder,
       });
       if (!gate.ok) {
         // Throwing rolls back the empty transaction; caller catches.
@@ -247,10 +265,11 @@ export async function transferAction(
         parsed.data.productId,
         parsed.data.sourceLocationId,
       );
+      const allowBackorder = await getAllowBackorder();
       const gate = checkDecrementAllowed({
         currentLevel: sourceLevel,
         decrementBy: parsed.data.quantity,
-        allowBackorder: false,
+        allowBackorder,
       });
       if (!gate.ok) {
         throw new Error(`INSUFFICIENT_STOCK::${gate.error}`);
@@ -365,10 +384,11 @@ export async function adjustmentAction(
           parsed.data.productId,
           parsed.data.locationId,
         );
+        const allowBackorder = await getAllowBackorder();
         const gate = checkDecrementAllowed({
           currentLevel,
           decrementBy: Math.abs(parsed.data.delta),
-          allowBackorder: false,
+          allowBackorder,
         });
         if (!gate.ok) {
           throw new Error(`INSUFFICIENT_STOCK::${gate.error}`);
