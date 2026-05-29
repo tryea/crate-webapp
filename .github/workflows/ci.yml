@@ -1,0 +1,83 @@
+# CI gates per DEC-005 + Bima's mandate.
+#
+# On every PR: typecheck + lint + jest + build + check:auth-guards.
+# On main + nightly: + Playwright (full).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 6 * * *" # 06:00 UTC nightly Playwright
+
+env:
+  NEXT_TELEMETRY_DISABLED: "1"
+
+jobs:
+  static-gates:
+    name: typecheck · lint · jest · build · auth-guards
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: 1.3
+      - run: bun install --frozen-lockfile
+      - run: bun run typecheck
+      - run: bun run lint
+      - run: bun run check:auth-guards
+      - name: jest
+        run: bun run test -- --ci --reporters=default
+      - name: build
+        env:
+          BETTER_AUTH_SECRET: "ci-only-not-used-at-build-time"
+          NEXT_PUBLIC_APP_URL: "http://localhost:3000"
+        run: bun run build
+
+  playwright:
+    name: playwright (main + nightly)
+    if: github.event_name != 'pull_request'
+    needs: [static-gates]
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: crate
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d crate"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/crate
+      DATABASE_URL_DIRECT: postgres://postgres:postgres@localhost:5432/crate
+      BETTER_AUTH_SECRET: "ci-playwright-fixed-secret-32-bytes-ok"
+      BETTER_AUTH_URL: "http://localhost:3010"
+      NEXT_PUBLIC_APP_URL: "http://localhost:3010"
+      SKIP_DB_E2E: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: 1.3
+      - run: bun install --frozen-lockfile
+      - run: bun run db:migrate
+      - run: bun run db:seed
+      - name: install Playwright browsers
+        run: bunx playwright install --with-deps chromium
+      - run: bunx playwright test
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
