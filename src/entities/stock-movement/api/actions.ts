@@ -165,11 +165,11 @@ export async function stockInAction(
 // --- Stock Out ----------------------------------------------------------
 
 /**
- * Stock Out — locks the level via SELECT FOR UPDATE inside the tx, runs
- * checkDecrementAllowed (tested), refuses with field-level error when
- * insufficient. Concurrent decrements at the same (product, location)
- * serialize through the lock so two parallel sales can't both pass the
- * "have 5, want 3" check and leave the level at -1.
+ * Stock Out — serializes the level read via getLevelLocked's advisory lock
+ * inside the tx (DEC-013), runs checkDecrementAllowed (tested), refuses with
+ * field-level error when insufficient. Concurrent decrements at the same
+ * (product, location) serialize through the lock so two parallel sales can't
+ * both pass the "have 5, want 3" check and leave the level at -1.
  */
 export async function stockOutAction(
   input: StockOutFormValues,
@@ -250,7 +250,8 @@ export async function stockOutAction(
 /**
  * Transfer — buildTransferPair() builds the paired rows; both insert in
  * ONE transaction. If either fails, both roll back. checkDecrementAllowed
- * gate runs against the SOURCE location with FOR UPDATE lock.
+ * gate runs against the SOURCE location, serialized by getLevelLocked's
+ * advisory lock (DEC-013).
  */
 export async function transferAction(
   input: TransferFormValues,
