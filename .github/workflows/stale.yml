@@ -1,0 +1,53 @@
+# Stale-issue bot per DEC-005 + GH issue #8.
+#
+# Vox's mandate (Council deliberation 2026-05-29): every issue must be
+# referenced by a commit OR closed within 14 days, otherwise the issue
+# board becomes a graveyard and erodes the §3 deliberation discipline.
+#
+# Default behavior (overridable by adding the `keep-open` label):
+#  - day 11: bot comments + applies `stale` label
+#  - day 14: bot closes the issue
+#  - any new comment / label change resets the timer
+#
+# PRs are NOT subject to staleness — they have their own review cycle.
+name: Stale issue cleanup
+
+on:
+  schedule:
+    - cron: "0 1 * * *" # 01:00 UTC daily — quiet hours
+
+permissions:
+  issues: write
+  pull-requests: read
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/stale@v9
+        with:
+          days-before-issue-stale: 11
+          days-before-issue-close: 3
+          stale-issue-label: "stale"
+          exempt-issue-labels: "keep-open,pinned"
+          stale-issue-message: |
+            This issue has been idle for 11 days. Per [DEC-005](https://github.com/tryea/crate-webapp/blob/main/.github)
+            and the Council's 14-day rule: the staleness clock prevents
+            the issue board from becoming a graveyard.
+
+            To keep it open: add the `keep-open` label, comment with a
+            status update, or reference it from a commit (`fixes #N`).
+
+            Otherwise this will auto-close in **3 days**.
+          close-issue-message: |
+            Auto-closing per the DEC-005 14-day rule. No commit
+            reference and no `keep-open` label.
+
+            If this work still matters, re-open and add `keep-open` —
+            no questions asked.
+          # Disable PR staleness explicitly
+          days-before-pr-stale: -1
+          days-before-pr-close: -1
+          # Bound the work per run so a backlog can't starve the action
+          operations-per-run: 100
