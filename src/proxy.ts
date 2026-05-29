@@ -8,13 +8,22 @@ import type { NextRequest } from "next/server";
  * in the (protected) layout via getServerSession(). This split is intentional:
  * proxy runs at the edge and should not hit the DB on every navigation.
  *
- * Cookie name: BetterAuth default is `<prefix>.session_token`, we set
- * `cookiePrefix: "crate"` in shared/lib/auth/server.ts.
+ * Cookie naming is environment-dependent:
+ *   dev (HTTP):       `crate.session_token`
+ *   prod (HTTPS):     `__Secure-crate.session_token`
+ *
+ * RFC 6265bis: any cookie issued with the `Secure` flag and the `__Secure-`
+ * prefix MUST keep that prefix in the Cookie header — browsers enforce.
+ * BetterAuth auto-applies the prefix in production. Production deploy at
+ * app.crate.ersaptaaristo.dev got bounced from /dashboard on 2026-05-29
+ * because the proxy only knew the dev name.
  */
-const SESSION_COOKIE = "crate.session_token";
+const SESSION_COOKIE_NAMES = ["__Secure-crate.session_token", "crate.session_token"];
 
 export function proxy(req: NextRequest) {
-  const hasSession = Boolean(req.cookies.get(SESSION_COOKIE)?.value);
+  const hasSession = SESSION_COOKIE_NAMES.some(
+    (name) => Boolean(req.cookies.get(name)?.value),
+  );
   if (!hasSession) {
     const url = new URL("/sign-in", req.url);
     url.searchParams.set("callbackUrl", req.nextUrl.pathname);
