@@ -18,6 +18,7 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:seed": "bun run src/db/seed.ts",
+    "db:rls": "bun run src/db/apply-rls.ts",
     "check:auth-guards": "bash scripts/check-auth-guards.sh"
   },
   "dependencies": {

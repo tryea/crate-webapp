@@ -1,0 +1,56 @@
+###############################################################################
+# crate-webapp — APP stack only.
+#
+# This file boots the Next.js app and connects to an EXTERNAL Postgres
+# running in its own independent docker-compose stack (see
+# ../infra/postgres/docker-compose.yml).
+#
+# Why the split:
+#  - The DB lifecycle (data persistence, backups, schema versioning) is
+#    longer-lived than the app's. Killing the app shouldn't risk the DB.
+#  - Multiple Crate-style projects on the same host can share the
+#    independent Postgres without re-deploying it.
+#  - Per `apply-to-upwork/CLAUDE.md`'s ClinicFlow lesson: self-hosted
+#    Postgres outside the app compose = portfolio signal of operational
+#    seriousness.
+#
+# Networks: app connects to the EXTERNAL Postgres via Docker network
+# `crate-data`, which the Postgres compose creates.
+###############################################################################
+
+services:
+  app:
+    image: crate-webapp:local
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: crate-app
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    environment:
+      NODE_ENV: production
+      # App runs with the non-superuser app_user role so RLS policies fire.
+      DATABASE_URL: ${DATABASE_URL:?missing — set in .env.local}
+      DATABASE_URL_DIRECT: ${DATABASE_URL_DIRECT:?missing — set in .env.local}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?missing}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+      NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-Crate}
+    healthcheck:
+      test: ["CMD", "bun", "-e", "fetch('http://127.0.0.1:3000/sign-in').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - crate-data
+
+###############################################################################
+# Network: external, created by ../infra/postgres/docker-compose.yml.
+# This is the link to the independent Postgres stack.
+###############################################################################
+networks:
+  crate-data:
+    name: crate-data
+    external: true
