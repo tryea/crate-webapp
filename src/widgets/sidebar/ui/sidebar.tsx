@@ -27,11 +27,18 @@ export function Sidebar({ role }: { role: Role }) {
               {g.label}
             </div>
             <ul className="flex flex-col gap-0.5">
-              {g.items.map((item) => (
-                <li key={item.href}>
-                  <SidebarNavLink item={item} />
-                </li>
-              ))}
+              {g.items.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <li key={item.href}>
+                    <SidebarNavLink
+                      href={item.href}
+                      label={item.label}
+                      icon={<Icon className="size-4 shrink-0" aria-hidden="true" />}
+                    />
+                  </li>
+                );
+              })}
             </ul>
           </div>
         ))}
