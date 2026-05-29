@@ -79,13 +79,13 @@ export function CommandPalette({
         <CommandSeparator />
 
         <CommandGroup heading="Actions">
-          <CommandItem onSelect={() => go("/movements/new?type=stock_in")}>
+          <CommandItem onSelect={() => go("/movements/new/stock-in")}>
             <ArrowDown /> Stock in (receive)
           </CommandItem>
-          <CommandItem onSelect={() => go("/movements/new?type=stock_out")}>
+          <CommandItem onSelect={() => go("/movements/new/stock-out")}>
             <ArrowUp /> Stock out (issue)
           </CommandItem>
-          <CommandItem onSelect={() => go("/movements/new?type=transfer")}>
+          <CommandItem onSelect={() => go("/movements/new/transfer")}>
             <ArrowDownUp /> Transfer
           </CommandItem>
           <CommandItem onSelect={() => go("/orders/new")}>
