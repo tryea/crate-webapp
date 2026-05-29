@@ -51,5 +51,62 @@
     "stockOut": "Stock out (issue)",
     "transfer": "Transfer",
     "createOrder": "Create purchase order"
+  },
+  "auth": {
+    "signIn": {
+      "title": "Sign in",
+      "subtitle": "Use your email and password to continue.",
+      "email": "Email",
+      "emailPlaceholder": "you@example.com",
+      "password": "Password",
+      "passwordPlaceholder": "at least 8 characters",
+      "show": "Show",
+      "hide": "Hide",
+      "showAria": "Show password",
+      "hideAria": "Hide password",
+      "submit": "Sign in",
+      "submitting": "Signing in…",
+      "errorCredentials": "We couldn't sign you in with those credentials. Try again.",
+      "errorGeneric": "Something went wrong. Please retry in a moment.",
+      "newHere": "New here?",
+      "createAccount": "Create an account"
+    },
+    "signUp": {
+      "title": "Create an account",
+      "subtitle": "Sign up to start managing inventory. New accounts default to <role>staff</role> role — an admin can promote you.",
+      "name": "Name",
+      "namePlaceholder": "Your name",
+      "email": "Email",
+      "emailPlaceholder": "you@example.com",
+      "password": "Password",
+      "passwordPlaceholder": "at least 8 characters",
+      "show": "Show",
+      "hide": "Hide",
+      "showAria": "Show password",
+      "hideAria": "Hide password",
+      "submit": "Create account",
+      "submitting": "Creating…",
+      "errorCreate": "We couldn't create your account.",
+      "errorGeneric": "Something went wrong. Please retry in a moment.",
+      "alreadyHave": "Already have an account?",
+      "signIn": "Sign in"
+    }
+  },
+  "system": {
+    "error": {
+      "eyebrow": "Error",
+      "title": "Something went wrong.",
+      "body": "This screen hit an unexpected error. Your data is safe — every stock change is an append-only ledger entry, so nothing here can be left half-written. Try again, and if it persists, head back to the dashboard.",
+      "reference": "Reference:",
+      "retry": "Try again",
+      "backToDashboard": "Back to dashboard"
+    },
+    "notFound": {
+      "eyebrow": "404",
+      "title": "We couldn't find that page.",
+      "body": "The link may be broken, or the page may have moved. Nothing was lost — your inventory data is exactly where you left it.",
+      "backToCrate": "Back to Crate",
+      "movementHistory": "Movement history"
+    }
   }
 }

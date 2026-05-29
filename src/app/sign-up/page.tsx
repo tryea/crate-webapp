@@ -3,10 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { signUp } from "@/shared/lib/auth/client";
 import { Button } from "@/shared/ui/button";
 
 export default function SignUpPage() {
+  const t = useTranslations("auth.signUp");
   const router = useRouter();
 
   const [name, setName] = useState("");
@@ -23,13 +25,13 @@ export default function SignUpPage() {
     try {
       const res = await signUp.email({ name, email, password });
       if (res.error) {
-        setError(res.error.message ?? "We couldn't create your account.");
+        setError(res.error.message ?? t("errorCreate"));
         return;
       }
       router.push("/dashboard");
       router.refresh();
     } catch {
-      setError("Something went wrong. Please retry in a moment.");
+      setError(t("errorGeneric"));
     } finally {
       setPending(false);
     }
@@ -39,19 +41,17 @@ export default function SignUpPage() {
     <main className="mx-auto flex min-h-svh w-full max-w-sm flex-col justify-center gap-8 px-6 py-10">
       <header className="flex flex-col gap-1">
         <p className="text-sm text-muted-foreground">Crate</p>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Create an account
-        </h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
         <p className="text-sm text-muted-foreground">
-          Sign up to start managing inventory. New accounts default to{" "}
-          <span className="font-medium">staff</span> role — an admin can
-          promote you.
+          {t.rich("subtitle", {
+            role: (chunks) => <span className="font-medium">{chunks}</span>,
+          })}
         </p>
       </header>
 
       <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
         <label className="flex flex-col gap-1.5 text-sm">
-          <span className="font-medium">Name</span>
+          <span className="font-medium">{t("name")}</span>
           <input
             type="text"
             autoComplete="name"
@@ -59,12 +59,12 @@ export default function SignUpPage() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             className="h-9 rounded-md border border-input bg-background px-3 text-sm shadow-xs outline-none ring-ring/0 focus-visible:ring-2 focus-visible:ring-ring/40"
-            placeholder="Your name"
+            placeholder={t("namePlaceholder")}
           />
         </label>
 
         <label className="flex flex-col gap-1.5 text-sm">
-          <span className="font-medium">Email</span>
+          <span className="font-medium">{t("email")}</span>
           <input
             type="email"
             autoComplete="email"
@@ -72,7 +72,7 @@ export default function SignUpPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="h-9 rounded-md border border-input bg-background px-3 text-sm shadow-xs outline-none ring-ring/0 focus-visible:ring-2 focus-visible:ring-ring/40"
-            placeholder="you@example.com"
+            placeholder={t("emailPlaceholder")}
           />
         </label>
 
@@ -83,15 +83,15 @@ export default function SignUpPage() {
               the button as a fallback target inside the <label>. */}
           <div className="flex items-center justify-between font-medium">
             <label htmlFor="password" className="cursor-pointer">
-              Password
+              {t("password")}
             </label>
             <button
               type="button"
               onClick={() => setShowPassword((v) => !v)}
-              aria-label={showPassword ? "Hide password" : "Show password"}
+              aria-label={showPassword ? t("hideAria") : t("showAria")}
               className="text-xs font-normal text-muted-foreground hover:text-foreground"
             >
-              {showPassword ? "Hide" : "Show"}
+              {showPassword ? t("hide") : t("show")}
             </button>
           </div>
           <input
@@ -103,7 +103,7 @@ export default function SignUpPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="h-9 rounded-md border border-input bg-background px-3 text-sm shadow-xs outline-none ring-ring/0 focus-visible:ring-2 focus-visible:ring-ring/40"
-            placeholder="at least 8 characters"
+            placeholder={t("passwordPlaceholder")}
           />
         </div>
 
@@ -117,17 +117,17 @@ export default function SignUpPage() {
         ) : null}
 
         <Button type="submit" disabled={pending} className="mt-2">
-          {pending ? "Creating…" : "Create account"}
+          {pending ? t("submitting") : t("submit")}
         </Button>
       </form>
 
       <p className="text-sm text-muted-foreground">
-        Already have an account?{" "}
+        {t("alreadyHave")}{" "}
         <Link
           href="/sign-in"
           className="font-medium text-foreground underline-offset-4 hover:underline"
         >
-          Sign in
+          {t("signIn")}
         </Link>
       </p>
     </main>

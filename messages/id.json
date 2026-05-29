@@ -51,5 +51,62 @@
     "stockOut": "Barang keluar (keluarkan)",
     "transfer": "Transfer",
     "createOrder": "Buat pesanan pembelian"
+  },
+  "auth": {
+    "signIn": {
+      "title": "Masuk",
+      "subtitle": "Gunakan email dan kata sandi Anda untuk melanjutkan.",
+      "email": "Email",
+      "emailPlaceholder": "anda@contoh.com",
+      "password": "Kata sandi",
+      "passwordPlaceholder": "minimal 8 karakter",
+      "show": "Tampilkan",
+      "hide": "Sembunyikan",
+      "showAria": "Tampilkan kata sandi",
+      "hideAria": "Sembunyikan kata sandi",
+      "submit": "Masuk",
+      "submitting": "Sedang masuk…",
+      "errorCredentials": "Kami tidak dapat memproses masuk dengan kredensial tersebut. Coba lagi.",
+      "errorGeneric": "Terjadi kesalahan. Silakan coba lagi sebentar.",
+      "newHere": "Baru di sini?",
+      "createAccount": "Buat akun"
+    },
+    "signUp": {
+      "title": "Buat akun",
+      "subtitle": "Daftar untuk mulai mengelola inventaris. Akun baru otomatis berperan <role>staf</role> — admin dapat menaikkan peran Anda.",
+      "name": "Nama",
+      "namePlaceholder": "Nama Anda",
+      "email": "Email",
+      "emailPlaceholder": "anda@contoh.com",
+      "password": "Kata sandi",
+      "passwordPlaceholder": "minimal 8 karakter",
+      "show": "Tampilkan",
+      "hide": "Sembunyikan",
+      "showAria": "Tampilkan kata sandi",
+      "hideAria": "Sembunyikan kata sandi",
+      "submit": "Buat akun",
+      "submitting": "Membuat…",
+      "errorCreate": "Kami tidak dapat membuat akun Anda.",
+      "errorGeneric": "Terjadi kesalahan. Silakan coba lagi sebentar.",
+      "alreadyHave": "Sudah punya akun?",
+      "signIn": "Masuk"
+    }
+  },
+  "system": {
+    "error": {
+      "eyebrow": "Kesalahan",
+      "title": "Terjadi kesalahan.",
+      "body": "Layar ini mengalami kesalahan tak terduga. Data Anda aman — setiap perubahan stok adalah entri buku besar yang hanya bisa ditambahkan, jadi tidak ada yang tertulis setengah jalan. Coba lagi, dan jika masih berlanjut, kembali ke dasbor.",
+      "reference": "Referensi:",
+      "retry": "Coba lagi",
+      "backToDashboard": "Kembali ke dasbor"
+    },
+    "notFound": {
+      "eyebrow": "404",
+      "title": "Halaman tersebut tidak ditemukan.",
+      "body": "Tautannya mungkin rusak, atau halamannya mungkin telah dipindahkan. Tidak ada yang hilang — data inventaris Anda tetap persis di tempat Anda meninggalkannya.",
+      "backToCrate": "Kembali ke Crate",
+      "movementHistory": "Riwayat pergerakan"
+    }
   }
 }
