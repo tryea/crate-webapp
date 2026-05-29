@@ -203,3 +203,42 @@ describe("defends against bad data", () => {
     expect(p1.wac).toBe(0);
   });
 });
+
+describe("computeProductValuations — createdAt type handling (asTime branches)", () => {
+  // The dashboard passes Date objects, but the ledger row's createdAt can
+  // arrive as a numeric epoch (JSON) or an ISO string (raw SQL). asTime must
+  // normalise all three so chronological sort stays correct regardless of source.
+  test("numeric epoch timestamps sort correctly", () => {
+    const state = computeProductValuations([
+      { productId: "p1", type: "stock_out", quantity: -5, createdAt: Date.UTC(2026, 0, 2) },
+      { productId: "p1", type: "stock_in", quantity: 10, unitCost: 4, createdAt: Date.UTC(2026, 0, 1) },
+    ]);
+    const p1 = state.get("p1")!;
+    expect(p1.qty).toBe(5);
+    expect(p1.totalValue).toBe(20);
+    expect(p1.wac).toBe(4);
+  });
+
+  test("ISO string timestamps are parsed and sorted", () => {
+    const state = computeProductValuations([
+      { productId: "p1", type: "stock_in", quantity: 10, unitCost: 4, createdAt: "2026-01-02T00:00:00Z" },
+      { productId: "p1", type: "stock_in", quantity: 10, unitCost: 6, createdAt: "2026-01-01T00:00:00Z" },
+    ]);
+    const p1 = state.get("p1")!;
+    expect(p1.qty).toBe(20);
+    expect(p1.totalValue).toBe(100);
+    expect(p1.wac).toBe(5);
+  });
+
+  test("mixed Date / number / string timestamps interleave correctly", () => {
+    const state = computeProductValuations([
+      { productId: "p1", type: "stock_in", quantity: 10, unitCost: 5, createdAt: t("2026-01-01") },
+      { productId: "p1", type: "stock_in", quantity: 10, unitCost: 5, createdAt: Date.UTC(2026, 0, 2) },
+      { productId: "p1", type: "stock_out", quantity: -4, createdAt: "2026-01-03T00:00:00Z" },
+    ]);
+    const p1 = state.get("p1")!;
+    expect(p1.qty).toBe(16);
+    expect(p1.totalValue).toBe(80);
+    expect(p1.wac).toBe(5);
+  });
+});
