@@ -1,5 +1,5 @@
 import "server-only";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, sql } from "drizzle-orm";
 import { db } from "@/db/client";
 import {
   locations,
@@ -104,4 +104,87 @@ export async function listRecentMovementsServer(
     .leftJoin(locations, eq(stockMovements.locationId, locations.id))
     .orderBy(desc(stockMovements.createdAt))
     .limit(limit);
+}
+
+// --- Phase 5.5: reorder + low-stock alerts ----------------------------
+
+export interface LowStockProductRow {
+  productId: string;
+  sku: string;
+  name: string;
+  reorderPoint: number;
+  onHand: number;
+}
+
+/**
+ * Active products whose total on-hand (summed across all locations) is at
+ * or below the reorder point. Sorted by deficit (most-urgent first).
+ *
+ * Pure SQL: aggregates inside the query, no JS-side filtering. CHECK
+ * constraints + classifyStockHealth (pure-fn, tested) keep the math
+ * consistent across this query and the dashboard badge logic.
+ */
+export async function listLowStockProductsServer(
+  limit = 50,
+): Promise<LowStockProductRow[]> {
+  return db
+    .select({
+      productId: products.id,
+      sku: products.sku,
+      name: products.name,
+      reorderPoint: products.reorderPoint,
+      onHand: sql<number>`COALESCE(SUM(${stockMovements.quantity}), 0)::int`,
+    })
+    .from(products)
+    .leftJoin(stockMovements, eq(stockMovements.productId, products.id))
+    .where(eq(products.isActive, true))
+    .groupBy(products.id)
+    .having(
+      sql`COALESCE(SUM(${stockMovements.quantity}), 0) <= ${products.reorderPoint}`,
+    )
+    .orderBy(
+      asc(
+        sql`COALESCE(SUM(${stockMovements.quantity}), 0) - ${products.reorderPoint}`,
+      ),
+    )
+    .limit(limit);
+}
+
+/**
+ * Active transfer count — last N hours' worth of unique transferGroupIds.
+ * A transfer = one row pair sharing the same group_id, so distinct count
+ * = number of actual transfer events.
+ */
+export async function countActiveTransfersServer(hours = 24): Promise<number> {
+  const since = new Date(Date.now() - hours * 60 * 60 * 1000);
+  const [row] = await db
+    .select({
+      total: sql<number>`COUNT(DISTINCT ${stockMovements.transferGroupId})::int`,
+    })
+    .from(stockMovements)
+    .where(
+      and(
+        eq(stockMovements.type, "transfer_out"),
+        gte(stockMovements.createdAt, since),
+      ),
+    );
+  return row?.total ?? 0;
+}
+
+/**
+ * Stock-out movement count in the last N hours. Used for the dashboard's
+ * "Stock-outs (24h)" KPI.
+ */
+export async function countStockOutsServer(hours = 24): Promise<number> {
+  const since = new Date(Date.now() - hours * 60 * 60 * 1000);
+  const [row] = await db
+    .select({ total: sql<number>`COUNT(*)::int` })
+    .from(stockMovements)
+    .where(
+      and(
+        eq(stockMovements.type, "stock_out"),
+        gte(stockMovements.createdAt, since),
+      ),
+    );
+  return row?.total ?? 0;
 }
