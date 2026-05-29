@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getFormatter } from "next-intl/server";
 import { asc, eq } from "drizzle-orm";
 import { ChevronLeft } from "lucide-react";
 import { requireRole } from "@/shared/lib/auth/require-role";
@@ -28,12 +29,6 @@ const STATUS_LABEL: Record<string, string> = {
   cancelled: "Cancelled",
 };
 
-const DATE_FMT = new Intl.DateTimeFormat("en-GB", {
-  year: "numeric",
-  month: "short",
-  day: "2-digit",
-});
-
 export default async function PurchaseOrderDetailPage({
   params,
 }: {
@@ -41,6 +36,7 @@ export default async function PurchaseOrderDetailPage({
 }) {
   const { user } = await requireRole("staff");
   const { id } = await params;
+  const format = await getFormatter();
 
   const [detail, productRows] = await Promise.all([
     getPurchaseOrderServer(id),
@@ -92,13 +88,13 @@ export default async function PurchaseOrderDetailPage({
               {po.expectedDate ? (
                 <>
                   {" · Expected "}
-                  {DATE_FMT.format(new Date(po.expectedDate))}
+                  {format.dateTime(new Date(po.expectedDate), "date")}
                 </>
               ) : null}
               {po.receivedDate ? (
                 <>
                   {" · Received "}
-                  {DATE_FMT.format(new Date(po.receivedDate))}
+                  {format.dateTime(new Date(po.receivedDate), "date")}
                 </>
               ) : null}
             </p>

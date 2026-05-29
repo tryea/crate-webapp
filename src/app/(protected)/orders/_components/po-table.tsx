@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useFormatter } from "next-intl";
 import Link from "next/link";
 import { ClipboardList, Plus } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -21,12 +22,6 @@ export interface PoTableRow {
   totalOrdered: string;
   lineCount: number;
 }
-
-const DATE_FMT = new Intl.DateTimeFormat("en-GB", {
-  year: "numeric",
-  month: "short",
-  day: "2-digit",
-});
 
 const MONEY_FMT = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 0,
@@ -61,6 +56,7 @@ export function PoTable({
   warehouses: Array<{ id: string; name: string; code: string }>;
 }) {
   const [open, setOpen] = useState(false);
+  const format = useFormatter();
 
   const columns = useMemo<ColumnDef<PoTableRow>[]>(
     () => [
@@ -128,7 +124,7 @@ export function PoTable({
         cell: ({ row }) =>
           row.original.expectedDate ? (
             <span className="text-xs">
-              {DATE_FMT.format(new Date(row.original.expectedDate))}
+              {format.dateTime(new Date(row.original.expectedDate), "date")}
             </span>
           ) : (
             <span className="text-muted-foreground">—</span>
@@ -140,12 +136,12 @@ export function PoTable({
         size: 130,
         cell: ({ row }) => (
           <span className="font-mono text-[10px] text-muted-foreground">
-            {DATE_FMT.format(new Date(row.original.createdAt))}
+            {format.dateTime(new Date(row.original.createdAt), "date")}
           </span>
         ),
       },
     ],
-    [],
+    [format],
   );
 
   return (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useFormatter } from "next-intl";
 import { UsersRound } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/shared/ui/data-table";
@@ -15,12 +16,6 @@ export interface UsersTableRow {
   role: "admin" | "manager" | "staff";
   createdAt: Date | string;
 }
-
-const DATE_FMT = new Intl.DateTimeFormat("en-GB", {
-  year: "numeric",
-  month: "short",
-  day: "2-digit",
-});
 
 const ROLE_CLASSES: Record<UsersTableRow["role"], string> = {
   admin: "bg-info/10 text-info border-info/20",
@@ -45,6 +40,7 @@ function monogram(name: string): string {
 }
 
 export function UsersTable({ rows }: { rows: UsersTableRow[] }) {
+  const format = useFormatter();
   const columns = useMemo<ColumnDef<UsersTableRow>[]>(
     () => [
       {
@@ -94,12 +90,12 @@ export function UsersTable({ rows }: { rows: UsersTableRow[] }) {
         size: 120,
         cell: ({ row }) => (
           <span className="font-mono text-[11px] text-muted-foreground">
-            {DATE_FMT.format(new Date(row.original.createdAt))}
+            {format.dateTime(new Date(row.original.createdAt), "date")}
           </span>
         ),
       },
     ],
-    [],
+    [format],
   );
 
   return (

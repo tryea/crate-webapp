@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useFormatter } from "next-intl";
 import {
   ArrowDown,
   ArrowDownUp,
@@ -29,14 +30,6 @@ export interface MovementRow {
   locationCode: string | null;
 }
 
-const DATE_FMT = new Intl.DateTimeFormat("en-GB", {
-  year: "numeric",
-  month: "short",
-  day: "2-digit",
-  hour: "2-digit",
-  minute: "2-digit",
-});
-
 const TYPE_META: Record<
   MovementRow["type"],
   { label: string; icon: React.ComponentType<{ className?: string }>; classes: string }
@@ -49,6 +42,7 @@ const TYPE_META: Record<
 };
 
 export function MovementsTable({ initial }: { initial: MovementRow[] }) {
+  const format = useFormatter();
   const columns = useMemo<ColumnDef<MovementRow>[]>(
     () => [
       {
@@ -57,7 +51,7 @@ export function MovementsTable({ initial }: { initial: MovementRow[] }) {
         size: 160,
         cell: ({ row }) => (
           <span className="font-mono text-[11px] text-muted-foreground">
-            {DATE_FMT.format(new Date(row.original.createdAt))}
+            {format.dateTime(new Date(row.original.createdAt), "dateTime")}
           </span>
         ),
       },
@@ -147,7 +141,7 @@ export function MovementsTable({ initial }: { initial: MovementRow[] }) {
           ),
       },
     ],
-    [],
+    [format],
   );
 
   return (

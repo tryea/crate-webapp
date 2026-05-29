@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import { useFormatter } from "next-intl";
 import { FolderTree, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Category } from "@/db/schema";
@@ -20,12 +21,6 @@ import { CategoryFormDialog } from "./category-form-dialog";
 
 type Mode = "create" | "edit";
 
-const DATE_FMT = new Intl.DateTimeFormat("en-GB", {
-  year: "numeric",
-  month: "short",
-  day: "2-digit",
-});
-
 export function CategoriesTable({
   initial,
   canManage,
@@ -33,6 +28,7 @@ export function CategoriesTable({
   initial: Category[];
   canManage: boolean;
 }) {
+  const format = useFormatter();
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<Mode>("create");
   const [editing, setEditing] = useState<Category | null>(null);
@@ -88,7 +84,7 @@ export function CategoriesTable({
         size: 140,
         cell: ({ row }) => (
           <span className="text-xs text-muted-foreground">
-            {DATE_FMT.format(new Date(row.original.createdAt))}
+            {format.dateTime(new Date(row.original.createdAt), "date")}
           </span>
         ),
       },
@@ -128,8 +124,8 @@ export function CategoriesTable({
 
     return cols;
     // openEdit + handleDelete are stable enough for our table; intentional dep list.
-     
-  }, [canManage]);
+
+  }, [canManage, format]);
 
   return (
     <>

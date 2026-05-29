@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useFormatter } from "next-intl";
 import { Download, History } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/shared/ui/data-table";
@@ -21,15 +22,6 @@ export interface AuditTableRow {
   createdAt: Date | string;
 }
 
-const DATE_FMT = new Intl.DateTimeFormat("en-GB", {
-  year: "numeric",
-  month: "short",
-  day: "2-digit",
-  hour: "2-digit",
-  minute: "2-digit",
-  second: "2-digit",
-});
-
 const ACTION_CLASSES: Record<string, string> = {
   create: "bg-success/10 text-success border-success/20",
   update: "bg-info/10 text-info border-info/20",
@@ -42,6 +34,7 @@ const ACTION_CLASSES: Record<string, string> = {
 };
 
 export function AuditTable({ rows }: { rows: AuditTableRow[] }) {
+  const format = useFormatter();
   const columns = useMemo<ColumnDef<AuditTableRow>[]>(
     () => [
       {
@@ -50,7 +43,7 @@ export function AuditTable({ rows }: { rows: AuditTableRow[] }) {
         size: 180,
         cell: ({ row }) => (
           <span className="font-mono text-[11px] text-muted-foreground">
-            {DATE_FMT.format(new Date(row.original.createdAt))}
+            {format.dateTime(new Date(row.original.createdAt), "timestamp")}
           </span>
         ),
       },
@@ -120,7 +113,7 @@ export function AuditTable({ rows }: { rows: AuditTableRow[] }) {
         },
       },
     ],
-    [],
+    [format],
   );
 
   function handleExport() {

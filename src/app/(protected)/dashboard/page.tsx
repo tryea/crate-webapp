@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getFormatter } from "next-intl/server";
 import { BarChart3, ChevronRight, PackageOpen } from "lucide-react";
 import { requireRole } from "@/shared/lib/auth/require-role";
 import {
@@ -18,13 +19,6 @@ import { buttonVariants } from "@/shared/ui/button";
 import { cn } from "@/shared/lib/utils";
 import { TopProductsChart } from "./_components/top-products-chart";
 
-const TIME_FMT = new Intl.DateTimeFormat("en-GB", {
-  hour: "2-digit",
-  minute: "2-digit",
-  month: "short",
-  day: "2-digit",
-});
-
 const MONEY_FMT = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 0,
   maximumFractionDigits: 0,
@@ -32,6 +26,7 @@ const MONEY_FMT = new Intl.NumberFormat("en-US", {
 
 export default async function DashboardPage() {
   const { user } = await requireRole("staff");
+  const format = await getFormatter();
 
   const [lowStock, stockOuts24h, activeTransfers, recent, valuation, topProducts] =
     await Promise.all([
@@ -277,7 +272,7 @@ export default async function DashboardPage() {
                         {m.quantity}
                       </span>
                       <span className="font-mono text-[10px] text-muted-foreground">
-                        {TIME_FMT.format(new Date(m.createdAt))}
+                        {format.dateTime(new Date(m.createdAt), "compact")}
                       </span>
                     </div>
                   </li>
