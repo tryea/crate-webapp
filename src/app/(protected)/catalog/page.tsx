@@ -1,8 +1,17 @@
 import { requireRole } from "@/shared/lib/auth/require-role";
-import { ProductsDemoTable } from "./_components/products-demo-table";
+import { listProductsServer } from "@/entities/product/api/server";
+import { listCategoriesServer } from "@/entities/category/api/server";
+import { listSuppliersServer } from "@/entities/supplier/api/server";
+import { ProductsTable } from "./_components/products-table";
 
 export default async function CatalogPage() {
-  await requireRole("staff");
+  const { user } = await requireRole("staff");
+  const [products, categories, suppliers] = await Promise.all([
+    listProductsServer(),
+    listCategoriesServer(),
+    listSuppliersServer(),
+  ]);
+  const canManage = user.role === "manager" || user.role === "admin";
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-6 py-8">
@@ -12,12 +21,17 @@ export default async function CatalogPage() {
         </p>
         <h1 className="text-2xl font-semibold tracking-tight">Products</h1>
         <p className="text-sm text-muted-foreground">
-          Demo table on static data — Phase 4 wires this to the Drizzle product
-          query with create / edit / delete + storyblok content overlay.
+          Every SKU you stock. Archive products you no longer carry instead
+          of deleting — preserves stock-movement history.
         </p>
       </header>
 
-      <ProductsDemoTable />
+      <ProductsTable
+        initial={products}
+        categories={categories.map((c) => ({ id: c.id, name: c.name }))}
+        suppliers={suppliers.map((s) => ({ id: s.id, name: s.name }))}
+        canManage={canManage}
+      />
     </main>
   );
 }

@@ -41,7 +41,10 @@ export function FormField<
   className,
   render,
 }: {
-  control: Control<TFieldValues>;
+  // RHF 7.76+'s Control has 3 generics: <TFieldValues, TContext, TTransformedValues>.
+  // Accept any context / transformed-output so callers can pass form.control
+  // from useForm regardless of how they parameterize TContext / TOut.
+  control: Control<TFieldValues, unknown, FieldValues>;
   name: TName;
   label: string;
   description?: string;
