@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { Sidebar } from "@/widgets/sidebar";
+import { Sidebar, MobileNav } from "@/widgets/sidebar";
 import { Topbar } from "@/widgets/topbar";
 import { CommandLauncher } from "@/widgets/command-palette";
 import { Toaster } from "@/shared/ui/sonner";
@@ -32,7 +32,11 @@ export default async function ProtectedLayout({
     <div className="flex min-h-svh w-full">
       <Sidebar role={role} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <Topbar user={user} actions={<CommandLauncher />} />
+        <Topbar
+          user={user}
+          actions={<CommandLauncher />}
+          leading={<MobileNav role={role} />}
+        />
         {children}
       </div>
       <Toaster />

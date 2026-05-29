@@ -4,8 +4,15 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { Eye, EyeOff } from "lucide-react";
 import { signIn } from "@/shared/lib/auth/client";
 import { Button } from "@/shared/ui/button";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@/shared/ui/input-group";
 
 export function SignInForm() {
   const t = useTranslations("auth.signIn");
@@ -62,34 +69,35 @@ export function SignInForm() {
         </label>
 
         <div className="flex flex-col gap-1.5 text-sm">
-          {/* Label + show-toggle as siblings (not descendants of label) so
-              the input is the ONLY element associated with the "Password"
-              accessible name. Playwright's getByLabel can't resolve a
-              wrapped <button> as a fallback target. */}
-          <div className="flex items-center justify-between font-medium">
-            <label htmlFor="password" className="cursor-pointer">
-              {t("password")}
-            </label>
-            <button
-              type="button"
-              onClick={() => setShowPassword((v) => !v)}
-              aria-label={showPassword ? t("hideAria") : t("showAria")}
-              className="text-xs font-normal text-muted-foreground hover:text-foreground"
-            >
-              {showPassword ? t("hide") : t("show")}
-            </button>
-          </div>
-          <input
-            id="password"
-            type={showPassword ? "text" : "password"}
-            autoComplete="current-password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="h-9 rounded-md border border-input bg-background px-3 text-sm shadow-xs outline-none ring-ring/0 focus-visible:ring-2 focus-visible:ring-ring/40"
-            placeholder={t("passwordPlaceholder")}
-            minLength={8}
-          />
+          {/* Keep the visible <label> bound to the input by id so the input's
+              accessible name stays exactly "Password" — the e2e specs use
+              getByLabel("Password", { exact: true }), which must NOT also
+              match the toggle's "Show password" aria-label. */}
+          <label htmlFor="password" className="font-medium">
+            {t("password")}
+          </label>
+          <InputGroup className="h-9 rounded-md">
+            <InputGroupInput
+              id="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder={t("passwordPlaceholder")}
+              minLength={8}
+            />
+            <InputGroupAddon align="inline-end">
+              <InputGroupButton
+                type="button"
+                size="icon-xs"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? t("hideAria") : t("showAria")}
+              >
+                {showPassword ? <EyeOff /> : <Eye />}
+              </InputGroupButton>
+            </InputGroupAddon>
+          </InputGroup>
         </div>
 
         {error ? (

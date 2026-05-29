@@ -49,5 +49,6 @@ export const config = {
     "/settings/:path*",
     "/users/:path*",
     "/audit/:path*",
+    "/account/:path*",
   ],
 };

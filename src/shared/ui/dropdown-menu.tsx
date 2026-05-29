@@ -77,10 +77,22 @@ function DropdownMenuItem({
   className,
   inset,
   variant = "default",
+  onSelect,
+  onClick,
   ...props
 }: MenuPrimitive.Item.Props & {
   inset?: boolean
   variant?: "default" | "destructive"
+  /**
+   * shadcn/Radix compatibility shim. base-ui's `Menu.Item` fires `onClick`,
+   * NOT Radix's `onSelect` — and because it renders a `<div>`, a stray
+   * `onSelect` silently binds to the native text-selection event (valid DOM
+   * attr → typechecks → never runs on click). We map it to `onClick` so the
+   * ported shadcn call sites (and future muscle-memory `onSelect`) just work.
+   * NOTE: to keep the menu open after activation, use base-ui's
+   * `closeOnClick={false}` — NOT Radix's `event.preventDefault()`.
+   */
+  onSelect?: (event: React.MouseEvent<HTMLDivElement>) => void
 }) {
   return (
     <MenuPrimitive.Item
@@ -91,6 +103,10 @@ function DropdownMenuItem({
         "group/dropdown-menu-item relative flex cursor-default items-center gap-1.5 rounded-md px-1.5 py-1 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground not-data-[variant=destructive]:focus:**:text-accent-foreground data-inset:pl-7 data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 data-[variant=destructive]:focus:text-destructive dark:data-[variant=destructive]:focus:bg-destructive/20 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 data-[variant=destructive]:*:[svg]:text-destructive",
         className
       )}
+      onClick={(event) => {
+        onClick?.(event)
+        onSelect?.(event)
+      }}
       {...props}
     />
   )

@@ -17,7 +17,10 @@
       "warehouses": "Warehouses",
       "users": "Users",
       "settings": "Settings"
-    }
+    },
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "menuTitle": "Navigation"
   },
   "userMenu": {
     "ariaLabel": "User menu",
