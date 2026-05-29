@@ -1,11 +1,13 @@
 import Link from "next/link";
-import { ChevronRight, PackageOpen } from "lucide-react";
+import { BarChart3, ChevronRight, PackageOpen } from "lucide-react";
 import { requireRole } from "@/shared/lib/auth/require-role";
 import {
   countActiveTransfersServer,
   countStockOutsServer,
+  getValuationServer,
   listLowStockProductsServer,
   listRecentMovementsServer,
+  listTopProductsByValueServer,
 } from "@/entities/stock-movement/api/server";
 import { classifyStockHealth } from "@/entities/stock-movement/domain/stock-math";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card";
@@ -14,6 +16,7 @@ import { StockStatusBadge } from "@/shared/ui/stock-status-badge";
 import { Badge } from "@/shared/ui/badge";
 import { buttonVariants } from "@/shared/ui/button";
 import { cn } from "@/shared/lib/utils";
+import { TopProductsChart } from "./_components/top-products-chart";
 
 const TIME_FMT = new Intl.DateTimeFormat("en-GB", {
   hour: "2-digit",
@@ -22,15 +25,23 @@ const TIME_FMT = new Intl.DateTimeFormat("en-GB", {
   day: "2-digit",
 });
 
+const MONEY_FMT = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 0,
+});
+
 export default async function DashboardPage() {
   const { user } = await requireRole("staff");
 
-  const [lowStock, stockOuts24h, activeTransfers, recent] = await Promise.all([
-    listLowStockProductsServer(10),
-    countStockOutsServer(24),
-    countActiveTransfersServer(24),
-    listRecentMovementsServer(8),
-  ]);
+  const [lowStock, stockOuts24h, activeTransfers, recent, valuation, topProducts] =
+    await Promise.all([
+      listLowStockProductsServer(10),
+      countStockOutsServer(24),
+      countActiveTransfersServer(24),
+      listRecentMovementsServer(8),
+      getValuationServer(),
+      listTopProductsByValueServer(8),
+    ]);
 
   const lowStockCount = lowStock.length;
 
@@ -53,11 +64,14 @@ export default async function DashboardPage() {
         <Card>
           <CardHeader>
             <CardDescription>Total stock value</CardDescription>
-            <CardTitle className="text-2xl font-semibold">—</CardTitle>
+            <CardTitle className="text-2xl font-semibold tabular-nums">
+              {MONEY_FMT.format(Math.round(valuation.totalValue))}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <span className="text-xs text-muted-foreground">
-              Wires up in Phase 6 (weighted-average valuation).
+              Perpetual weighted-average cost across {valuation.perProduct.size}{" "}
+              SKU{valuation.perProduct.size === 1 ? "" : "s"}.
             </span>
           </CardContent>
         </Card>
@@ -111,6 +125,35 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       </section>
+
+      {/* Top items by value — Phase 6.4 chart */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div className="flex flex-col gap-1">
+            <CardTitle className="text-base">Top items by stock value</CardTitle>
+            <CardDescription>
+              Current on-hand × WAC. Sorted descending.
+            </CardDescription>
+          </div>
+          <Link
+            href="/catalog"
+            className="inline-flex items-center gap-0.5 text-xs text-muted-foreground hover:text-foreground"
+          >
+            Catalog <ChevronRight className="size-3.5" />
+          </Link>
+        </CardHeader>
+        <CardContent>
+          {topProducts.length === 0 ? (
+            <EmptyState
+              icon={BarChart3}
+              title="No valued inventory"
+              description="Receive stock with a unit cost to see this fill in."
+            />
+          ) : (
+            <TopProductsChart data={topProducts} />
+          )}
+        </CardContent>
+      </Card>
 
       {/* Low-stock + recent activity side-by-side */}
       <section className="grid gap-4 lg:grid-cols-[1fr_1fr]">

@@ -188,3 +188,82 @@ export async function countStockOutsServer(hours = 24): Promise<number> {
     );
   return row?.total ?? 0;
 }
+
+// --- Phase 6.4: valuation server query --------------------------------
+
+import {
+  computeProductValuations,
+  type ProductValuationState,
+} from "../domain/valuation";
+
+/**
+ * Pull every movement and walk the pure-fn valuator. The same math
+ * 16 Jest specs cover runs in production. For very large ledgers
+ * we'd switch to an incremental aggregate (materialized view); the
+ * cutoff is ~50k movements where the round-trip + JS walk gets slow.
+ */
+export async function getValuationServer(): Promise<{
+  perProduct: Map<string, ProductValuationState>;
+  totalValue: number;
+}> {
+  const rows = await db
+    .select({
+      productId: stockMovements.productId,
+      type: stockMovements.type,
+      quantity: stockMovements.quantity,
+      unitCost: stockMovements.unitCost,
+      createdAt: stockMovements.createdAt,
+    })
+    .from(stockMovements);
+
+  const movements = rows.map((r) => ({
+    productId: r.productId,
+    type: r.type as "stock_in" | "stock_out" | "transfer_in" | "transfer_out" | "adjustment",
+    quantity: r.quantity,
+    unitCost: r.unitCost == null ? null : Number(r.unitCost),
+    createdAt: r.createdAt,
+  }));
+
+  const perProduct = computeProductValuations(movements);
+  let totalValue = 0;
+  for (const v of perProduct.values()) totalValue += v.totalValue;
+  return { perProduct, totalValue };
+}
+
+/**
+ * Top N products by current inventory value. Joins to product
+ * for SKU + name so the chart can label without a second roundtrip.
+ */
+export async function listTopProductsByValueServer(
+  limit = 8,
+): Promise<Array<{ productId: string; sku: string; name: string; value: number; qty: number; wac: number }>> {
+  const { perProduct } = await getValuationServer();
+  if (perProduct.size === 0) return [];
+
+  const ids = Array.from(perProduct.keys());
+  const productRows = await db
+    .select({
+      id: products.id,
+      sku: products.sku,
+      name: products.name,
+    })
+    .from(products)
+    .where(sql`${products.id} IN (${sql.join(ids.map((id) => sql`${id}::uuid`), sql`, `)})`);
+  const productById = new Map(productRows.map((p) => [p.id, p]));
+
+  const arr: Array<{ productId: string; sku: string; name: string; value: number; qty: number; wac: number }> = [];
+  for (const [productId, v] of perProduct) {
+    if (v.qty <= 0) continue;
+    const p = productById.get(productId);
+    if (!p) continue;
+    arr.push({
+      productId,
+      sku: p.sku,
+      name: p.name,
+      value: v.totalValue,
+      qty: v.qty,
+      wac: v.wac,
+    });
+  }
+  return arr.sort((a, b) => b.value - a.value).slice(0, limit);
+}
