@@ -45,12 +45,18 @@ async function getAllowBackorder(): Promise<boolean> {
 }
 
 /**
- * Read current level inside a transaction (with row locks via SELECT FOR
- * UPDATE to prevent concurrent decrements from racing to a negative
- * level — COUNCIL §4.3 concurrent-update handling).
+ * Read current level inside a transaction, serialized against concurrent
+ * decrements so two stock-outs cannot both read the same level and race past
+ * zero — COUNCIL §4.3 concurrent-update handling (DEC-013).
  *
- * NB: postgres.js + Drizzle pass through the SQL literal; the FOR UPDATE
- * clause locks the rows that participate in the SUM until the tx commits.
+ * We CANNOT use `SELECT … FOR UPDATE` here: Postgres rejects row locks on an
+ * aggregate ("FOR UPDATE is not allowed with aggregate functions"), and even a
+ * row-lock over the raw movement rows would only lock rows that already exist —
+ * it cannot lock the not-yet-inserted phantom row a concurrent decrement is
+ * about to append. Instead we take a transaction-scoped ADVISORY lock on the
+ * logical (product, location) key: it serializes all mutations for that key
+ * regardless of row existence and auto-releases on commit/rollback. The level
+ * stays a pure SUM over the append-only ledger (no denormalized balance row).
  */
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
@@ -59,6 +65,9 @@ async function getLevelLocked(
   productId: string,
   locationId: string,
 ): Promise<number> {
+  await tx.execute(
+    sql`SELECT pg_advisory_xact_lock(hashtext(${productId}), hashtext(${locationId}))`,
+  );
   const [row] = await tx
     .select({
       total: sql<number>`COALESCE(SUM(${stockMovements.quantity}), 0)::int`,
@@ -69,8 +78,7 @@ async function getLevelLocked(
         eq(stockMovements.productId, productId),
         eq(stockMovements.locationId, locationId),
       ),
-    )
-    .for("update");
+    );
   return row?.total ?? 0;
 }
 
