@@ -1,16 +1,14 @@
 import { redirect } from "next/navigation";
+import { Sidebar } from "@/widgets/sidebar";
+import { Topbar } from "@/widgets/topbar";
+import { CommandLauncher } from "@/widgets/command-palette";
 import { getServerSession } from "@/shared/lib/auth/require-role";
+import type { Role } from "@/shared/lib/auth/require-role";
 
 /**
- * Layout-level belt-and-suspenders check.
- *
- * The cheap proxy.ts cookie-presence check at the edge catches 99% of
- * unauth requests cheaply. This server-side getServerSession() is the
- * authoritative validation — it hits the DB and returns the real session
- * object. If the cookie was forged or stale, we land here, see no session,
- * and redirect.
- *
- * Per DEC-003 §implementation gate.
+ * Authoritative server-side session check (proxy.ts at the edge is the
+ * cheap pre-filter). Renders the app shell — sidebar + topbar — around
+ * the route content.
  */
 export default async function ProtectedLayout({
   children,
@@ -21,5 +19,21 @@ export default async function ProtectedLayout({
   if (!session) {
     redirect("/sign-in");
   }
-  return <>{children}</>;
+
+  const role = ((session.user as { role?: Role }).role ?? "staff") as Role;
+  const user = {
+    name: session.user.name,
+    email: session.user.email,
+    role,
+  };
+
+  return (
+    <div className="flex min-h-svh w-full">
+      <Sidebar role={role} />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <Topbar user={user} actions={<CommandLauncher />} />
+        {children}
+      </div>
+    </div>
+  );
 }
