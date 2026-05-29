@@ -1,5 +1,5 @@
 import { test as setup, expect } from "@playwright/test";
-import path from "node:path";
+import { ROLES, authFile } from "./roles";
 
 /**
  * DEC-010 — E2E auth via storageState. Sign in ONCE per role and persist the
@@ -11,20 +11,10 @@ import path from "node:path";
  * DB). Outputs live in playwright/.auth/ which is gitignored and regenerated
  * every run, so a session-schema change can never leave stale cookies committed.
  *
- * Demo credentials are intentionally public (see project CLAUDE.md / seed).
+ * The role catalog + `authFile()` path helper live in the SIDE-EFFECT-FREE
+ * `./roles` module so journey specs can import the path without re-triggering
+ * these sign-in registrations (which would multiply logins past the limit).
  */
-const ROLES = [
-  { role: "admin", email: "admin@crate.local", password: "ChangeMe!Admin" },
-  { role: "manager", email: "manager@crate.local", password: "ChangeMe!Manager" },
-  { role: "staff", email: "staff@crate.local", password: "ChangeMe!Staff" },
-] as const;
-
-export type Role = (typeof ROLES)[number]["role"];
-
-/** Canonical storageState path for a role — imported by journey specs. */
-export const authFile = (role: Role): string =>
-  path.join(__dirname, ".auth", `${role}.json`);
-
 for (const { role, email, password } of ROLES) {
   setup(`authenticate as ${role}`, async ({ page }) => {
     await page.goto("/sign-in");

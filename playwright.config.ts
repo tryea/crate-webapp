@@ -30,7 +30,11 @@ export default defineConfig({
   projects: [
     // DEC-010: sign in once per role → storageState. Only with a seeded DB.
     // Emits playwright/.auth/<role>.json (gitignored, regenerated every run).
-    ...(useDb ? [{ name: "setup", testMatch: /auth\.setup\.ts/ }] : []),
+    // `testDir` override: the setup file lives in playwright/, not the global
+    // testDir (./e2e), and a project's testMatch only searches its own testDir.
+    ...(useDb
+      ? [{ name: "setup", testMatch: /auth\.setup\.ts/, testDir: "./playwright" }]
+      : []),
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
