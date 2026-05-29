@@ -45,12 +45,26 @@ services:
       start_period: 30s
     networks:
       - crate-data
+      # `coolify` network is REQUIRED when this compose is deployed via the
+      # Coolify `dockercompose` build pack. Without it Coolify's Traefik
+      # cannot reach the container → every public request returns 504
+      # gateway timeout. Documented in docs/setup/03-coolify-deploy.md and
+      # GH issue #3. Locally the `coolify` external network is absent and
+      # Docker Compose ignores the missing network gracefully.
+      - coolify
 
 ###############################################################################
-# Network: external, created by ../infra/postgres/docker-compose.yml.
-# This is the link to the independent Postgres stack.
+# Networks
+#  - crate-data: bridge to the INDEPENDENT Postgres stack (created by
+#    ../infra/postgres/docker-compose.yml).
+#  - coolify: host-level Traefik network on Coolify-managed VPS. External
+#    here so this file works both locally (network absent → no-op) and on
+#    Coolify (network present → Traefik attaches automatically).
 ###############################################################################
 networks:
   crate-data:
     name: crate-data
+    external: true
+  coolify:
+    name: coolify
     external: true
