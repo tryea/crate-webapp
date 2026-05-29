@@ -76,18 +76,26 @@ export default function SignUpPage() {
           />
         </label>
 
-        <label className="flex flex-col gap-1.5 text-sm">
-          <span className="flex items-center justify-between font-medium">
-            <span>Password</span>
+        <div className="flex flex-col gap-1.5 text-sm">
+          {/* Label + show-toggle as siblings (not descendants of label) so
+              the input is the ONLY element resolved by getByLabel(/password/i).
+              See e2e/auth-rbac-*.spec.ts — Playwright would otherwise resolve
+              the button as a fallback target inside the <label>. */}
+          <div className="flex items-center justify-between font-medium">
+            <label htmlFor="password" className="cursor-pointer">
+              Password
+            </label>
             <button
               type="button"
               onClick={() => setShowPassword((v) => !v)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
               className="text-xs font-normal text-muted-foreground hover:text-foreground"
             >
               {showPassword ? "Hide" : "Show"}
             </button>
-          </span>
+          </div>
           <input
+            id="password"
             type={showPassword ? "text" : "password"}
             autoComplete="new-password"
             required
@@ -97,7 +105,7 @@ export default function SignUpPage() {
             className="h-9 rounded-md border border-input bg-background px-3 text-sm shadow-xs outline-none ring-ring/0 focus-visible:ring-2 focus-visible:ring-ring/40"
             placeholder="at least 8 characters"
           />
-        </label>
+        </div>
 
         {error ? (
           <p

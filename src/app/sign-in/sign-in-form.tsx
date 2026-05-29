@@ -61,18 +61,26 @@ export function SignInForm() {
           />
         </label>
 
-        <label className="flex flex-col gap-1.5 text-sm">
-          <span className="flex items-center justify-between font-medium">
-            <span>Password</span>
+        <div className="flex flex-col gap-1.5 text-sm">
+          {/* Label + show-toggle as siblings (not descendants of label) so
+              the input is the ONLY element associated with the "Password"
+              accessible name. Playwright's getByLabel can't resolve a
+              wrapped <button> as a fallback target. */}
+          <div className="flex items-center justify-between font-medium">
+            <label htmlFor="password" className="cursor-pointer">
+              Password
+            </label>
             <button
               type="button"
               onClick={() => setShowPassword((v) => !v)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
               className="text-xs font-normal text-muted-foreground hover:text-foreground"
             >
               {showPassword ? "Hide" : "Show"}
             </button>
-          </span>
+          </div>
           <input
+            id="password"
             type={showPassword ? "text" : "password"}
             autoComplete="current-password"
             required
@@ -82,7 +90,7 @@ export function SignInForm() {
             placeholder="at least 8 characters"
             minLength={8}
           />
-        </label>
+        </div>
 
         {error ? (
           <p
