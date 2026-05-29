@@ -1,7 +1,9 @@
 import {
   ArrowDownUp,
+  Building2,
   ClipboardList,
   FileBarChart,
+  FolderTree,
   Gauge,
   Package,
   ScrollText,
@@ -35,7 +37,7 @@ export const NAV: NavGroup[] = [
     label: "Inventory",
     items: [
       { href: "/dashboard", label: "Dashboard", icon: Gauge, minRole: "staff" },
-      { href: "/catalog", label: "Catalog", icon: Package, minRole: "staff" },
+      { href: "/catalog", label: "Products", icon: Package, minRole: "staff" },
       { href: "/movements", label: "Movements", icon: ArrowDownUp, minRole: "staff" },
       { href: "/orders", label: "Purchase orders", icon: ClipboardList, minRole: "staff" },
     ],
@@ -50,7 +52,9 @@ export const NAV: NavGroup[] = [
   {
     label: "Setup",
     items: [
-      { href: "/warehouses", label: "Warehouses", icon: Warehouse, minRole: "manager" },
+      { href: "/catalog/categories", label: "Categories", icon: FolderTree, minRole: "staff" },
+      { href: "/catalog/suppliers", label: "Suppliers", icon: Building2, minRole: "staff" },
+      { href: "/catalog/warehouses", label: "Warehouses", icon: Warehouse, minRole: "staff" },
       { href: "/users", label: "Users", icon: UsersRound, minRole: "admin" },
       { href: "/settings", label: "Settings", icon: Settings, minRole: "admin" },
     ],
