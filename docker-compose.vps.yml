@@ -1,0 +1,29 @@
+###############################################################################
+# crate-webapp — VPS overlay for ersaptaaristo.dev portfolio host.
+#
+# Used in addition to docker-compose.yml:
+#   docker compose -f docker-compose.yml -f docker-compose.vps.yml up -d --build
+#
+# Differences from the default compose:
+#  - Attaches to the existing `vps-internal` bridge network so the app can
+#    reach the shared `postgres-shared` container (alias `postgres`).
+#  - Uses host-loopback port 4010 (Caddy reverse-proxies
+#    app.crate.ersaptaaristo.dev → 127.0.0.1:4010).
+#  - Drops the local-dev `crate-data` + `coolify` networks — neither
+#    exists on this host (Caddy, not Traefik; shared, not isolated Postgres).
+###############################################################################
+
+services:
+  app:
+    ports: !override
+      - "127.0.0.1:4010:3000"
+    networks: !override
+      - vps-internal
+
+networks:
+  vps-internal:
+    name: vps-internal
+    external: true
+  # Drop the dev-only networks declared in the base compose; this host has neither.
+  crate-data: !reset null
+  coolify: !reset null
