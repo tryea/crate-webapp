@@ -1,6 +1,6 @@
 # CI gates per DEC-005 + Bima's mandate.
 #
-# On every PR: typecheck + lint + jest + build + check:auth-guards.
+# On every PR: typecheck + lint + jest + build + check:auth-guards + check:i18n-parity.
 # On main + nightly: + Playwright (full).
 name: CI
 
@@ -17,7 +17,7 @@ env:
 
 jobs:
   static-gates:
-    name: typecheck · lint · jest · build · auth-guards
+    name: typecheck · lint · jest · build · auth-guards · i18n-parity
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -29,6 +29,7 @@ jobs:
       - run: bun run typecheck
       - run: bun run lint
       - run: bun run check:auth-guards
+      - run: bun run check:i18n-parity
       - name: jest
         run: bun run test -- --ci --reporters=default
       - name: build

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   ArrowDown,
   ArrowDownUp,
@@ -33,6 +34,7 @@ export function CommandPalette({
   onOpenChange: (open: boolean) => void;
 }) {
   const router = useRouter();
+  const t = useTranslations("command");
 
   function go(href: string) {
     onOpenChange(false);
@@ -41,55 +43,55 @@ export function CommandPalette({
 
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
-      <CommandInput placeholder="Search or jump…" />
+      <CommandInput placeholder={t("placeholder")} />
       <CommandList>
-        <CommandEmpty>No matches.</CommandEmpty>
+        <CommandEmpty>{t("empty")}</CommandEmpty>
 
-        <CommandGroup heading="Navigate">
+        <CommandGroup heading={t("groupNavigate")}>
           <CommandItem onSelect={() => go("/dashboard")}>
-            <Gauge /> Dashboard
+            <Gauge /> {t("dashboard")}
             <CommandShortcut>G D</CommandShortcut>
           </CommandItem>
           <CommandItem onSelect={() => go("/catalog")}>
-            <Package /> Catalog
+            <Package /> {t("catalog")}
             <CommandShortcut>G C</CommandShortcut>
           </CommandItem>
           <CommandItem onSelect={() => go("/movements")}>
-            <ArrowDownUp /> Movements
+            <ArrowDownUp /> {t("movements")}
             <CommandShortcut>G M</CommandShortcut>
           </CommandItem>
           <CommandItem onSelect={() => go("/orders")}>
-            <ClipboardList /> Purchase orders
+            <ClipboardList /> {t("orders")}
             <CommandShortcut>G O</CommandShortcut>
           </CommandItem>
           <CommandItem onSelect={() => go("/reports")}>
-            <FileBarChart /> Reports
+            <FileBarChart /> {t("reports")}
           </CommandItem>
           <CommandItem onSelect={() => go("/audit")}>
-            <ScrollText /> Audit log
+            <ScrollText /> {t("audit")}
           </CommandItem>
           <CommandItem onSelect={() => go("/warehouses")}>
-            <Warehouse /> Warehouses
+            <Warehouse /> {t("warehouses")}
           </CommandItem>
           <CommandItem onSelect={() => go("/settings")}>
-            <Settings /> Settings
+            <Settings /> {t("settings")}
           </CommandItem>
         </CommandGroup>
 
         <CommandSeparator />
 
-        <CommandGroup heading="Actions">
+        <CommandGroup heading={t("groupActions")}>
           <CommandItem onSelect={() => go("/movements/new/stock-in")}>
-            <ArrowDown /> Stock in (receive)
+            <ArrowDown /> {t("stockIn")}
           </CommandItem>
           <CommandItem onSelect={() => go("/movements/new/stock-out")}>
-            <ArrowUp /> Stock out (issue)
+            <ArrowUp /> {t("stockOut")}
           </CommandItem>
           <CommandItem onSelect={() => go("/movements/new/transfer")}>
-            <ArrowDownUp /> Transfer
+            <ArrowDownUp /> {t("transfer")}
           </CommandItem>
           <CommandItem onSelect={() => go("/orders/new")}>
-            <ClipboardPlus /> Create purchase order
+            <ClipboardPlus /> {t("createOrder")}
           </CommandItem>
         </CommandGroup>
       </CommandList>

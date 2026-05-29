@@ -20,6 +20,7 @@
     }
   },
   "userMenu": {
+    "ariaLabel": "Menu pengguna",
     "account": "Akun",
     "signOut": "Keluar",
     "theme": "Tema",
@@ -31,5 +32,24 @@
     "label": "Bahasa",
     "en": "English",
     "id": "Bahasa Indonesia"
+  },
+  "command": {
+    "placeholder": "Cari atau lompat…",
+    "launcherAria": "Buka panel perintah",
+    "empty": "Tidak ada hasil.",
+    "groupNavigate": "Navigasi",
+    "groupActions": "Tindakan",
+    "dashboard": "Dasbor",
+    "catalog": "Katalog",
+    "movements": "Pergerakan",
+    "orders": "Pesanan pembelian",
+    "reports": "Laporan",
+    "audit": "Log audit",
+    "warehouses": "Gudang",
+    "settings": "Pengaturan",
+    "stockIn": "Barang masuk (terima)",
+    "stockOut": "Barang keluar (keluarkan)",
+    "transfer": "Transfer",
+    "createOrder": "Buat pesanan pembelian"
   }
 }

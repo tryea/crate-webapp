@@ -20,6 +20,7 @@
     }
   },
   "userMenu": {
+    "ariaLabel": "User menu",
     "account": "Account",
     "signOut": "Sign out",
     "theme": "Theme",
@@ -31,5 +32,24 @@
     "label": "Language",
     "en": "English",
     "id": "Bahasa Indonesia"
+  },
+  "command": {
+    "placeholder": "Search or jump…",
+    "launcherAria": "Open command palette",
+    "empty": "No matches.",
+    "groupNavigate": "Navigate",
+    "groupActions": "Actions",
+    "dashboard": "Dashboard",
+    "catalog": "Catalog",
+    "movements": "Movements",
+    "orders": "Purchase orders",
+    "reports": "Reports",
+    "audit": "Audit log",
+    "warehouses": "Warehouses",
+    "settings": "Settings",
+    "stockIn": "Stock in (receive)",
+    "stockOut": "Stock out (issue)",
+    "transfer": "Transfer",
+    "createOrder": "Create purchase order"
   }
 }

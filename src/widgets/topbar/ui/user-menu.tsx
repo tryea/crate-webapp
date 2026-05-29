@@ -1,11 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { LogOut, Moon, Sun, SunMoon, UserRound } from "lucide-react";
 import { signOut } from "@/shared/lib/auth/client";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
@@ -13,6 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
+import { LocaleSwitcher } from "@/features/locale-switcher";
 import { useTheme, type Theme } from "@/shared/lib/theme/use-theme";
 
 export function UserMenu({
@@ -26,6 +29,7 @@ export function UserMenu({
 }) {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
+  const t = useTranslations("userMenu");
 
   async function handleSignOut() {
     await signOut();
@@ -46,7 +50,7 @@ export function UserMenu({
     <DropdownMenu>
       <DropdownMenuTrigger
         className="flex items-center gap-2 rounded-md px-1.5 py-1 text-sm hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
-        aria-label="User menu"
+        aria-label={t("ariaLabel")}
       >
         <span className="flex size-7 items-center justify-center rounded-full bg-muted text-xs font-medium">
           {initials}
@@ -59,36 +63,40 @@ export function UserMenu({
         </span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel className="flex flex-col gap-0.5">
-          <span className="truncate text-sm">{displayName}</span>
-          <span className="truncate text-xs font-normal text-muted-foreground">
-            {email}
-          </span>
-        </DropdownMenuLabel>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="flex flex-col gap-0.5">
+            <span className="truncate text-sm">{displayName}</span>
+            <span className="truncate text-xs font-normal text-muted-foreground">
+              {email}
+            </span>
+          </DropdownMenuLabel>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground/70 font-mono">
-          Theme
-        </DropdownMenuLabel>
         <DropdownMenuRadioGroup
           value={theme}
           onValueChange={(v) => setTheme(v as Theme)}
         >
+          <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground/70 font-mono">
+            {t("theme")}
+          </DropdownMenuLabel>
           <DropdownMenuRadioItem value="light" className="gap-2">
-            <Sun className="size-3.5" /> Light
+            <Sun className="size-3.5" /> {t("themeLight")}
           </DropdownMenuRadioItem>
           <DropdownMenuRadioItem value="dark" className="gap-2">
-            <Moon className="size-3.5" /> Dark
+            <Moon className="size-3.5" /> {t("themeDark")}
           </DropdownMenuRadioItem>
           <DropdownMenuRadioItem value="system" className="gap-2">
-            <SunMoon className="size-3.5" /> System
+            <SunMoon className="size-3.5" /> {t("themeSystem")}
           </DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>
         <DropdownMenuSeparator />
+        <LocaleSwitcher />
+        <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={() => router.push("/account")} className="gap-2">
-          <UserRound className="size-3.5" /> Account
+          <UserRound className="size-3.5" /> {t("account")}
         </DropdownMenuItem>
         <DropdownMenuItem onSelect={handleSignOut} className="gap-2 text-destructive focus:text-destructive">
-          <LogOut className="size-3.5" /> Sign out
+          <LogOut className="size-3.5" /> {t("signOut")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
