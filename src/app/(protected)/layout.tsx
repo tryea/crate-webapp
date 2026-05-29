@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { Sidebar } from "@/widgets/sidebar";
 import { Topbar } from "@/widgets/topbar";
 import { CommandLauncher } from "@/widgets/command-palette";
+import { Toaster } from "@/shared/ui/sonner";
 import { getServerSession } from "@/shared/lib/auth/require-role";
 import type { Role } from "@/shared/lib/auth/require-role";
 
@@ -34,6 +35,7 @@ export default async function ProtectedLayout({
         <Topbar user={user} actions={<CommandLauncher />} />
         {children}
       </div>
+      <Toaster />
     </div>
   );
 }

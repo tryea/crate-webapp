@@ -39,6 +39,14 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  /* Phase 3.1 — IMS semantic tokens. Use restrainedly (audit principle 7 SUB-RULE) — */
+  /* one signal per surface, never decoratively across stats. */
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -81,6 +89,13 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  /* IMS semantic (light) — calm green / amber / blue at consistent L+C. */
+  --success: oklch(0.62 0.14 152);
+  --success-foreground: oklch(0.985 0 0);
+  --warning: oklch(0.78 0.14 78);
+  --warning-foreground: oklch(0.205 0 0);
+  --info: oklch(0.66 0.13 235);
+  --info-foreground: oklch(0.985 0 0);
 }
 
 .dark {
@@ -115,6 +130,13 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  /* IMS semantic (dark) — slightly brighter to clear the dark canvas. */
+  --success: oklch(0.72 0.16 152);
+  --success-foreground: oklch(0.18 0.03 152);
+  --warning: oklch(0.84 0.15 80);
+  --warning-foreground: oklch(0.20 0.04 78);
+  --info: oklch(0.72 0.14 235);
+  --info-foreground: oklch(0.18 0.04 235);
 }
 
 @layer base {
