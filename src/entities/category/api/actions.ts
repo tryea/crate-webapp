@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db/client";
 import { categories, type Category } from "@/db/schema";
 import { requireRole } from "@/shared/lib/auth/require-role";
+import type { ActionResult } from "@/shared/lib/server-action/types";
 import {
   categoryFormSchema,
   categoryIdSchema,
@@ -16,10 +17,6 @@ import {
  * scripts/check-auth-guards.sh enforces this at lint time (DEC-003).
  * The Zod schema runs server-side too — never trust client validation.
  */
-
-export type ActionResult<T = unknown> =
-  | { ok: true; data: T }
-  | { ok: false; error: string; fieldErrors?: Record<string, string[]> };
 
 export async function createCategoryAction(
   input: CategoryFormValues,

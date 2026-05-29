@@ -15,5 +15,4 @@ export {
   updateCategoryAction,
   deleteCategoryAction,
   recreateCategoryAction,
-  type ActionResult,
 } from "./api/actions";
