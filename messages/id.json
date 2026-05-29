@@ -1,0 +1,35 @@
+{
+  "nav": {
+    "groups": {
+      "inventory": "Inventaris",
+      "insights": "Wawasan",
+      "setup": "Penyiapan"
+    },
+    "items": {
+      "dashboard": "Dasbor",
+      "products": "Produk",
+      "movements": "Pergerakan",
+      "orders": "Pesanan pembelian",
+      "reports": "Laporan",
+      "audit": "Log audit",
+      "categories": "Kategori",
+      "suppliers": "Pemasok",
+      "warehouses": "Gudang",
+      "users": "Pengguna",
+      "settings": "Pengaturan"
+    }
+  },
+  "userMenu": {
+    "account": "Akun",
+    "signOut": "Keluar",
+    "theme": "Tema",
+    "themeLight": "Terang",
+    "themeDark": "Gelap",
+    "themeSystem": "Sistem"
+  },
+  "locale": {
+    "label": "Bahasa",
+    "en": "English",
+    "id": "Bahasa Indonesia"
+  }
+}

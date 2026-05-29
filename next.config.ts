@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import createNextIntlPlugin from "next-intl/plugin";
 
 const nextConfig: NextConfig = {
   // Required for the Dockerfile runner stage — emits a self-contained
@@ -7,4 +8,8 @@ const nextConfig: NextConfig = {
   output: "standalone",
 };
 
-export default nextConfig;
+// DEC-007: points next-intl at our cookie-based request config. No locale
+// routing/middleware — the plugin only wires the RSC message loader.
+const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
+
+export default withNextIntl(nextConfig);

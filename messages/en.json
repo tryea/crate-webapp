@@ -1,0 +1,35 @@
+{
+  "nav": {
+    "groups": {
+      "inventory": "Inventory",
+      "insights": "Insights",
+      "setup": "Setup"
+    },
+    "items": {
+      "dashboard": "Dashboard",
+      "products": "Products",
+      "movements": "Movements",
+      "orders": "Purchase orders",
+      "reports": "Reports",
+      "audit": "Audit log",
+      "categories": "Categories",
+      "suppliers": "Suppliers",
+      "warehouses": "Warehouses",
+      "users": "Users",
+      "settings": "Settings"
+    }
+  },
+  "userMenu": {
+    "account": "Account",
+    "signOut": "Sign out",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System"
+  },
+  "locale": {
+    "label": "Language",
+    "en": "English",
+    "id": "Bahasa Indonesia"
+  }
+}

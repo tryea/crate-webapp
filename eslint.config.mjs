@@ -8,6 +8,9 @@ import boundaries from "eslint-plugin-boundaries";
  *   app → screens → widgets → features → entities → shared
  *   db is sibling infra: only entities + shared may import from it; nothing
  *   in db imports from FSD layers.
+ *   i18n (src/i18n/request.ts, DEC-007) is sibling infra too: it only reaches
+ *   into shared for locale constants; it is wired via next.config, not imported
+ *   by FSD layers.
  *
  * To prove the rule is live, intentionally write an upward import (e.g.
  * `src/entities/foo/index.ts` importing from `@/features/x`) and run
@@ -21,6 +24,7 @@ const fsdElements = [
   { type: "entities", pattern: "src/entities/*" },
   { type: "shared", pattern: "src/shared/*" },
   { type: "db", pattern: "src/db/*" },
+  { type: "i18n", pattern: "src/i18n/*" },
 ];
 
 const fsdRules = [
@@ -31,6 +35,7 @@ const fsdRules = [
   { from: "entities", allow: ["shared", "db"] },
   { from: "shared", allow: ["shared"] },
   { from: "db", allow: ["shared"] },
+  { from: "i18n", allow: ["shared"] },
 ];
 
 const eslintConfig = defineConfig([

@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale } from "next-intl/server";
 import "./globals.css";
 import { Providers } from "./_providers";
 import { THEME_SCRIPT } from "@/shared/lib/theme/script";
@@ -20,14 +22,19 @@ export const metadata: Metadata = {
     "Crate is a production-grade inventory management system with transactional stock integrity.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Resolved from the NEXT_LOCALE cookie via i18n/request.ts (DEC-007).
+  // NextIntlClientProvider inherits locale + messages from that request
+  // config automatically in RSC — no need to pass them as props.
+  const locale = await getLocale();
+
   return (
     <html
-      lang="en"
+      lang={locale}
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
@@ -40,7 +47,9 @@ export default function RootLayout({
         suppressHydrationWarning
         className="min-h-full flex flex-col"
       >
-        <Providers>{children}</Providers>
+        <NextIntlClientProvider>
+          <Providers>{children}</Providers>
+        </NextIntlClientProvider>
       </body>
     </html>
   );
