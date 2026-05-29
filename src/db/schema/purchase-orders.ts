@@ -12,7 +12,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { products } from "./products";
 import { suppliers } from "./catalog";
-import { users } from "./users";
+import { user } from "./_auth";
 import { warehouses } from "./warehouses";
 import { id, timestamps } from "./_shared";
 
@@ -39,7 +39,7 @@ export const purchaseOrders = pgTable(
     expectedDate: date("expected_date"),
     receivedDate: date("received_date"),
     notes: text("notes"),
-    createdBy: uuid("created_by").references(() => users.id, {
+    createdBy: text("created_by").references(() => user.id, {
       onDelete: "set null",
     }),
     ...timestamps(),

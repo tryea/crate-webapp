@@ -11,7 +11,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { locations } from "./warehouses";
 import { products } from "./products";
-import { users } from "./users";
+import { user } from "./_auth";
 import { createdAtOnly, id } from "./_shared";
 
 /**
@@ -78,7 +78,7 @@ export const stockMovements = pgTable(
     reference: text("reference"),
     transferGroupId: uuid("transfer_group_id"),
     notes: text("notes"),
-    createdBy: uuid("created_by").references(() => users.id, {
+    createdBy: text("created_by").references(() => user.id, {
       onDelete: "set null",
     }),
     ...createdAtOnly(),

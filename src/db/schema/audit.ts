@@ -6,7 +6,7 @@ import {
   text,
   uuid,
 } from "drizzle-orm/pg-core";
-import { users } from "./users";
+import { user } from "./_auth";
 import { createdAtOnly, id } from "./_shared";
 
 export const auditActionEnum = pgEnum("audit_action", [
@@ -24,7 +24,7 @@ export const auditLog = pgTable(
   "audit_log",
   {
     id: id(),
-    userId: uuid("user_id").references(() => users.id, {
+    userId: text("user_id").references(() => user.id, {
       onDelete: "set null",
     }),
     action: auditActionEnum("action").notNull(),

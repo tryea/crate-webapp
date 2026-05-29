@@ -5,17 +5,23 @@
  * Idempotency: this script DELETES all data first (in dependency order),
  * then inserts. Safe to run repeatedly in dev. NEVER run in production.
  *
+ * Per DEC-003 R1: users are created via BetterAuth's sign-up API so
+ * passwords are properly hashed and the account/session machinery is
+ * consistent with the runtime flow.
+ *
  * Usage: `bun run db:seed`
  */
 import { config } from "dotenv";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 config({ path: ".env.local" });
 config({ path: ".env" });
 
 import * as s from "./schema";
+import { auth } from "@/shared/lib/auth/server";
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL is required to run the seed.");
@@ -26,6 +32,26 @@ if (process.env.NODE_ENV === "production") {
 
 const client = postgres(process.env.DATABASE_URL, { max: 1 });
 const db = drizzle(client, { schema: s });
+
+async function signUpDemoUser(input: {
+  email: string;
+  name: string;
+  password: string;
+  role: "admin" | "manager" | "staff";
+}) {
+  await auth.api.signUpEmail({
+    body: {
+      email: input.email,
+      password: input.password,
+      name: input.name,
+    },
+  });
+  // BetterAuth's `additionalFields.role.input = false` blocks role-on-signup,
+  // so we promote the row directly after creation.
+  await db.update(s.user).set({ role: input.role }).where(eq(s.user.email, input.email));
+  const [row] = await db.select().from(s.user).where(eq(s.user.email, input.email));
+  return row;
+}
 
 async function main() {
   console.log("⟶ wiping existing data (dev only)…");
@@ -40,19 +66,32 @@ async function main() {
       ${s.warehouses},
       ${s.suppliers},
       ${s.categories},
-      ${s.users}
+      ${s.verification},
+      ${s.session},
+      ${s.account},
+      ${s.user}
       RESTART IDENTITY CASCADE`,
   );
 
-  console.log("⟶ users…");
-  const [admin, manager, staff] = await db
-    .insert(s.users)
-    .values([
-      { email: "admin@crate.local", name: "Admin", role: "admin" },
-      { email: "manager@crate.local", name: "Mira Manager", role: "manager" },
-      { email: "staff@crate.local", name: "Sam Staff", role: "staff" },
-    ])
-    .returning();
+  console.log("⟶ users (via BetterAuth sign-up)…");
+  const admin = await signUpDemoUser({
+    email: "admin@crate.local",
+    name: "Admin",
+    password: "ChangeMe!Admin",
+    role: "admin",
+  });
+  const manager = await signUpDemoUser({
+    email: "manager@crate.local",
+    name: "Mira Manager",
+    password: "ChangeMe!Manager",
+    role: "manager",
+  });
+  const staff = await signUpDemoUser({
+    email: "staff@crate.local",
+    name: "Sam Staff",
+    password: "ChangeMe!Staff",
+    role: "staff",
+  });
 
   console.log("⟶ categories…");
   const cats = await db
@@ -184,7 +223,7 @@ async function main() {
 
   console.log("⟶ done. Inserted:");
   console.log(
-    `   users: ${[admin, manager, staff].length} · categories: ${cats.length} · suppliers: ${sups.length}`,
+    `   users: ${[admin, manager, staff].length} (admin/manager/staff) · categories: ${cats.length} · suppliers: ${sups.length}`,
   );
   console.log(
     `   warehouses: ${whs.length} · locations: ${locs.length} · products: ${prods.length}`,

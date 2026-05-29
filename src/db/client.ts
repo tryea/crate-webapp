@@ -6,13 +6,17 @@ declare global {
   var __cratePgClient: ReturnType<typeof postgres> | undefined;
 }
 
+/**
+ * Build-time-safe URL fallback. postgres.js is lazy — it does not open a
+ * connection on construction, only on first query. So providing a dummy
+ * URL during `next build` (when env may be absent for route metadata
+ * collection) is safe. The first real query against a dummy URL will fail
+ * with a connection error, surfacing the misconfig at runtime.
+ */
+const FALLBACK_URL = "postgres://_unset:_unset@127.0.0.1:5432/_unset";
+
 function makeClient() {
-  const url = process.env.DATABASE_URL;
-  if (!url) {
-    throw new Error(
-      "DATABASE_URL is required at runtime (Supabase pooler URL on :6543, or local docker Postgres).",
-    );
-  }
+  const url = process.env.DATABASE_URL ?? FALLBACK_URL;
 
   // Per DEC-001 R2: on Supabase pooler, postgres.js must be configured with
   // `prepare: false` because the pooler runs in transaction mode and does not
