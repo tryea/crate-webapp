@@ -87,7 +87,7 @@ export default async function DashboardPage() {
             description="Receive a purchase order or record a stock-in to start the ledger."
             action={
               <Link
-                href="/movements/new?type=stock_in"
+                href="/movements/new/stock-in"
                 className={buttonVariants({ variant: "default" })}
               >
                 Record stock-in
