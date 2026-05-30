@@ -105,6 +105,9 @@
       "retry": "Try again",
       "backToDashboard": "Back to dashboard"
     },
+    "loading": {
+      "label": "Loading content"
+    },
     "notFound": {
       "eyebrow": "404",
       "title": "We couldn't find that page.",

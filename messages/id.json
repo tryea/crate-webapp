@@ -105,6 +105,9 @@
       "retry": "Coba lagi",
       "backToDashboard": "Kembali ke dasbor"
     },
+    "loading": {
+      "label": "Memuat konten"
+    },
     "notFound": {
       "eyebrow": "404",
       "title": "Halaman tersebut tidak ditemukan.",
