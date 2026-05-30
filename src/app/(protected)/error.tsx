@@ -13,9 +13,11 @@ import { Button, buttonVariants } from "@/shared/ui/button";
  * out. (The root error.tsx still catches errors thrown by the shell layout
  * itself, where the shell is necessarily unavailable.)
  *
- * Scope: this catches *page-render* errors only. It deliberately does NOT
- * touch (protected)/layout.tsx's getServerSession — layout self-fetch
- * hardening is a separate, parked concern.
+ * Scope: this catches *page-render* errors only. It does NOT catch
+ * (protected)/layout.tsx's getServerSession — that throw bubbles to the root
+ * boundary. Layout self-fetch resilience is handled upstream by DEC-024
+ * (getServerSessionResilient: retry-then-fail-closed-to-/sign-in), so a
+ * transient DB blip no longer reaches any error boundary at all.
  *
  * Content-scoped container (flex-1 + justify-center) rather than min-h-svh:
  * the shell already fills the viewport, so we fill and center the content

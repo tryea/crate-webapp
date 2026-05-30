@@ -4,7 +4,7 @@ import { Sidebar, MobileNav } from "@/widgets/sidebar";
 import { Topbar } from "@/widgets/topbar";
 import { CommandLauncher } from "@/widgets/command-palette";
 import { Toaster } from "@/shared/ui/sonner";
-import { getServerSession } from "@/shared/lib/auth/require-role";
+import { getServerSessionResilient } from "@/shared/lib/auth/require-role";
 import type { Role } from "@/shared/lib/auth/require-role";
 
 /**
@@ -17,7 +17,10 @@ export default async function ProtectedLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getServerSession();
+  // DEC-024: resilient fetch — a transient DB throw is retried (invisible to
+  // the operator); sustained failure fails closed to null → redirect below,
+  // instead of throwing and crashing the whole shell to the root boundary.
+  const session = await getServerSessionResilient();
   if (!session) {
     redirect("/sign-in");
   }

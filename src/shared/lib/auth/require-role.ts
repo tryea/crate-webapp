@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth, type Session } from "./server";
+import { resolveSessionWithRetry } from "./session-retry";
 
 export type Role = "admin" | "manager" | "staff";
 
@@ -17,6 +18,25 @@ const ROLE_RANK: Record<Role, number> = {
  */
 export async function getServerSession(): Promise<Session | null> {
   return auth.api.getSession({ headers: await headers() });
+}
+
+/**
+ * DEC-024 — resilient variant for the authenticated shell layout.
+ *
+ * BetterAuth's `getSession` returns `null` for no/expired session but THROWS
+ * `APIError(INTERNAL_SERVER_ERROR)` on a DB/infra failure. The bare
+ * `getServerSession` lets that throw escape, which crashes the entire shell to
+ * the root error boundary (`<Toaster>` included). This wrapper retries a
+ * transient throw (the common cold-tunnel blip becomes invisible) and FAILS
+ * CLOSED to `null` on sustained failure — so the layout's existing
+ * `if (!session) redirect("/sign-in")` covers infra failure too, without ever
+ * rendering authed chrome unverified. See `session-retry.ts` for the contract.
+ */
+export async function getServerSessionResilient(): Promise<Session | null> {
+  return resolveSessionWithRetry(
+    async () => auth.api.getSession({ headers: await headers() }),
+    { context: "protected-layout" },
+  );
 }
 
 /**
