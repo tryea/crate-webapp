@@ -78,6 +78,23 @@ test.describe("command palette · open + operate (issue-017 regression)", () => 
     await launcher(page).click();
     await expect(dialog(page)).toBeVisible();
 
+    // First arm the trap: wait until base-ui has moved focus INTO the popup.
+    await expect(page.locator('[data-slot="command-input"]')).toBeFocused();
+
+    // DEC-021 (corrected): the trap holds, but base-ui returns escaped focus
+    // ASYNCHRONOUSLY. The command input is the only tabbable element, and the
+    // popup is portaled to the end of <body>; so a Tab first wraps focus to the
+    // top of the document (skip-link → sidebar) for ONE frame, then base-ui's
+    // focus guard bounces it back via requestAnimationFrame (enqueueFocus,
+    // sync:false — node_modules/@base-ui/react/floating-ui-react/utils/
+    // enqueueFocus.js:28). A one-shot read right after the keypress samples that
+    // pre-rAF frame and sees a false "escape" — which is exactly the bug the
+    // DEC-021 principle warns about (never assert on the frame immediately after
+    // an async settle). Assert the SETTLED state instead: poll until focus is
+    // back off the page-behind. A genuine trap removal (focus stays out) never
+    // settles → the poll times out → the test still fails. Reality-proven via
+    // Playwright CLI (--repeat-each, deterministic green) and the failure
+    // snapshot, which shows focus already returned to the input by capture time.
     const focusEscaped = async () =>
       page.evaluate(() => {
         const dlg = document.querySelector('[role="dialog"]');
@@ -87,11 +104,11 @@ test.describe("command palette · open + operate (issue-017 regression)", () => 
 
     for (let i = 0; i < 6; i++) {
       await page.keyboard.press("Tab");
-      expect(await focusEscaped()).toBe(false);
+      await expect.poll(focusEscaped).toBe(false);
     }
     for (let i = 0; i < 3; i++) {
       await page.keyboard.press("Shift+Tab");
-      expect(await focusEscaped()).toBe(false);
+      await expect.poll(focusEscaped).toBe(false);
     }
   });
 });
