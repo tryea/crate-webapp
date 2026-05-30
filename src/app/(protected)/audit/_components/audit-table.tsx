@@ -23,14 +23,14 @@ export interface AuditTableRow {
 }
 
 const ACTION_CLASSES: Record<string, string> = {
-  create: "bg-success/10 text-success border-success/20",
-  update: "bg-info/10 text-info border-info/20",
-  delete: "bg-destructive/10 text-destructive border-destructive/20",
+  create: "bg-success/10 text-success-text border-success/20",
+  update: "bg-info/10 text-info-text border-info/20",
+  delete: "bg-destructive/10 text-destructive-text border-destructive/20",
   login: "bg-muted text-muted-foreground border-border",
   logout: "bg-muted text-muted-foreground border-border",
-  stock_movement: "bg-warning/10 text-warning border-warning/30",
-  po_receive: "bg-warning/10 text-warning border-warning/30",
-  po_status_change: "bg-info/10 text-info border-info/20",
+  stock_movement: "bg-warning/10 text-warning-text border-warning/30",
+  po_receive: "bg-warning/10 text-warning-text border-warning/30",
+  po_status_change: "bg-info/10 text-info-text border-info/20",
 };
 
 export function AuditTable({ rows }: { rows: AuditTableRow[] }) {

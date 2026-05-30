@@ -20,19 +20,19 @@ const VARIANTS: Record<
 > = {
   "in-stock": {
     label: "In stock",
-    classes: "bg-success/10 text-success border-success/20",
+    classes: "bg-success/10 text-success-text border-success/20",
   },
   "low-stock": {
     label: "Low stock",
-    classes: "bg-warning/10 text-warning border-warning/30",
+    classes: "bg-warning/10 text-warning-text border-warning/30",
   },
   "out-of-stock": {
     label: "Out of stock",
-    classes: "bg-destructive/10 text-destructive border-destructive/20",
+    classes: "bg-destructive/10 text-destructive-text border-destructive/20",
   },
   "on-transit": {
     label: "On transit",
-    classes: "bg-info/10 text-info border-info/20",
+    classes: "bg-info/10 text-info-text border-info/20",
   },
 };
 

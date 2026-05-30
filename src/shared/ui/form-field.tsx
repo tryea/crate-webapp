@@ -76,7 +76,7 @@ export function FormField<
             {required ? (
               <span
                 aria-hidden="true"
-                className="ml-0.5 text-destructive/80"
+                className="ml-0.5 text-destructive-text/80"
               >
                 *
               </span>
@@ -98,7 +98,7 @@ export function FormField<
             <p
               id={errorId}
               role="alert"
-              className="text-xs text-destructive"
+              className="text-xs text-destructive-text"
             >
               {fieldState.error.message}
             </p>

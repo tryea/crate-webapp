@@ -18,7 +18,7 @@ export default async function StockOutPage() {
           <ChevronLeft className="size-3.5" /> Movements
         </Link>
         <header className="flex flex-col gap-1 pt-2">
-          <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground/70">
+          <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
             Movements · Issue
           </p>
           <h1 className="text-2xl font-semibold tracking-tight">Stock out</h1>

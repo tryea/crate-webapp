@@ -24,7 +24,7 @@ export async function Sidebar({ role }: { role: Role }) {
         {groups.map((g) => (
           <div key={g.labelKey} className="mb-4 last:mb-0">
             <div
-              className="px-2 pb-1.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70 font-mono"
+              className="px-2 pb-1.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground font-mono"
             >
               {t(`groups.${g.labelKey}`)}
             </div>

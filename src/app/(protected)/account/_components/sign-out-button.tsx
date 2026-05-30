@@ -24,7 +24,7 @@ export function SignOutButton() {
       variant="outline"
       onClick={handleSignOut}
       disabled={pending}
-      className="gap-2 text-destructive hover:text-destructive"
+      className="gap-2 text-destructive-text hover:text-destructive-text"
     >
       <LogOut className="size-4" aria-hidden="true" />
       {t("signOut")}

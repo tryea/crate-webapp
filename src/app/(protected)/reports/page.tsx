@@ -85,7 +85,7 @@ export default async function ReportsPage() {
   return (
     <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-6 py-8">
       <header className="flex flex-col gap-1">
-        <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground/70">
+        <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
           Insights
         </p>
         <h1 className="text-2xl font-semibold tracking-tight">Reports</h1>

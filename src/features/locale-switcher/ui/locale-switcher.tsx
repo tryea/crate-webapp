@@ -34,7 +34,7 @@ export function LocaleSwitcher() {
 
   return (
     <DropdownMenuRadioGroup value={current} onValueChange={onValueChange}>
-      <DropdownMenuLabel className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground/70">
+      <DropdownMenuLabel className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
         {t("label")}
       </DropdownMenuLabel>
       {LOCALES.map((loc) => (

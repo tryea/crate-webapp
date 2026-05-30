@@ -47,6 +47,13 @@
   --color-warning-foreground: var(--warning-foreground);
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
+  /* DEC-017 — status hue at TEXT-legible contrast (≥4.5:1 on white/`/10` tint). */
+  /* Distinct from the *fill* tokens above: use `text-{status}-text`, never the */
+  /* fill token, when the status color is the foreground text. */
+  --color-success-text: var(--success-text);
+  --color-warning-text: var(--warning-text);
+  --color-destructive-text: var(--destructive-text);
+  --color-info-text: var(--info-text);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -96,6 +103,12 @@
   --warning-foreground: oklch(0.205 0 0);
   --info: oklch(0.66 0.13 235);
   --info-foreground: oklch(0.985 0 0);
+  /* DEC-017 — accessible text shade of each status hue (same H, lower L). */
+  /* axe-verified ≥4.5:1 on white + on the `/10` tint at 10–14px. */
+  --success-text: oklch(0.50 0.13 152);
+  --warning-text: oklch(0.47 0.11 65);
+  --destructive-text: oklch(0.50 0.22 27);
+  --info-text: oklch(0.50 0.15 235);
 }
 
 .dark {
@@ -137,6 +150,13 @@
   --warning-foreground: oklch(0.20 0.04 78);
   --info: oklch(0.72 0.14 235);
   --info-foreground: oklch(0.18 0.04 235);
+  /* DEC-017 — in dark the bright status tokens already clear 4.5:1 as text, so */
+  /* the text shade IS the fill token here → the `text-*-text` swap is a no-op in */
+  /* dark (zero regression by construction), darker only in light. */
+  --success-text: var(--success);
+  --warning-text: var(--warning);
+  --destructive-text: var(--destructive);
+  --info-text: var(--info);
 }
 
 @layer base {

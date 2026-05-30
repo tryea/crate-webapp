@@ -117,7 +117,7 @@ export default function SignUpPage() {
         {error ? (
           <p
             role="alert"
-            className="rounded-md border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+            className="rounded-md border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive-text"
           >
             {error}
           </p>

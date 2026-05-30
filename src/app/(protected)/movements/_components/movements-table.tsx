@@ -34,11 +34,11 @@ const TYPE_META: Record<
   MovementRow["type"],
   { label: string; icon: React.ComponentType<{ className?: string }>; classes: string }
 > = {
-  stock_in: { label: "Stock in", icon: ArrowDown, classes: "bg-success/10 text-success border-success/20" },
-  stock_out: { label: "Stock out", icon: ArrowUp, classes: "bg-destructive/10 text-destructive border-destructive/20" },
-  transfer_in: { label: "Transfer in", icon: ArrowDown, classes: "bg-info/10 text-info border-info/20" },
-  transfer_out: { label: "Transfer out", icon: ArrowUp, classes: "bg-info/10 text-info border-info/20" },
-  adjustment: { label: "Adjustment", icon: Wrench, classes: "bg-warning/10 text-warning border-warning/30" },
+  stock_in: { label: "Stock in", icon: ArrowDown, classes: "bg-success/10 text-success-text border-success/20" },
+  stock_out: { label: "Stock out", icon: ArrowUp, classes: "bg-destructive/10 text-destructive-text border-destructive/20" },
+  transfer_in: { label: "Transfer in", icon: ArrowDown, classes: "bg-info/10 text-info-text border-info/20" },
+  transfer_out: { label: "Transfer out", icon: ArrowUp, classes: "bg-info/10 text-info-text border-info/20" },
+  adjustment: { label: "Adjustment", icon: Wrench, classes: "bg-warning/10 text-warning-text border-warning/30" },
 };
 
 export function MovementsTable({ initial }: { initial: MovementRow[] }) {
@@ -106,8 +106,8 @@ export function MovementsTable({ initial }: { initial: MovementRow[] }) {
           <span
             className={cn(
               "tabular-nums font-medium",
-              row.original.quantity > 0 && "text-success",
-              row.original.quantity < 0 && "text-destructive",
+              row.original.quantity > 0 && "text-success-text",
+              row.original.quantity < 0 && "text-destructive-text",
             )}
           >
             {row.original.quantity > 0 ? "+" : ""}

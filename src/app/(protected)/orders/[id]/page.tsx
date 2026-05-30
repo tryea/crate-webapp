@@ -15,9 +15,9 @@ import { PoReceiveForm } from "./_components/po-receive-form";
 
 const STATUS_CLASSES: Record<string, string> = {
   draft: "bg-muted text-muted-foreground border-border",
-  sent: "bg-info/10 text-info border-info/20",
-  partial: "bg-warning/10 text-warning border-warning/30",
-  received: "bg-success/10 text-success border-success/20",
+  sent: "bg-info/10 text-info-text border-info/20",
+  partial: "bg-warning/10 text-warning-text border-warning/30",
+  received: "bg-success/10 text-success-text border-success/20",
   cancelled: "bg-muted text-muted-foreground border-border line-through",
 };
 
@@ -71,7 +71,7 @@ export default async function PurchaseOrderDetailPage({
         </Link>
         <header className="flex flex-wrap items-end justify-between gap-4 pt-2">
           <div className="flex flex-col gap-1">
-            <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground/70">
+            <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
               Purchase order
             </p>
             <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-3">

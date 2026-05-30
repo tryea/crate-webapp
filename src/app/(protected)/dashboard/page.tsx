@@ -43,7 +43,7 @@ export default async function DashboardPage() {
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-6 py-8">
       <header className="flex flex-col gap-1">
-        <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground/70">
+        <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
           Dashboard
         </p>
         <h1 className="text-2xl font-semibold tracking-tight">
@@ -77,7 +77,7 @@ export default async function DashboardPage() {
             <CardTitle
               className={cn(
                 "text-2xl font-semibold tabular-nums",
-                lowStockCount > 0 && "text-warning",
+                lowStockCount > 0 && "text-warning-text",
               )}
             >
               {lowStockCount}
@@ -198,14 +198,14 @@ export default async function DashboardPage() {
                         {health === "out-of-stock" ? (
                           <Badge
                             variant="outline"
-                            className="border-destructive/20 bg-destructive/10 text-destructive"
+                            className="border-destructive/20 bg-destructive/10 text-destructive-text"
                           >
                             Out
                           </Badge>
                         ) : (
                           <Badge
                             variant="outline"
-                            className="border-warning/30 bg-warning/10 text-warning"
+                            className="border-warning/30 bg-warning/10 text-warning-text"
                           >
                             Low
                           </Badge>
@@ -264,8 +264,8 @@ export default async function DashboardPage() {
                       <span
                         className={cn(
                           "tabular-nums text-sm font-medium",
-                          m.quantity > 0 && "text-success",
-                          m.quantity < 0 && "text-destructive",
+                          m.quantity > 0 && "text-success-text",
+                          m.quantity < 0 && "text-destructive-text",
                         )}
                       >
                         {m.quantity > 0 ? "+" : ""}

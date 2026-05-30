@@ -18,8 +18,8 @@ export interface UsersTableRow {
 }
 
 const ROLE_CLASSES: Record<UsersTableRow["role"], string> = {
-  admin: "bg-info/10 text-info border-info/20",
-  manager: "bg-warning/10 text-warning border-warning/30",
+  admin: "bg-info/10 text-info-text border-info/20",
+  manager: "bg-warning/10 text-warning-text border-warning/30",
   staff: "bg-muted text-muted-foreground border-border",
 };
 

@@ -39,7 +39,7 @@ export default function ErrorPage({
         <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
         <p className="text-sm text-muted-foreground">{t("body")}</p>
         {error.digest ? (
-          <p className="font-mono text-xs text-muted-foreground/70">
+          <p className="font-mono text-xs text-muted-foreground">
             {t("reference")} {error.digest}
           </p>
         ) : null}

@@ -76,7 +76,7 @@ export function UserMenu({
           value={theme}
           onValueChange={(v) => setTheme(v as Theme)}
         >
-          <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground/70 font-mono">
+          <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-mono">
             {t("theme")}
           </DropdownMenuLabel>
           <DropdownMenuRadioItem value="light" className="gap-2">
@@ -95,7 +95,7 @@ export function UserMenu({
         <DropdownMenuItem onSelect={() => router.push("/account")} className="gap-2">
           <UserRound className="size-3.5" /> {t("account")}
         </DropdownMenuItem>
-        <DropdownMenuItem onSelect={handleSignOut} className="gap-2 text-destructive focus:text-destructive">
+        <DropdownMenuItem onSelect={handleSignOut} className="gap-2 text-destructive-text focus:text-destructive-text">
           <LogOut className="size-3.5" /> {t("signOut")}
         </DropdownMenuItem>
       </DropdownMenuContent>

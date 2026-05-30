@@ -69,7 +69,7 @@ export function MobileNav({ role }: { role: Role }) {
           >
             {groups.map((g) => (
               <div key={g.labelKey} className="mb-4 last:mb-0">
-                <div className="px-2 pb-1.5 font-mono text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">
+                <div className="px-2 pb-1.5 font-mono text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
                   {t(`groups.${g.labelKey}`)}
                 </div>
                 <ul className="flex flex-col gap-0.5">

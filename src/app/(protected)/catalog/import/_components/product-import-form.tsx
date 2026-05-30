@@ -337,11 +337,11 @@ function PreviewTable({ rows }: { rows: PreviewRow[] }) {
               <td className="px-3 py-1.5">{r.name}</td>
               <td className="px-3 py-1.5">
                 {r.ok ? (
-                  <Badge variant="outline" className="border-success/20 bg-success/10 text-success font-medium">
+                  <Badge variant="outline" className="border-success/20 bg-success/10 text-success-text font-medium">
                     Valid
                   </Badge>
                 ) : (
-                  <div className="flex items-center gap-2 text-xs text-destructive">
+                  <div className="flex items-center gap-2 text-xs text-destructive-text">
                     <XCircle className="size-3.5 shrink-0" aria-hidden="true" />
                     <span>{r.error}</span>
                   </div>
@@ -382,12 +382,12 @@ function ResultTable({ result }: { result: ProductImportResult }) {
               <td className="px-3 py-1.5 font-mono text-xs">{r.sku ?? "—"}</td>
               <td className="px-3 py-1.5">
                 {r.status === "inserted" && (
-                  <Badge variant="outline" className="border-success/20 bg-success/10 text-success">
+                  <Badge variant="outline" className="border-success/20 bg-success/10 text-success-text">
                     Inserted
                   </Badge>
                 )}
                 {r.status === "updated" && (
-                  <Badge variant="outline" className="border-info/20 bg-info/10 text-info">
+                  <Badge variant="outline" className="border-info/20 bg-info/10 text-info-text">
                     Updated
                   </Badge>
                 )}
@@ -397,7 +397,7 @@ function ResultTable({ result }: { result: ProductImportResult }) {
                   </Badge>
                 )}
                 {r.status === "error" && (
-                  <div className="flex items-center gap-2 text-xs text-destructive">
+                  <div className="flex items-center gap-2 text-xs text-destructive-text">
                     <AlertTriangle className="size-3.5 shrink-0" />
                     <span>{r.error}</span>
                   </div>
