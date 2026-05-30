@@ -11,6 +11,7 @@ import {
 } from "@/db/schema";
 import { requireRole } from "@/shared/lib/auth/require-role";
 import type { ActionResult } from "@/shared/lib/server-action/types";
+import { unexpectedActionError } from "@/shared/lib/server-action/errors";
 import {
   buildTransferPair,
   checkDecrementAllowed,
@@ -122,8 +123,7 @@ export async function stockInAction(
     revalidatePath("/catalog");
     return { ok: true, data: row };
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Database error";
-    return { ok: false, error: message };
+    return unexpectedActionError(err, "stockIn");
   }
 }
 
@@ -206,7 +206,7 @@ export async function stockOutAction(
         fieldErrors: { quantity: ["More than available at this location."] },
       };
     }
-    return { ok: false, error: message };
+    return unexpectedActionError(err, "stockOut");
   }
 }
 
@@ -322,7 +322,7 @@ export async function transferAction(
         fieldErrors: { quantity: ["More than available at source location."] },
       };
     }
-    return { ok: false, error: message };
+    return unexpectedActionError(err, "transfer");
   }
 }
 
@@ -406,6 +406,6 @@ export async function adjustmentAction(
         fieldErrors: { delta: ["Negative delta exceeds current level."] },
       };
     }
-    return { ok: false, error: message };
+    return unexpectedActionError(err, "adjustment");
   }
 }

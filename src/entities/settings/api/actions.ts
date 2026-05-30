@@ -6,6 +6,7 @@ import { db } from "@/db/client";
 import { auditLog, settings } from "@/db/schema";
 import { requireRole } from "@/shared/lib/auth/require-role";
 import type { ActionResult } from "@/shared/lib/server-action/types";
+import { unexpectedActionError } from "@/shared/lib/server-action/errors";
 import {
   STOCK_SETTINGS_KEY,
   stockSettingsFormSchema,
@@ -68,8 +69,7 @@ export async function updateStockSettingsAction(
     revalidatePath("/movements/new/transfer");
     return { ok: true, data: parsed.data };
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Database error";
-    return { ok: false, error: message };
+    return unexpectedActionError(err, "updateStockSettings");
   }
 }
 // suppress unused-import warning — sql kept for potential future ad-hoc updates

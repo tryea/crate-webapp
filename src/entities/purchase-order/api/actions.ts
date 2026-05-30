@@ -10,6 +10,7 @@ import {
 } from "@/db/schema";
 import { requireRole } from "@/shared/lib/auth/require-role";
 import type { ActionResult } from "@/shared/lib/server-action/types";
+import { unexpectedActionError } from "@/shared/lib/server-action/errors";
 import {
   poHeaderFormSchema,
   poIdSchema,
@@ -60,7 +61,7 @@ export async function createPurchaseOrderAction(
     } catch (err) {
       const message = err instanceof Error ? err.message : "Database error";
       if (message.includes("po_number_idx") && attempt === 0) continue;
-      return { ok: false, error: message };
+      return unexpectedActionError(err, "createPurchaseOrder");
     }
   }
   return { ok: false, error: "Could not allocate a PO number — retry." };
@@ -89,8 +90,7 @@ export async function setPoStatusAction(
     revalidatePath(`/orders/${idParse.data}`);
     return { ok: true, data: row };
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Database error";
-    return { ok: false, error: message };
+    return unexpectedActionError(err, "setPoStatus");
   }
 }
 
@@ -125,8 +125,7 @@ export async function addPoLineAction(
     revalidatePath(`/orders/${idParse.data}`);
     return { ok: true, data: row };
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Database error";
-    return { ok: false, error: message };
+    return unexpectedActionError(err, "addPoLine");
   }
 }
 
@@ -147,8 +146,7 @@ export async function deletePoLineAction(
     revalidatePath(`/orders/${row.poId}`);
     return { ok: true, data: undefined };
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Database error";
-    return { ok: false, error: message };
+    return unexpectedActionError(err, "deletePoLine");
   }
 }
 
@@ -352,6 +350,6 @@ export async function receivePoAction(
         error: "One or more lines would over-receive. Refresh and retry.",
       };
     }
-    return { ok: false, error: message };
+    return unexpectedActionError(err, "receivePo");
   }
 }

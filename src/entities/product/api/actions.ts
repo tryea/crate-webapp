@@ -6,6 +6,7 @@ import { db } from "@/db/client";
 import { products, type Product } from "@/db/schema";
 import { requireRole } from "@/shared/lib/auth/require-role";
 import type { ActionResult } from "@/shared/lib/server-action/types";
+import { unexpectedActionError } from "@/shared/lib/server-action/errors";
 import {
   productFormSchema,
   productIdSchema,
@@ -40,7 +41,7 @@ export async function createProductAction(
         fieldErrors: { sku: ["Already in use — pick a different SKU."] },
       };
     }
-    return { ok: false, error: message };
+    return unexpectedActionError(err, "createProduct");
   }
 }
 
@@ -80,7 +81,7 @@ export async function updateProductAction(
         fieldErrors: { sku: ["Already in use — pick a different SKU."] },
       };
     }
-    return { ok: false, error: message };
+    return unexpectedActionError(err, "updateProduct");
   }
 }
 
@@ -113,7 +114,7 @@ export async function deleteProductAction(
         error: "This product has stock movements — archive it (set inactive) instead of deleting.",
       };
     }
-    return { ok: false, error: message };
+    return unexpectedActionError(err, "deleteProduct");
   }
 }
 
@@ -130,8 +131,7 @@ export async function recreateProductAction(
     revalidatePath("/catalog");
     return { ok: true, data: restored ?? row };
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Database error";
-    return { ok: false, error: message };
+    return unexpectedActionError(err, "recreateProduct");
   }
 }
 
@@ -158,8 +158,7 @@ export async function setProductActiveAction(
     revalidatePath("/catalog");
     return { ok: true, data: row };
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Database error";
-    return { ok: false, error: message };
+    return unexpectedActionError(err, "setProductActive");
   }
 }
 
@@ -336,20 +335,27 @@ export async function importProductsAction(
             sku: row.sku,
           });
         } catch (err) {
-          const message = err instanceof Error ? err.message : "Database error";
+          // DEC-023 defense-in-depth: never stash a raw cause (which can
+          // carry SQL/schema text) in a per-row record — one refactor from
+          // "not returned today" to "returned tomorrow". Safe note for the
+          // operator; real cause logged server-side.
+          console.error(`[action:importProducts:row${rowNumber}]`, err);
           perRow.push({
             rowNumber,
             status: "error",
             sku: data.sku,
-            error: message.slice(0, 200),
+            error: "Row failed to import.",
           });
           throw err; // roll back the whole tx — partial imports aren't allowed
         }
       }
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Database error";
-    return { ok: false, error: `Import rolled back due to: ${message}` };
+    return unexpectedActionError(
+      err,
+      "importProducts",
+      "Import failed and was rolled back. Please check your file and try again.",
+    );
   }
 
   revalidatePath("/catalog");

@@ -6,6 +6,7 @@ import { db } from "@/db/client";
 import { categories, type Category } from "@/db/schema";
 import { requireRole } from "@/shared/lib/auth/require-role";
 import type { ActionResult } from "@/shared/lib/server-action/types";
+import { unexpectedActionError } from "@/shared/lib/server-action/errors";
 import {
   categoryFormSchema,
   categoryIdSchema,
@@ -45,7 +46,7 @@ export async function createCategoryAction(
         fieldErrors: { slug: ["Already in use — pick a different slug."] },
       };
     }
-    return { ok: false, error: message };
+    return unexpectedActionError(err, "createCategory");
   }
 }
 
@@ -96,7 +97,7 @@ export async function updateCategoryAction(
         fieldErrors: { slug: ["Already in use — pick a different slug."] },
       };
     }
-    return { ok: false, error: message };
+    return unexpectedActionError(err, "updateCategory");
   }
 }
 
@@ -126,8 +127,7 @@ export async function deleteCategoryAction(
     revalidatePath("/catalog/categories");
     return { ok: true, data: row };
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Database error";
-    return { ok: false, error: message };
+    return unexpectedActionError(err, "deleteCategory");
   }
 }
 
@@ -150,7 +150,6 @@ export async function recreateCategoryAction(
     revalidatePath("/catalog/categories");
     return { ok: true, data: restored ?? row };
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Database error";
-    return { ok: false, error: message };
+    return unexpectedActionError(err, "recreateCategory");
   }
 }

@@ -11,6 +11,7 @@ import {
 } from "@/db/schema";
 import { requireRole } from "@/shared/lib/auth/require-role";
 import type { ActionResult } from "@/shared/lib/server-action/types";
+import { unexpectedActionError } from "@/shared/lib/server-action/errors";
 import {
   locationFormSchema,
   locationIdSchema,
@@ -49,7 +50,7 @@ export async function createWarehouseAction(
         fieldErrors: { code: ["Already in use — pick a different code."] },
       };
     }
-    return { ok: false, error: message };
+    return unexpectedActionError(err, "createWarehouse");
   }
 }
 
@@ -90,7 +91,7 @@ export async function updateWarehouseAction(
         fieldErrors: { code: ["Already in use — pick a different code."] },
       };
     }
-    return { ok: false, error: message };
+    return unexpectedActionError(err, "updateWarehouse");
   }
 }
 
@@ -122,7 +123,7 @@ export async function deleteWarehouseAction(
         error: "Delete all locations in this warehouse first.",
       };
     }
-    return { ok: false, error: message };
+    return unexpectedActionError(err, "deleteWarehouse");
   }
 }
 
@@ -139,8 +140,7 @@ export async function recreateWarehouseAction(
     revalidatePath("/catalog/warehouses");
     return { ok: true, data: restored ?? row };
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Database error";
-    return { ok: false, error: message };
+    return unexpectedActionError(err, "recreateWarehouse");
   }
 }
 
@@ -180,7 +180,7 @@ export async function createLocationAction(
         fieldErrors: { code: ["This warehouse already has a location with that code."] },
       };
     }
-    return { ok: false, error: message };
+    return unexpectedActionError(err, "createLocation");
   }
 }
 
@@ -220,7 +220,7 @@ export async function updateLocationAction(
         fieldErrors: { code: ["This warehouse already has a location with that code."] },
       };
     }
-    return { ok: false, error: message };
+    return unexpectedActionError(err, "updateLocation");
   }
 }
 
@@ -252,7 +252,7 @@ export async function deleteLocationAction(
         error: "This location has stock movements — delete it via a stock zeroing flow instead.",
       };
     }
-    return { ok: false, error: message };
+    return unexpectedActionError(err, "deleteLocation");
   }
 }
 
@@ -269,7 +269,6 @@ export async function recreateLocationAction(
     revalidatePath(`/catalog/warehouses/${row.warehouseId}`);
     return { ok: true, data: restored ?? row };
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Database error";
-    return { ok: false, error: message };
+    return unexpectedActionError(err, "recreateLocation");
   }
 }

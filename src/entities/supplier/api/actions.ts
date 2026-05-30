@@ -6,6 +6,7 @@ import { db } from "@/db/client";
 import { suppliers, type Supplier } from "@/db/schema";
 import { requireRole } from "@/shared/lib/auth/require-role";
 import type { ActionResult } from "@/shared/lib/server-action/types";
+import { unexpectedActionError } from "@/shared/lib/server-action/errors";
 import {
   supplierFormSchema,
   supplierIdSchema,
@@ -31,8 +32,7 @@ export async function createSupplierAction(
     revalidatePath("/catalog/suppliers");
     return { ok: true, data: row };
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Database error";
-    return { ok: false, error: message };
+    return unexpectedActionError(err, "createSupplier");
   }
 }
 
@@ -64,8 +64,7 @@ export async function updateSupplierAction(
     revalidatePath("/catalog/suppliers");
     return { ok: true, data: row };
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Database error";
-    return { ok: false, error: message };
+    return unexpectedActionError(err, "updateSupplier");
   }
 }
 
@@ -90,8 +89,7 @@ export async function deleteSupplierAction(
     revalidatePath("/catalog/suppliers");
     return { ok: true, data: row };
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Database error";
-    return { ok: false, error: message };
+    return unexpectedActionError(err, "deleteSupplier");
   }
 }
 
@@ -109,7 +107,6 @@ export async function recreateSupplierAction(
     revalidatePath("/catalog/suppliers");
     return { ok: true, data: restored ?? row };
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Database error";
-    return { ok: false, error: message };
+    return unexpectedActionError(err, "recreateSupplier");
   }
 }
