@@ -20,7 +20,8 @@
     "db:seed": "bun run src/db/seed.ts",
     "db:rls": "bun run src/db/apply-rls.ts",
     "check:auth-guards": "bash scripts/check-auth-guards.sh",
-    "check:i18n-parity": "node scripts/check-i18n-parity.mjs"
+    "check:i18n-parity": "node scripts/check-i18n-parity.mjs",
+    "check:concurrency": "bun run scripts/concurrency-check.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

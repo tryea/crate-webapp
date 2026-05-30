@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { randomUUID } from "node:crypto";
-import { and, eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "@/db/client";
 import {
   auditLog,
@@ -16,6 +16,9 @@ import {
   checkDecrementAllowed,
   validateMovementShape,
 } from "../domain/stock-math";
+// DEC-013 advisory-lock gate, extracted to a plain module (DEC-015) so the
+// concurrency proof can import the real function — see ./level-lock.
+import { getLevelLocked } from "./level-lock";
 import {
   adjustmentFormSchema,
   stockInFormSchema,
@@ -42,44 +45,6 @@ async function getAllowBackorder(): Promise<boolean> {
     .limit(1);
   const v = row?.value as { allowBackorder?: unknown } | null;
   return v?.allowBackorder === true;
-}
-
-/**
- * Read current level inside a transaction, serialized against concurrent
- * decrements so two stock-outs cannot both read the same level and race past
- * zero — COUNCIL §4.3 concurrent-update handling (DEC-013).
- *
- * We CANNOT use `SELECT … FOR UPDATE` here: Postgres rejects row locks on an
- * aggregate ("FOR UPDATE is not allowed with aggregate functions"), and even a
- * row-lock over the raw movement rows would only lock rows that already exist —
- * it cannot lock the not-yet-inserted phantom row a concurrent decrement is
- * about to append. Instead we take a transaction-scoped ADVISORY lock on the
- * logical (product, location) key: it serializes all mutations for that key
- * regardless of row existence and auto-releases on commit/rollback. The level
- * stays a pure SUM over the append-only ledger (no denormalized balance row).
- */
-type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
-
-async function getLevelLocked(
-  tx: Tx,
-  productId: string,
-  locationId: string,
-): Promise<number> {
-  await tx.execute(
-    sql`SELECT pg_advisory_xact_lock(hashtext(${productId}), hashtext(${locationId}))`,
-  );
-  const [row] = await tx
-    .select({
-      total: sql<number>`COALESCE(SUM(${stockMovements.quantity}), 0)::int`,
-    })
-    .from(stockMovements)
-    .where(
-      and(
-        eq(stockMovements.productId, productId),
-        eq(stockMovements.locationId, locationId),
-      ),
-    );
-  return row?.total ?? 0;
 }
 
 function auditDiff(op: string, m: StockMovement) {
