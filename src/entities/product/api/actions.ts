@@ -309,14 +309,23 @@ export async function importProductsAction(
                 costPrice: insertValues.costPrice,
                 sellingPrice: insertValues.sellingPrice,
                 isActive: insertValues.isActive,
+                // Drizzle's `$onUpdate` hook fires only for `db.update()`, NOT
+                // for an onConflictDoUpdate set clause — so updated_at must be
+                // bumped explicitly here, else every upsert leaves it frozen at
+                // insert time (DEC-014).
+                updatedAt: sql`now()`,
               },
             })
-            .returning({ id: products.id, sku: products.sku, createdAt: products.createdAt, updatedAt: products.updatedAt });
+            // `xmax = 0` ⇔ the row was freshly INSERTED; non-zero ⇔ an existing
+            // row was UPDATED by the conflict path. Deterministic verdict from
+            // Postgres itself — replaces the old createdAt/updatedAt timing
+            // heuristic, which could not survive a sub-second re-import (DEC-014).
+            .returning({
+              sku: products.sku,
+              inserted: sql<boolean>`(xmax = 0)`,
+            });
 
-          const wasInsert =
-            row.createdAt instanceof Date &&
-            row.updatedAt instanceof Date &&
-            Math.abs(row.createdAt.getTime() - row.updatedAt.getTime()) < 1000;
+          const wasInsert = row.inserted === true;
 
           if (wasInsert) inserted++;
           else updated++;
