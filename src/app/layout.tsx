@@ -3,7 +3,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
 import "./globals.css";
-import { Providers } from "./_providers";
 import { THEME_SCRIPT } from "@/shared/lib/theme/script";
 
 const geistSans = Geist({
@@ -47,9 +46,7 @@ export default async function RootLayout({
         suppressHydrationWarning
         className="min-h-full flex flex-col"
       >
-        <NextIntlClientProvider>
-          <Providers>{children}</Providers>
-        </NextIntlClientProvider>
+        <NextIntlClientProvider>{children}</NextIntlClientProvider>
       </body>
     </html>
   );
