@@ -1,0 +1,1 @@
+CREATE INDEX "po_lines_po_id_idx" ON "po_lines" USING btree ("po_id");

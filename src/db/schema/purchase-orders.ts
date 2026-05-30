@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import {
   check,
   date,
+  index,
   integer,
   numeric,
   pgEnum,
@@ -80,6 +81,10 @@ export const poLines = pgTable(
       "po_lines_qty_received_le_ordered",
       sql`${t.quantityReceived} <= ${t.quantityOrdered}`,
     ),
+    // DEC-019: po_id is a FK but Postgres does not auto-index FK columns. Without
+    // this, listPurchaseOrdersServer's two correlated subqueries seq-scan po_lines
+    // per PO row (400 loops/load at 200 POs). Measured 80.97→4.21ms at 500-PO scale.
+    index("po_lines_po_id_idx").on(t.poId),
   ],
 );
 
