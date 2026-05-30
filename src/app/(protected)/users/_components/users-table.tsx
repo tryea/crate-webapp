@@ -20,7 +20,7 @@ export interface UsersTableRow {
 const ROLE_CLASSES: Record<UsersTableRow["role"], string> = {
   admin: "bg-info/10 text-info-text border-info/20",
   manager: "bg-warning/10 text-warning-text border-warning/30",
-  staff: "bg-muted text-muted-foreground border-border",
+  staff: "bg-muted text-muted-foreground-strong border-border",
 };
 
 const ROLE_BLURB: Record<UsersTableRow["role"], string> = {
@@ -49,7 +49,7 @@ export function UsersTable({ rows }: { rows: UsersTableRow[] }) {
         size: 240,
         cell: ({ row }) => (
           <div className="flex items-center gap-2.5">
-            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-medium text-muted-foreground">
+            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-medium text-muted-foreground-strong">
               {monogram(row.original.name)}
             </span>
             <span className="text-sm">{row.original.name}</span>

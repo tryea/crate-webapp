@@ -29,11 +29,11 @@ const MONEY_FMT = new Intl.NumberFormat("en-US", {
 });
 
 const STATUS_CLASSES: Record<PoTableRow["status"], string> = {
-  draft: "bg-muted text-muted-foreground border-border",
+  draft: "bg-muted text-muted-foreground-strong border-border",
   sent: "bg-info/10 text-info-text border-info/20",
   partial: "bg-warning/10 text-warning-text border-warning/30",
   received: "bg-success/10 text-success-text border-success/20",
-  cancelled: "bg-muted text-muted-foreground border-border line-through",
+  cancelled: "bg-muted text-muted-foreground-strong border-border line-through",
 };
 
 const STATUS_LABEL: Record<PoTableRow["status"], string> = {

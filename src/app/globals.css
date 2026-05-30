@@ -54,6 +54,10 @@
   --color-warning-text: var(--warning-text);
   --color-destructive-text: var(--destructive-text);
   --color-info-text: var(--info-text);
+  /* DEC-025 — neutral badge-text shade: the `*-text` sibling for the muted */
+  /* tint. Use `text-muted-foreground-strong` for badge/chip text on `bg-muted`; */
+  /* leave `--muted-foreground` (secondary body text) untouched (DEC-017 freeze). */
+  --color-muted-foreground-strong: var(--muted-foreground-strong);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -109,6 +113,11 @@
   --warning-text: oklch(0.47 0.11 65);
   --destructive-text: oklch(0.50 0.22 27);
   --info-text: oklch(0.50 0.15 235);
+  /* DEC-025 — neutral badge text on `bg-muted` (0.97). `--muted-foreground` */
+  /* (0.556) lands at 4.34 here; this shade computes (0.97³+0.05)/(0.53³+0.05) */
+  /* = 4.84 ≥ AA 4.5. Chroma-0, so Y=L³ reproduces axe's 4.34 exactly → reality */
+  /* anchor, not a guess. Δ0.026 L from secondary text: hierarchy visually intact. */
+  --muted-foreground-strong: oklch(0.53 0 0);
 }
 
 .dark {
@@ -157,6 +166,10 @@
   --warning-text: var(--warning);
   --destructive-text: var(--destructive);
   --info-text: var(--info);
+  /* DEC-025 — dark muted-foreground (0.708) on dark muted fill (0.269) already */
+  /* clears 4.5 (5.83), so alias to it → the swap is a no-op in dark, darker only */
+  /* in light (zero dark regression by construction, mirrors the `*-text` family). */
+  --muted-foreground-strong: var(--muted-foreground);
 }
 
 @layer base {

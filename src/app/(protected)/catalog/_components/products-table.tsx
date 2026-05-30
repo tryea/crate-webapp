@@ -196,7 +196,7 @@ export function ProductsTable({
           ) : (
             <Badge
               variant="outline"
-              className="border-muted-foreground/20 text-muted-foreground"
+              className="border-muted-foreground/20 text-muted-foreground-strong"
             >
               Archived
             </Badge>

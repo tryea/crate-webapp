@@ -26,8 +26,8 @@ const ACTION_CLASSES: Record<string, string> = {
   create: "bg-success/10 text-success-text border-success/20",
   update: "bg-info/10 text-info-text border-info/20",
   delete: "bg-destructive/10 text-destructive-text border-destructive/20",
-  login: "bg-muted text-muted-foreground border-border",
-  logout: "bg-muted text-muted-foreground border-border",
+  login: "bg-muted text-muted-foreground-strong border-border",
+  logout: "bg-muted text-muted-foreground-strong border-border",
   stock_movement: "bg-warning/10 text-warning-text border-warning/30",
   po_receive: "bg-warning/10 text-warning-text border-warning/30",
   po_status_change: "bg-info/10 text-info-text border-info/20",
@@ -69,7 +69,7 @@ export function AuditTable({ rows }: { rows: AuditTableRow[] }) {
             variant="outline"
             className={cn(
               "font-medium border",
-              ACTION_CLASSES[row.original.action] ?? "bg-muted text-muted-foreground border-border",
+              ACTION_CLASSES[row.original.action] ?? "bg-muted text-muted-foreground-strong border-border",
             )}
           >
             {row.original.action.replace(/_/g, " ")}

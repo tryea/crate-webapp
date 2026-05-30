@@ -392,7 +392,7 @@ function ResultTable({ result }: { result: ProductImportResult }) {
                   </Badge>
                 )}
                 {r.status === "skipped" && (
-                  <Badge variant="outline" className="border-muted text-muted-foreground">
+                  <Badge variant="outline" className="border-muted text-muted-foreground-strong">
                     Skipped
                   </Badge>
                 )}
