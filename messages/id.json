@@ -20,7 +20,8 @@
     },
     "openMenu": "Buka menu",
     "closeMenu": "Tutup menu",
-    "menuTitle": "Navigasi"
+    "menuTitle": "Navigasi",
+    "skipToContent": "Lewati ke konten"
   },
   "userMenu": {
     "ariaLabel": "Menu pengguna",

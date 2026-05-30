@@ -20,7 +20,8 @@
     },
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
-    "menuTitle": "Navigation"
+    "menuTitle": "Navigation",
+    "skipToContent": "Skip to content"
   },
   "userMenu": {
     "ariaLabel": "User menu",

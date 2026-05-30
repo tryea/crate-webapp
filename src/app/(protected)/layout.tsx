@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { Sidebar, MobileNav } from "@/widgets/sidebar";
 import { Topbar } from "@/widgets/topbar";
 import { CommandLauncher } from "@/widgets/command-palette";
@@ -21,6 +22,7 @@ export default async function ProtectedLayout({
     redirect("/sign-in");
   }
 
+  const t = await getTranslations("nav");
   const role = ((session.user as { role?: Role }).role ?? "staff") as Role;
   const user = {
     name: session.user.name,
@@ -30,6 +32,12 @@ export default async function ProtectedLayout({
 
   return (
     <div className="flex min-h-svh w-full">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-foreground focus:shadow-md focus:outline-none focus:ring-2 focus:ring-ring"
+      >
+        {t("skipToContent")}
+      </a>
       <Sidebar role={role} />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar
@@ -37,7 +45,9 @@ export default async function ProtectedLayout({
           actions={<CommandLauncher />}
           leading={<MobileNav role={role} />}
         />
-        {children}
+        <div id="main-content" tabIndex={-1} className="flex min-w-0 flex-1 flex-col outline-none">
+          {children}
+        </div>
       </div>
       <Toaster />
     </div>

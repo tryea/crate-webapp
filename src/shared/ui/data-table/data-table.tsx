@@ -138,8 +138,10 @@ export function DataTable<T>({
 
       <div
         ref={scrollRef}
+        tabIndex={virtualize ? 0 : undefined}
         className={cn(
           "relative overflow-auto rounded-md border border-border bg-background",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
           virtualize ? "max-h-[70svh]" : "",
         )}
       >
