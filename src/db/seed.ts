@@ -221,6 +221,47 @@ async function main() {
     })),
   );
 
+  console.log("⟶ replenishment + sale activity (overflow guard)…");
+  // task-#99 e2e regression `data-table-a11y.journey.spec.ts` asserts the
+  // /movements table's scrollable region actually overflows in CI (it must
+  // be > 459px scrollHeight in the default Playwright viewport, where the
+  // 70svh clamp lands around 459px). The 5 INITIAL-SEED rows above only
+  // produce ~200px — not enough. Adding a richer ledger here keeps the
+  // "lived-in state" intent while guaranteeing overflow ≥ 29 extra rows
+  // across remaining locations + a small sale batch.
+  const otherLocs = locs.filter((l) => l.id !== jktA1.id);
+  const extraMovements: (typeof s.stockMovements.$inferInsert)[] = [];
+  for (const loc of otherLocs) {
+    for (const p of prods) {
+      extraMovements.push({
+        productId: p.id,
+        locationId: loc.id,
+        type: "stock_in" as const,
+        reason: "purchase" as const,
+        quantity: 50,
+        unitCost: p.costPrice,
+        reference: `PO-2026-${loc.code}-${p.sku}`,
+        notes: `Replenishment receiving · ${loc.code}`,
+        createdBy: admin.id,
+      });
+    }
+  }
+  // Small sale batch from JKT-C A1 — negative quantity per the sign
+  // convention documented in src/db/schema/movements.ts.
+  for (const p of prods.slice(0, 4)) {
+    extraMovements.push({
+      productId: p.id,
+      locationId: jktA1.id,
+      type: "stock_out" as const,
+      reason: "sale" as const,
+      quantity: -5,
+      reference: `SO-2026-${p.sku}`,
+      notes: "Sale fulfillment",
+      createdBy: manager.id,
+    });
+  }
+  await db.insert(s.stockMovements).values(extraMovements);
+
   console.log("⟶ done. Inserted:");
   console.log(
     `   users: ${[admin, manager, staff].length} (admin/manager/staff) · categories: ${cats.length} · suppliers: ${sups.length}`,
