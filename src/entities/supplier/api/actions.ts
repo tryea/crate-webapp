@@ -2,9 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
-import { db } from "@/db/client";
 import { suppliers, type Supplier } from "@/db/schema";
 import { requireRole } from "@/shared/lib/auth/require-role";
+import { withUserContext } from "@/shared/lib/auth/session-binding";
 import type { ActionResult } from "@/shared/lib/server-action/types";
 import { unexpectedActionError } from "@/shared/lib/server-action/errors";
 import {
@@ -16,7 +16,7 @@ import {
 export async function createSupplierAction(
   input: SupplierFormValues,
 ): Promise<ActionResult<Supplier>> {
-  await requireRole("manager");
+  const { user } = await requireRole("manager");
 
   const parsed = supplierFormSchema.safeParse(input);
   if (!parsed.success) {
@@ -28,7 +28,9 @@ export async function createSupplierAction(
   }
 
   try {
-    const [row] = await db.insert(suppliers).values(parsed.data).returning();
+    const [row] = await withUserContext(user.id, user.role, async (tx) =>
+      tx.insert(suppliers).values(parsed.data).returning(),
+    );
     revalidatePath("/catalog/suppliers");
     return { ok: true, data: row };
   } catch (err) {
@@ -40,7 +42,7 @@ export async function updateSupplierAction(
   id: string,
   input: SupplierFormValues,
 ): Promise<ActionResult<Supplier>> {
-  await requireRole("manager");
+  const { user } = await requireRole("manager");
 
   const idParse = supplierIdSchema.safeParse(id);
   if (!idParse.success) return { ok: false, error: "Invalid supplier id." };
@@ -55,11 +57,13 @@ export async function updateSupplierAction(
   }
 
   try {
-    const [row] = await db
-      .update(suppliers)
-      .set(parsed.data)
-      .where(eq(suppliers.id, idParse.data))
-      .returning();
+    const [row] = await withUserContext(user.id, user.role, async (tx) =>
+      tx
+        .update(suppliers)
+        .set(parsed.data)
+        .where(eq(suppliers.id, idParse.data))
+        .returning(),
+    );
     if (!row) return { ok: false, error: "Supplier not found." };
     revalidatePath("/catalog/suppliers");
     return { ok: true, data: row };
@@ -75,16 +79,18 @@ export async function updateSupplierAction(
 export async function deleteSupplierAction(
   id: string,
 ): Promise<ActionResult<Supplier>> {
-  await requireRole("manager");
+  const { user } = await requireRole("manager");
 
   const idParse = supplierIdSchema.safeParse(id);
   if (!idParse.success) return { ok: false, error: "Invalid supplier id." };
 
   try {
-    const [row] = await db
-      .delete(suppliers)
-      .where(eq(suppliers.id, idParse.data))
-      .returning();
+    const [row] = await withUserContext(user.id, user.role, async (tx) =>
+      tx
+        .delete(suppliers)
+        .where(eq(suppliers.id, idParse.data))
+        .returning(),
+    );
     if (!row) return { ok: false, error: "Supplier not found." };
     revalidatePath("/catalog/suppliers");
     return { ok: true, data: row };
@@ -96,14 +102,16 @@ export async function deleteSupplierAction(
 export async function recreateSupplierAction(
   row: Supplier,
 ): Promise<ActionResult<Supplier>> {
-  await requireRole("manager");
+  const { user } = await requireRole("manager");
 
   try {
-    const [restored] = await db
-      .insert(suppliers)
-      .values(row)
-      .onConflictDoNothing()
-      .returning();
+    const [restored] = await withUserContext(user.id, user.role, async (tx) =>
+      tx
+        .insert(suppliers)
+        .values(row)
+        .onConflictDoNothing()
+        .returning(),
+    );
     revalidatePath("/catalog/suppliers");
     return { ok: true, data: restored ?? row };
   } catch (err) {

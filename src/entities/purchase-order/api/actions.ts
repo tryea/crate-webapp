@@ -2,13 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
-import { db } from "@/db/client";
 import {
   poLines,
   purchaseOrders,
   type PurchaseOrder,
 } from "@/db/schema";
 import { requireRole } from "@/shared/lib/auth/require-role";
+import { withUserContext } from "@/shared/lib/auth/session-binding";
 import type { ActionResult } from "@/shared/lib/server-action/types";
 import { unexpectedActionError } from "@/shared/lib/server-action/errors";
 import {
@@ -44,18 +44,20 @@ export async function createPurchaseOrderAction(
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
       const poNumber = await nextPoNumberServer();
-      const [row] = await db
-        .insert(purchaseOrders)
-        .values({
-          poNumber,
-          supplierId: parsed.data.supplierId,
-          warehouseId: parsed.data.warehouseId,
-          status: "draft",
-          expectedDate: parsed.data.expectedDate || null,
-          notes: parsed.data.notes || null,
-          createdBy: user.id,
-        })
-        .returning();
+      const [row] = await withUserContext(user.id, user.role, async (tx) =>
+        tx
+          .insert(purchaseOrders)
+          .values({
+            poNumber,
+            supplierId: parsed.data.supplierId,
+            warehouseId: parsed.data.warehouseId,
+            status: "draft",
+            expectedDate: parsed.data.expectedDate || null,
+            notes: parsed.data.notes || null,
+            createdBy: user.id,
+          })
+          .returning(),
+      );
       revalidatePath("/orders");
       return { ok: true, data: row };
     } catch (err) {
@@ -72,7 +74,6 @@ export async function setPoStatusAction(
   status: PoStatusValue,
 ): Promise<ActionResult<PurchaseOrder>> {
   const { user } = await requireRole("manager");
-  void user;
 
   const idParse = poIdSchema.safeParse(id);
   if (!idParse.success) return { ok: false, error: "Invalid PO id." };
@@ -80,11 +81,13 @@ export async function setPoStatusAction(
   if (!statusParse.success) return { ok: false, error: "Invalid status." };
 
   try {
-    const [row] = await db
-      .update(purchaseOrders)
-      .set({ status: statusParse.data })
-      .where(eq(purchaseOrders.id, idParse.data))
-      .returning();
+    const [row] = await withUserContext(user.id, user.role, async (tx) =>
+      tx
+        .update(purchaseOrders)
+        .set({ status: statusParse.data })
+        .where(eq(purchaseOrders.id, idParse.data))
+        .returning(),
+    );
     if (!row) return { ok: false, error: "PO not found." };
     revalidatePath("/orders");
     revalidatePath(`/orders/${idParse.data}`);
@@ -98,7 +101,7 @@ export async function addPoLineAction(
   poId: string,
   input: PoLineFormValues,
 ): Promise<ActionResult<{ id: string }>> {
-  await requireRole("manager");
+  const { user } = await requireRole("manager");
 
   const idParse = poIdSchema.safeParse(poId);
   if (!idParse.success) return { ok: false, error: "Invalid PO id." };
@@ -113,15 +116,17 @@ export async function addPoLineAction(
   }
 
   try {
-    const [row] = await db
-      .insert(poLines)
-      .values({
-        poId: idParse.data,
-        productId: parsed.data.productId,
-        quantityOrdered: parsed.data.quantityOrdered,
-        unitCost: parsed.data.unitCost,
-      })
-      .returning({ id: poLines.id });
+    const [row] = await withUserContext(user.id, user.role, async (tx) =>
+      tx
+        .insert(poLines)
+        .values({
+          poId: idParse.data,
+          productId: parsed.data.productId,
+          quantityOrdered: parsed.data.quantityOrdered,
+          unitCost: parsed.data.unitCost,
+        })
+        .returning({ id: poLines.id }),
+    );
     revalidatePath(`/orders/${idParse.data}`);
     return { ok: true, data: row };
   } catch (err) {
@@ -132,16 +137,18 @@ export async function addPoLineAction(
 export async function deletePoLineAction(
   lineId: string,
 ): Promise<ActionResult<void>> {
-  await requireRole("manager");
+  const { user } = await requireRole("manager");
 
   const idParse = poIdSchema.safeParse(lineId);
   if (!idParse.success) return { ok: false, error: "Invalid line id." };
 
   try {
-    const [row] = await db
-      .delete(poLines)
-      .where(eq(poLines.id, idParse.data))
-      .returning({ id: poLines.id, poId: poLines.poId });
+    const [row] = await withUserContext(user.id, user.role, async (tx) =>
+      tx
+        .delete(poLines)
+        .where(eq(poLines.id, idParse.data))
+        .returning({ id: poLines.id, poId: poLines.poId }),
+    );
     if (!row) return { ok: false, error: "Line not found." };
     revalidatePath(`/orders/${row.poId}`);
     return { ok: true, data: undefined };
@@ -195,7 +202,7 @@ export async function receivePoAction(
   }
 
   try {
-    const result = await db.transaction(async (tx) => {
+    const result = await withUserContext(user.id, user.role, async (tx) => {
       // Fetch the PO + its lines + the first location of the warehouse.
       const [po] = await tx
         .select()

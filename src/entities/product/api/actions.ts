@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db/client";
 import { products, type Product } from "@/db/schema";
 import { requireRole } from "@/shared/lib/auth/require-role";
+import { withUserContext } from "@/shared/lib/auth/session-binding";
 import type { ActionResult } from "@/shared/lib/server-action/types";
 import { unexpectedActionError } from "@/shared/lib/server-action/errors";
 import {
@@ -17,7 +18,7 @@ import {
 export async function createProductAction(
   input: ProductFormValues,
 ): Promise<ActionResult<Product>> {
-  await requireRole("manager");
+  const { user } = await requireRole("manager");
 
   const parsed = productFormSchema.safeParse(input);
   if (!parsed.success) {
@@ -29,7 +30,9 @@ export async function createProductAction(
   }
 
   try {
-    const [row] = await db.insert(products).values(toProductInsert(parsed.data)).returning();
+    const [row] = await withUserContext(user.id, user.role, async (tx) =>
+      tx.insert(products).values(toProductInsert(parsed.data)).returning(),
+    );
     revalidatePath("/catalog");
     return { ok: true, data: row };
   } catch (err) {
@@ -49,7 +52,7 @@ export async function updateProductAction(
   id: string,
   input: ProductFormValues,
 ): Promise<ActionResult<Product>> {
-  await requireRole("manager");
+  const { user } = await requireRole("manager");
 
   const idParse = productIdSchema.safeParse(id);
   if (!idParse.success) return { ok: false, error: "Invalid product id." };
@@ -64,11 +67,13 @@ export async function updateProductAction(
   }
 
   try {
-    const [row] = await db
-      .update(products)
-      .set(toProductInsert(parsed.data))
-      .where(eq(products.id, idParse.data))
-      .returning();
+    const [row] = await withUserContext(user.id, user.role, async (tx) =>
+      tx
+        .update(products)
+        .set(toProductInsert(parsed.data))
+        .where(eq(products.id, idParse.data))
+        .returning(),
+    );
     if (!row) return { ok: false, error: "Product not found." };
     revalidatePath("/catalog");
     return { ok: true, data: row };
@@ -93,16 +98,18 @@ export async function updateProductAction(
 export async function deleteProductAction(
   id: string,
 ): Promise<ActionResult<Product>> {
-  await requireRole("manager");
+  const { user } = await requireRole("manager");
 
   const idParse = productIdSchema.safeParse(id);
   if (!idParse.success) return { ok: false, error: "Invalid product id." };
 
   try {
-    const [row] = await db
-      .delete(products)
-      .where(eq(products.id, idParse.data))
-      .returning();
+    const [row] = await withUserContext(user.id, user.role, async (tx) =>
+      tx
+        .delete(products)
+        .where(eq(products.id, idParse.data))
+        .returning(),
+    );
     if (!row) return { ok: false, error: "Product not found." };
     revalidatePath("/catalog");
     return { ok: true, data: row };
@@ -121,13 +128,15 @@ export async function deleteProductAction(
 export async function recreateProductAction(
   row: Product,
 ): Promise<ActionResult<Product>> {
-  await requireRole("manager");
+  const { user } = await requireRole("manager");
   try {
-    const [restored] = await db
-      .insert(products)
-      .values(row)
-      .onConflictDoNothing()
-      .returning();
+    const [restored] = await withUserContext(user.id, user.role, async (tx) =>
+      tx
+        .insert(products)
+        .values(row)
+        .onConflictDoNothing()
+        .returning(),
+    );
     revalidatePath("/catalog");
     return { ok: true, data: restored ?? row };
   } catch (err) {
@@ -143,17 +152,19 @@ export async function setProductActiveAction(
   id: string,
   isActive: boolean,
 ): Promise<ActionResult<Product>> {
-  await requireRole("manager");
+  const { user } = await requireRole("manager");
 
   const idParse = productIdSchema.safeParse(id);
   if (!idParse.success) return { ok: false, error: "Invalid product id." };
 
   try {
-    const [row] = await db
-      .update(products)
-      .set({ isActive })
-      .where(eq(products.id, idParse.data))
-      .returning();
+    const [row] = await withUserContext(user.id, user.role, async (tx) =>
+      tx
+        .update(products)
+        .set({ isActive })
+        .where(eq(products.id, idParse.data))
+        .returning(),
+    );
     if (!row) return { ok: false, error: "Product not found." };
     revalidatePath("/catalog");
     return { ok: true, data: row };
@@ -201,7 +212,7 @@ export interface ProductImportResult {
 export async function importProductsAction(
   rows: unknown[],
 ): Promise<ActionResult<ProductImportResult>> {
-  await requireRole("manager");
+  const { user } = await requireRole("manager");
 
   if (!Array.isArray(rows)) {
     return { ok: false, error: "Expected an array of rows." };
@@ -270,7 +281,7 @@ export async function importProductsAction(
   let updated = 0;
 
   try {
-    await db.transaction(async (tx) => {
+    await withUserContext(user.id, user.role, async (tx) => {
       for (const { rowNumber, data } of valid) {
         const categoryId = data.categorySlug ? catBySlug.get(data.categorySlug) ?? null : null;
         const supplierId = data.supplierName ? supByName.get(data.supplierName) ?? null : null;

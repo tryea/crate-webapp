@@ -2,9 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
-import { db } from "@/db/client";
 import { categories, type Category } from "@/db/schema";
 import { requireRole } from "@/shared/lib/auth/require-role";
+import { withUserContext } from "@/shared/lib/auth/session-binding";
 import type { ActionResult } from "@/shared/lib/server-action/types";
 import { unexpectedActionError } from "@/shared/lib/server-action/errors";
 import {
@@ -22,7 +22,7 @@ import {
 export async function createCategoryAction(
   input: CategoryFormValues,
 ): Promise<ActionResult<Category>> {
-  await requireRole("manager");
+  const { user } = await requireRole("manager");
 
   const parsed = categoryFormSchema.safeParse(input);
   if (!parsed.success) {
@@ -34,7 +34,9 @@ export async function createCategoryAction(
   }
 
   try {
-    const [row] = await db.insert(categories).values(parsed.data).returning();
+    const [row] = await withUserContext(user.id, user.role, async (tx) =>
+      tx.insert(categories).values(parsed.data).returning(),
+    );
     revalidatePath("/catalog/categories");
     return { ok: true, data: row };
   } catch (err) {
@@ -54,7 +56,7 @@ export async function updateCategoryAction(
   id: string,
   input: CategoryFormValues,
 ): Promise<ActionResult<Category>> {
-  await requireRole("manager");
+  const { user } = await requireRole("manager");
 
   const idParse = categoryIdSchema.safeParse(id);
   if (!idParse.success) {
@@ -80,11 +82,13 @@ export async function updateCategoryAction(
   }
 
   try {
-    const [row] = await db
-      .update(categories)
-      .set(parsed.data)
-      .where(eq(categories.id, idParse.data))
-      .returning();
+    const [row] = await withUserContext(user.id, user.role, async (tx) =>
+      tx
+        .update(categories)
+        .set(parsed.data)
+        .where(eq(categories.id, idParse.data))
+        .returning(),
+    );
     if (!row) return { ok: false, error: "Category not found." };
     revalidatePath("/catalog/categories");
     return { ok: true, data: row };
@@ -111,7 +115,7 @@ export async function updateCategoryAction(
 export async function deleteCategoryAction(
   id: string,
 ): Promise<ActionResult<Category>> {
-  await requireRole("manager");
+  const { user } = await requireRole("manager");
 
   const idParse = categoryIdSchema.safeParse(id);
   if (!idParse.success) {
@@ -119,10 +123,12 @@ export async function deleteCategoryAction(
   }
 
   try {
-    const [row] = await db
-      .delete(categories)
-      .where(eq(categories.id, idParse.data))
-      .returning();
+    const [row] = await withUserContext(user.id, user.role, async (tx) =>
+      tx
+        .delete(categories)
+        .where(eq(categories.id, idParse.data))
+        .returning(),
+    );
     if (!row) return { ok: false, error: "Category not found." };
     revalidatePath("/catalog/categories");
     return { ok: true, data: row };
@@ -139,14 +145,16 @@ export async function deleteCategoryAction(
 export async function recreateCategoryAction(
   row: Category,
 ): Promise<ActionResult<Category>> {
-  await requireRole("manager");
+  const { user } = await requireRole("manager");
 
   try {
-    const [restored] = await db
-      .insert(categories)
-      .values(row)
-      .onConflictDoNothing()
-      .returning();
+    const [restored] = await withUserContext(user.id, user.role, async (tx) =>
+      tx
+        .insert(categories)
+        .values(row)
+        .onConflictDoNothing()
+        .returning(),
+    );
     revalidatePath("/catalog/categories");
     return { ok: true, data: restored ?? row };
   } catch (err) {

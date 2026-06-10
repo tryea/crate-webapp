@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # DEC-003 CI guardrail.
 #
-# Fails if any file under src/app/**/{route.ts,actions.ts} (i.e. any Server
-# Action or route handler) does NOT call `requireRole(...)` AND is not in
-# the public-endpoint allowlist.
+# Fails if any route.ts / actions.ts under the FSD layout (src/app, src/entities,
+# src/features, src/widgets, src/screens — see the find on line ~34, the real
+# mutation surface lives in src/entities/*/api/actions.ts) does NOT call
+# `requireRole(...)` AND is not in the public-endpoint allowlist.
 #
 # Rationale (COUNCIL §3.4 + DEC-003 R4): the most-likely real-world auth
 # failure is a route handler shipped without an auth check. Compile-time
@@ -54,6 +55,20 @@ for f in "${handlers[@]}"; do
     echo "    expected: call to requireRole(<role>) inside this handler"
     echo "    or add this path to PUBLIC_ALLOWLIST with justification"
     violations=$((violations + 1))
+  fi
+
+  # Issue #2 guardrail: any handler that WRITES to the DB must bind the RLS
+  # user context. Direct `db.transaction(` / `db.insert|update|delete(` in a
+  # handler means the write skips `withUserContext` → the 0003 policies see
+  # an unbound query and the per-user enforcement silently does not apply.
+  # Reads (`db.select`) stay allowed unbound — list pages don't need binding.
+  if grep -qE "db\.(transaction|insert|update|delete)\(" "$f"; then
+    if ! grep -q "withUserContext(" "$f"; then
+      echo "✗ UNBOUND WRITE: $f"
+      echo "    expected: DB writes wrapped in withUserContext(user.id, user.role, ...)"
+      echo "    (direct db.transaction/insert/update/delete bypasses RLS user binding)"
+      violations=$((violations + 1))
+    fi
   fi
 done
 

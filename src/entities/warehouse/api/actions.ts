@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
-import { db } from "@/db/client";
 import {
   locations,
   warehouses,
@@ -10,6 +9,7 @@ import {
   type Warehouse,
 } from "@/db/schema";
 import { requireRole } from "@/shared/lib/auth/require-role";
+import { withUserContext } from "@/shared/lib/auth/session-binding";
 import type { ActionResult } from "@/shared/lib/server-action/types";
 import { unexpectedActionError } from "@/shared/lib/server-action/errors";
 import {
@@ -26,7 +26,7 @@ import {
 export async function createWarehouseAction(
   input: WarehouseFormValues,
 ): Promise<ActionResult<Warehouse>> {
-  await requireRole("manager");
+  const { user } = await requireRole("manager");
 
   const parsed = warehouseFormSchema.safeParse(input);
   if (!parsed.success) {
@@ -38,7 +38,9 @@ export async function createWarehouseAction(
   }
 
   try {
-    const [row] = await db.insert(warehouses).values(parsed.data).returning();
+    const [row] = await withUserContext(user.id, user.role, async (tx) =>
+      tx.insert(warehouses).values(parsed.data).returning(),
+    );
     revalidatePath("/catalog/warehouses");
     return { ok: true, data: row };
   } catch (err) {
@@ -58,7 +60,7 @@ export async function updateWarehouseAction(
   id: string,
   input: WarehouseFormValues,
 ): Promise<ActionResult<Warehouse>> {
-  await requireRole("manager");
+  const { user } = await requireRole("manager");
 
   const idParse = warehouseIdSchema.safeParse(id);
   if (!idParse.success) return { ok: false, error: "Invalid warehouse id." };
@@ -73,11 +75,13 @@ export async function updateWarehouseAction(
   }
 
   try {
-    const [row] = await db
-      .update(warehouses)
-      .set(parsed.data)
-      .where(eq(warehouses.id, idParse.data))
-      .returning();
+    const [row] = await withUserContext(user.id, user.role, async (tx) =>
+      tx
+        .update(warehouses)
+        .set(parsed.data)
+        .where(eq(warehouses.id, idParse.data))
+        .returning(),
+    );
     if (!row) return { ok: false, error: "Warehouse not found." };
     revalidatePath("/catalog/warehouses");
     revalidatePath(`/catalog/warehouses/${idParse.data}`);
@@ -102,16 +106,18 @@ export async function updateWarehouseAction(
 export async function deleteWarehouseAction(
   id: string,
 ): Promise<ActionResult<Warehouse>> {
-  await requireRole("manager");
+  const { user } = await requireRole("manager");
 
   const idParse = warehouseIdSchema.safeParse(id);
   if (!idParse.success) return { ok: false, error: "Invalid warehouse id." };
 
   try {
-    const [row] = await db
-      .delete(warehouses)
-      .where(eq(warehouses.id, idParse.data))
-      .returning();
+    const [row] = await withUserContext(user.id, user.role, async (tx) =>
+      tx
+        .delete(warehouses)
+        .where(eq(warehouses.id, idParse.data))
+        .returning(),
+    );
     if (!row) return { ok: false, error: "Warehouse not found." };
     revalidatePath("/catalog/warehouses");
     return { ok: true, data: row };
@@ -130,13 +136,15 @@ export async function deleteWarehouseAction(
 export async function recreateWarehouseAction(
   row: Warehouse,
 ): Promise<ActionResult<Warehouse>> {
-  await requireRole("manager");
+  const { user } = await requireRole("manager");
   try {
-    const [restored] = await db
-      .insert(warehouses)
-      .values(row)
-      .onConflictDoNothing()
-      .returning();
+    const [restored] = await withUserContext(user.id, user.role, async (tx) =>
+      tx
+        .insert(warehouses)
+        .values(row)
+        .onConflictDoNothing()
+        .returning(),
+    );
     revalidatePath("/catalog/warehouses");
     return { ok: true, data: restored ?? row };
   } catch (err) {
@@ -150,7 +158,7 @@ export async function createLocationAction(
   warehouseId: string,
   input: LocationFormValues,
 ): Promise<ActionResult<Location>> {
-  await requireRole("manager");
+  const { user } = await requireRole("manager");
 
   const whParse = warehouseIdSchema.safeParse(warehouseId);
   if (!whParse.success) return { ok: false, error: "Invalid warehouse id." };
@@ -165,10 +173,12 @@ export async function createLocationAction(
   }
 
   try {
-    const [row] = await db
-      .insert(locations)
-      .values({ ...parsed.data, warehouseId: whParse.data })
-      .returning();
+    const [row] = await withUserContext(user.id, user.role, async (tx) =>
+      tx
+        .insert(locations)
+        .values({ ...parsed.data, warehouseId: whParse.data })
+        .returning(),
+    );
     revalidatePath(`/catalog/warehouses/${whParse.data}`);
     return { ok: true, data: row };
   } catch (err) {
@@ -188,7 +198,7 @@ export async function updateLocationAction(
   id: string,
   input: LocationFormValues,
 ): Promise<ActionResult<Location>> {
-  await requireRole("manager");
+  const { user } = await requireRole("manager");
 
   const idParse = locationIdSchema.safeParse(id);
   if (!idParse.success) return { ok: false, error: "Invalid location id." };
@@ -203,11 +213,13 @@ export async function updateLocationAction(
   }
 
   try {
-    const [row] = await db
-      .update(locations)
-      .set(parsed.data)
-      .where(eq(locations.id, idParse.data))
-      .returning();
+    const [row] = await withUserContext(user.id, user.role, async (tx) =>
+      tx
+        .update(locations)
+        .set(parsed.data)
+        .where(eq(locations.id, idParse.data))
+        .returning(),
+    );
     if (!row) return { ok: false, error: "Location not found." };
     revalidatePath(`/catalog/warehouses/${row.warehouseId}`);
     return { ok: true, data: row };
@@ -231,16 +243,18 @@ export async function updateLocationAction(
 export async function deleteLocationAction(
   id: string,
 ): Promise<ActionResult<Location>> {
-  await requireRole("manager");
+  const { user } = await requireRole("manager");
 
   const idParse = locationIdSchema.safeParse(id);
   if (!idParse.success) return { ok: false, error: "Invalid location id." };
 
   try {
-    const [row] = await db
-      .delete(locations)
-      .where(eq(locations.id, idParse.data))
-      .returning();
+    const [row] = await withUserContext(user.id, user.role, async (tx) =>
+      tx
+        .delete(locations)
+        .where(eq(locations.id, idParse.data))
+        .returning(),
+    );
     if (!row) return { ok: false, error: "Location not found." };
     revalidatePath(`/catalog/warehouses/${row.warehouseId}`);
     return { ok: true, data: row };
@@ -259,13 +273,15 @@ export async function deleteLocationAction(
 export async function recreateLocationAction(
   row: Location,
 ): Promise<ActionResult<Location>> {
-  await requireRole("manager");
+  const { user } = await requireRole("manager");
   try {
-    const [restored] = await db
-      .insert(locations)
-      .values(row)
-      .onConflictDoNothing()
-      .returning();
+    const [restored] = await withUserContext(user.id, user.role, async (tx) =>
+      tx
+        .insert(locations)
+        .values(row)
+        .onConflictDoNothing()
+        .returning(),
+    );
     revalidatePath(`/catalog/warehouses/${row.warehouseId}`);
     return { ok: true, data: restored ?? row };
   } catch (err) {
