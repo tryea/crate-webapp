@@ -9,7 +9,7 @@ A production-grade IMS — not a CRUD toy. Real transactional stock integrity:
 append-only movements, atomic two-sided transfers, no negative stock (unless
 backorder is explicitly toggled), SQL-level RLS, and a tamper-evident audit log.
 
-**Live demo:** https://app.crate.ersaptaaristo.dev &nbsp;·&nbsp; **Marketing:** https://crate.ersaptaaristo.dev
+**Marketing site:** https://crate.ersaptaaristo.dev &nbsp;·&nbsp; **Live demo:** temporarily offline, screenshots below are from the running app against the seeded database
 
 ---
 
