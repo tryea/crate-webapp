@@ -10,6 +10,7 @@ import {
   type StockMovement,
 } from "@/db/schema";
 import { requireRole } from "@/shared/lib/auth/require-role";
+import { withUserContext } from "@/shared/lib/auth/session-binding";
 import type { ActionResult } from "@/shared/lib/server-action/types";
 import { unexpectedActionError } from "@/shared/lib/server-action/errors";
 import {
@@ -91,7 +92,7 @@ export async function stockInAction(
     : null;
 
   try {
-    const row = await db.transaction(async (tx) => {
+    const row = await withUserContext(user.id, user.role, async (tx) => {
       const [movement] = await tx
         .insert(stockMovements)
         .values({
@@ -151,7 +152,7 @@ export async function stockOutAction(
   }
 
   try {
-    const row = await db.transaction(async (tx) => {
+    const row = await withUserContext(user.id, user.role, async (tx) => {
       const currentLevel = await getLevelLocked(
         tx,
         parsed.data.productId,
@@ -233,7 +234,7 @@ export async function transferAction(
   }
 
   try {
-    const result = await db.transaction(async (tx) => {
+    const result = await withUserContext(user.id, user.role, async (tx) => {
       const sourceLevel = await getLevelLocked(
         tx,
         parsed.data.productId,
@@ -351,7 +352,7 @@ export async function adjustmentAction(
   if (!shape.ok) return { ok: false, error: shape.error };
 
   try {
-    const row = await db.transaction(async (tx) => {
+    const row = await withUserContext(user.id, user.role, async (tx) => {
       if (parsed.data.delta < 0) {
         const currentLevel = await getLevelLocked(
           tx,

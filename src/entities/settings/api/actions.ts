@@ -2,9 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { sql } from "drizzle-orm";
-import { db } from "@/db/client";
 import { auditLog, settings } from "@/db/schema";
 import { requireRole } from "@/shared/lib/auth/require-role";
+import { withUserContext } from "@/shared/lib/auth/session-binding";
 import type { ActionResult } from "@/shared/lib/server-action/types";
 import { unexpectedActionError } from "@/shared/lib/server-action/errors";
 import {
@@ -36,7 +36,7 @@ export async function updateStockSettingsAction(
   }
 
   try {
-    await db.transaction(async (tx) => {
+    await withUserContext(user.id, user.role, async (tx) => {
       await tx
         .insert(settings)
         .values({
