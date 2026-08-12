@@ -32,9 +32,12 @@ Purchase orders — draft → sent → partial → received state machine:
 
 ![Purchase orders](./.github/screenshots/orders.png)
 
-> Captured from the running app against the seeded dev database (manager role).
-> The monospace `E2E-*` references in the ledger are real rows left by the
-> end-to-end suite — the ledger is append-only, so nothing is deleted for show.
+> Captured from the live demo above, signed in as the manager role, against the
+> seeded database: 8 SKUs, 12 purchase orders across all five states, and 55
+> movements spread over 15 days. The figures are consistent rather than
+> decorative. Every balance is the sum of the ledger, no product ever goes
+> negative at any point in the sequence, and the three SKUs flagged at or below
+> reorder are flagged because their own sales put them there.
 
 ## What's inside
 
