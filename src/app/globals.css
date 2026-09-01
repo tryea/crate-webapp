@@ -963,7 +963,10 @@ html:has([data-app-shell]) body {
   .app-shell {
     grid-template-columns: 1fr;
   }
-  .rail {
+  /* Only the rail that IS the shell column disappears. The mobile drawer
+     reuses `.rail` for its ink and spacing, and a bare `.rail { display:none }`
+     here hid the drawer too: the backdrop dimmed, the panel never appeared. */
+  .app-shell > .rail {
     display: none;
   }
   .pad {
