@@ -35,7 +35,7 @@ export default async function WarehouseDetailPage({
           <ChevronLeft className="size-3.5" /> All warehouses
         </Link>
         <header className="flex flex-col gap-1 pt-2">
-          <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+          <p className="eyebrow">
             Warehouse · <span className="not-italic">{warehouse.code}</span>
           </p>
           <h1 className="text-2xl font-semibold tracking-tight">{warehouse.name}</h1>

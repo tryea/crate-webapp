@@ -33,7 +33,7 @@ export default function ErrorPage({
   return (
     <main className="mx-auto flex min-h-svh w-full max-w-md flex-col justify-center gap-6 px-6 py-10">
       <header className="flex flex-col gap-2">
-        <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
+        <p className="eyebrow">
           Crate · {t("eyebrow")}
         </p>
         <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>

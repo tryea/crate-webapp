@@ -71,7 +71,7 @@ export default async function PurchaseOrderDetailPage({
         </Link>
         <header className="flex flex-wrap items-end justify-between gap-4 pt-2">
           <div className="flex flex-col gap-1">
-            <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+            <p className="eyebrow">
               Purchase order
             </p>
             <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-3">

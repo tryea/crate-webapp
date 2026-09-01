@@ -16,7 +16,7 @@ export default async function ProductImportPage() {
           <ChevronLeft className="size-3.5" /> Back to catalog
         </Link>
         <header className="flex flex-col gap-1 pt-2">
-          <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+          <p className="eyebrow">
             Catalog · Import
           </p>
           <h1 className="text-2xl font-semibold tracking-tight">

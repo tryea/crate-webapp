@@ -27,7 +27,7 @@ export default async function AccountPage() {
     {
       label: "Role",
       value: (
-        <Badge variant="outline" className="font-mono uppercase tracking-wider">
+        <Badge variant="outline" className="font-mono">
           {user.role}
         </Badge>
       ),
@@ -47,7 +47,7 @@ export default async function AccountPage() {
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 px-6 py-8">
       <header className="flex flex-col gap-1">
-        <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+        <p className="eyebrow">
           Account
         </p>
         <h1 className="text-2xl font-semibold tracking-tight">

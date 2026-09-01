@@ -34,11 +34,10 @@ export default function GlobalError({
         <main style={{ maxWidth: "28rem", width: "100%" }}>
           <p
             style={{
-              fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
               fontSize: "0.75rem",
-              textTransform: "uppercase",
-              letterSpacing: "0.15em",
-              color: "#737373",
+              fontWeight: 600,
+              letterSpacing: 0,
+              color: "#3f4145",
               margin: "0 0 0.75rem",
             }}
           >

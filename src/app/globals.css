@@ -661,6 +661,19 @@ html:has([data-app-shell]) body {
     font-weight: 500;
     color: var(--ink-2);
   }
+  /* ONE eyebrow, defined once. It used to be a utility string copy-pasted
+     across nineteen pages carrying three banned things at once: uppercase,
+     positive tracking, and a muted grey parked just above the 4.5 floor.
+     Hierarchy here comes from size and weight; the colour is the shell's
+     secondary ink, which sits at 10.4:1 on white and 11.6:1 on the dark
+     panel, inside the 7-11 band the rules ask for instead of at the floor. */
+  .eyebrow {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--ink-2);
+  }
   .pad h1 {
     font-size: 22px;
     font-weight: 700;
