@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Crate — Inventory Management",
+  title: "Crate, Inventory Management",
   description:
     "Crate is a production-grade inventory management system with transactional stock integrity.",
 };

@@ -77,7 +77,7 @@
     },
     "signUp": {
       "title": "Buat akun",
-      "subtitle": "Daftar untuk mulai mengelola inventaris. Akun baru otomatis berperan <role>staf</role> — admin dapat menaikkan peran Anda.",
+      "subtitle": "Daftar untuk mulai mengelola inventaris. Akun baru otomatis berperan <role>staf</role>. Admin dapat menaikkan peran Anda.",
       "name": "Nama",
       "namePlaceholder": "Nama Anda",
       "email": "Email",
@@ -100,7 +100,7 @@
     "error": {
       "eyebrow": "Kesalahan",
       "title": "Terjadi kesalahan.",
-      "body": "Layar ini mengalami kesalahan tak terduga. Data Anda aman — setiap perubahan stok adalah entri buku besar yang hanya bisa ditambahkan, jadi tidak ada yang tertulis setengah jalan. Coba lagi, dan jika masih berlanjut, kembali ke dasbor.",
+      "body": "Layar ini mengalami kesalahan tak terduga. Data Anda aman: setiap perubahan stok adalah entri buku besar yang hanya bisa ditambahkan, jadi tidak ada yang tertulis setengah jalan. Coba lagi, dan jika masih berlanjut, kembali ke dasbor.",
       "reference": "Referensi:",
       "retry": "Coba lagi",
       "backToDashboard": "Kembali ke dasbor"
@@ -111,7 +111,7 @@
     "notFound": {
       "eyebrow": "404",
       "title": "Halaman tersebut tidak ditemukan.",
-      "body": "Tautannya mungkin rusak, atau halamannya mungkin telah dipindahkan. Tidak ada yang hilang — data inventaris Anda tetap persis di tempat Anda meninggalkannya.",
+      "body": "Tautannya mungkin rusak, atau halamannya mungkin telah dipindahkan. Tidak ada yang hilang: data inventaris Anda tetap persis di tempat Anda meninggalkannya.",
       "backToCrate": "Kembali ke Crate",
       "movementHistory": "Riwayat pergerakan"
     }
