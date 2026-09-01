@@ -3,13 +3,17 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
-import { cn } from "@/shared/lib/utils";
 
 /**
  * Icon is passed as a pre-rendered ReactNode (not a component reference)
  * so it survives the Server→Client boundary. Lucide icons are
  * forwardRef-based — passing the component itself trips
  * "Functions cannot be passed directly to Client Components" in Next 16.
+ *
+ * Styling lives on `.rail nav a` in globals.css: the rail is constant chrome
+ * in BOTH themes, so its ink comes from the rail tokens, never from the
+ * theme tokens. A `text-sidebar-foreground/80` here would be grey text by
+ * another name and would go missing in one of the two modes.
  */
 export function SidebarNavLink({
   href,
@@ -29,11 +33,7 @@ export function SidebarNavLink({
     <Link
       href={href}
       data-active={active || undefined}
-      className={cn(
-        "group flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors",
-        "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
-        "data-[active]:bg-sidebar-accent data-[active]:text-sidebar-accent-foreground",
-      )}
+      aria-current={active ? "page" : undefined}
     >
       {icon}
       <span className="truncate">{label}</span>

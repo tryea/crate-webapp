@@ -1,18 +1,25 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
 import "./globals.css";
 import { THEME_SCRIPT } from "@/shared/lib/theme/script";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+/**
+ * ONE typeface for the whole product. Geist (sans + mono) was the Next.js
+ * starter default, and a default typeface is one axis of "looks generated".
+ * Archivo is self-hosted as a single variable file (400-700), so there is no
+ * second family to fall back to and no network hop to a font CDN.
+ *
+ * Numerals get `font-variant-numeric: tabular-nums` where they line up in a
+ * column; that replaces the old mono family entirely.
+ */
+const archivo = localFont({
+  src: "./fonts/archivo.woff2",
+  variable: "--font-archivo",
+  weight: "400 700",
+  display: "swap",
+  fallback: ["ui-sans-serif", "system-ui", "sans-serif"],
 });
 
 export const metadata: Metadata = {
@@ -35,7 +42,7 @@ export default async function RootLayout({
     <html
       lang={locale}
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${archivo.variable} h-full antialiased`}
     >
       <head>
         <script

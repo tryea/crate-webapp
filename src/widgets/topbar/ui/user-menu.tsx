@@ -45,21 +45,18 @@ export function UserMenu({
       .filter(Boolean)
       .slice(0, 2)
       .join("") || "?";
+  // Upper-case-only text reads as a second typeface even in the same family
+  // (DESIGN-RULES), so the role is title-cased in data, not with
+  // `text-transform`.
+  const roleLabel = role.charAt(0).toUpperCase() + role.slice(1);
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger
-        className="flex items-center gap-2 rounded-md px-1.5 py-1 text-sm hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
-        aria-label={t("ariaLabel")}
-      >
-        <span className="flex size-7 items-center justify-center rounded-full bg-muted text-xs font-medium">
-          {initials}
-        </span>
-        <span className="hidden sm:flex flex-col items-start leading-tight">
-          <span className="text-sm font-medium">{displayName}</span>
-          <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-            {role}
-          </span>
+      <DropdownMenuTrigger className="me" aria-label={t("ariaLabel")}>
+        <span className="av">{initials}</span>
+        <span className="who">
+          <span className="nm2">{displayName}</span>
+          <span className="rl">{roleLabel}</span>
         </span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
@@ -76,7 +73,7 @@ export function UserMenu({
           value={theme}
           onValueChange={(v) => setTheme(v as Theme)}
         >
-          <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-mono">
+          <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
             {t("theme")}
           </DropdownMenuLabel>
           <DropdownMenuRadioItem value="light" className="gap-2">

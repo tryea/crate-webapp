@@ -1,86 +1,72 @@
 import { getTranslations } from "next-intl/server";
-import { Card, CardContent, CardHeader } from "@/shared/ui/card";
-import { Skeleton } from "@/shared/ui/skeleton";
 
 /*
- * Bespoke loading fallback for the dashboard — the daily landing page whose
- * KPI-grid + chart + paired-list shape is too distinct for the generic
- * (protected)/loading.tsx to mirror honestly. Matching the real layout keeps
- * the skeleton→content swap shift-free.
+ * Bespoke loading fallback for the dashboard. It mirrors the real shape of
+ * the shift-open screen (verdict line, "Needs you" panel, ledger table,
+ * standing facts) so the skeleton-to-content swap shifts nothing.
  *
- * a11y: role="status" + sr-only label (WCAG 4.1.3); pulse blocks aria-hidden.
+ * The blocks pulse in BRIGHTNESS, never in `opacity`: opacity on a subtree
+ * is grey text by another name, and this page has to hold at zero dimmed
+ * text nodes in both themes.
+ *
+ * a11y: role="status" + sr-only label (WCAG 4.1.3); the blocks are
+ * aria-hidden.
  */
 export default async function DashboardLoading() {
   const t = await getTranslations("system.loading");
 
   return (
-    <div
-      role="status"
-      aria-busy="true"
-      className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-6 py-8"
-    >
+    <main className="pad" role="status" aria-busy="true">
       <span className="sr-only">{t("label")}</span>
 
-      {/* header */}
       <div aria-hidden className="flex flex-col gap-2">
-        <Skeleton className="h-2.5 w-20" />
-        <Skeleton className="h-7 w-64 max-w-full" />
-        <Skeleton className="h-4 w-40" />
+        <div className="sk-block h-4 w-44" />
+        <div className="sk-block h-6 w-80 max-w-full" />
+        <div className="sk-block h-4 w-56 max-w-full" />
       </div>
 
-      {/* KPI row — 4 cards */}
-      <div aria-hidden className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Card key={`kpi-${i}`}>
-            <CardHeader>
-              <Skeleton className="h-3.5 w-28" />
-              <Skeleton className="h-7 w-20" />
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-3.5 w-32" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* top-items chart */}
-      <Card aria-hidden>
-        <CardHeader>
-          <Skeleton className="h-4 w-44" />
-          <Skeleton className="h-3.5 w-56 max-w-full" />
-        </CardHeader>
-        <CardContent>
-          <Skeleton className="h-56 w-full" />
-        </CardContent>
-      </Card>
-
-      {/* low-stock + recent movements */}
-      <div aria-hidden className="grid gap-4 lg:grid-cols-[1fr_1fr]">
-        {Array.from({ length: 2 }).map((_, c) => (
-          <Card key={`list-${c}`}>
-            <CardHeader>
-              <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-3.5 w-48 max-w-full" />
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col gap-3">
-                {Array.from({ length: 5 }).map((_, r) => (
-                  <div
-                    key={`list-${c}-row-${r}`}
-                    className="flex items-center justify-between gap-3"
-                  >
-                    <div className="flex flex-col gap-1.5">
-                      <Skeleton className="h-3.5 w-32" />
-                      <Skeleton className="h-2.5 w-16" />
-                    </div>
-                    <Skeleton className="h-4 w-12" />
-                  </div>
-                ))}
+      <div className="work" aria-hidden>
+        <div>
+          <section className="panel">
+            <div className="panelhead">
+              <div className="sk-block h-5 w-24" />
+              <div className="sk-block ml-auto h-8 w-44" />
+            </div>
+            {[0, 1, 2].map((row) => (
+              <div key={row} className="qrow">
+                <span className="qname">
+                  <span className="sk-block h-4 w-48 max-w-full" />
+                  <span className="sk-block mt-1 h-3 w-20" />
+                </span>
+                <span className="sk-block h-4 w-16" />
+                <span />
               </div>
-            </CardContent>
-          </Card>
-        ))}
+            ))}
+          </section>
+
+          <section className="ledger">
+            <div className="ledgerhead">
+              <div className="sk-block h-5 w-28" />
+              <div className="sk-block ml-auto h-4 w-28" />
+            </div>
+            <div className="panel flex flex-col gap-3 p-4">
+              {[0, 1, 2, 3, 4, 5, 6, 7].map((row) => (
+                <div key={row} className="sk-block h-4 w-full" />
+              ))}
+            </div>
+          </section>
+        </div>
+
+        <aside className="side">
+          <div className="sk-block h-4 w-28" />
+          {[0, 1, 2, 3].map((row) => (
+            <div key={row} className="fact">
+              <span className="sk-block h-3 w-24" />
+              <span className="sk-block mt-1 h-5 w-32" />
+            </div>
+          ))}
+        </aside>
       </div>
-    </div>
+    </main>
   );
 }

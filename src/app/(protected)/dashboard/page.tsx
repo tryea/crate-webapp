@@ -1,287 +1,259 @@
 import Link from "next/link";
-import { getFormatter } from "next-intl/server";
-import { BarChart3, ChevronRight, PackageOpen } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { requireRole } from "@/shared/lib/auth/require-role";
 import {
-  countActiveTransfersServer,
-  countStockOutsServer,
   getValuationServer,
   listLowStockProductsServer,
   listRecentMovementsServer,
-  listTopProductsByValueServer,
 } from "@/entities/stock-movement/api/server";
-import { classifyStockHealth } from "@/entities/stock-movement/domain/stock-math";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card";
-import { EmptyState } from "@/shared/ui/empty-state";
-import { StockStatusBadge } from "@/shared/ui/stock-status-badge";
-import { Badge } from "@/shared/ui/badge";
-import { buttonVariants } from "@/shared/ui/button";
-import { cn } from "@/shared/lib/utils";
-import { TopProductsChart } from "./_components/top-products-chart";
+import { listProductsServer } from "@/entities/product/api/server";
+import { listWarehousesServer } from "@/entities/warehouse/api/server";
 
-const MONEY_FMT = new Intl.NumberFormat("en-US", {
-  minimumFractionDigits: 0,
-  maximumFractionDigits: 0,
+/*
+ * The shift-open screen. It answers ONE question, "what needs me right now",
+ * and it answers it in the first line as a sentence, not as a grid of tiles.
+ *
+ * Two deliberate absences, both of them decisions:
+ *  - No "(24h)" counters. Two of them sat permanently at 0 because the demo
+ *    seed stops on 12 Aug, so they were a number nobody could verify. The
+ *    right column carries facts that change only when the DATA changes,
+ *    never because the clock moved.
+ *  - No relative timestamps. Every time on this page is absolute.
+ */
+
+const STAMP_FMT = new Intl.DateTimeFormat("en-GB", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+  year: "numeric",
 });
+const DATE_FMT = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+});
+const SHORT_DATE_FMT = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+});
+const TIME_FMT = new Intl.DateTimeFormat("en-GB", {
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+});
+const NUM_FMT = new Intl.NumberFormat("en-US");
 
-export default async function DashboardPage() {
-  const { user } = await requireRole("staff");
-  const format = await getFormatter();
+const TYPE_LABEL: Record<string, string> = {
+  stock_in: "Stock in",
+  stock_out: "Stock out",
+  transfer_in: "Transfer in",
+  transfer_out: "Transfer out",
+  adjustment: "Adjustment",
+};
 
-  const [lowStock, stockOuts24h, activeTransfers, recent, valuation, topProducts] =
-    await Promise.all([
-      listLowStockProductsServer(10),
-      countStockOutsServer(24),
-      countActiveTransfersServer(24),
-      listRecentMovementsServer(8),
-      getValuationServer(),
-      listTopProductsByValueServer(8),
-    ]);
+const COUNT_WORD = [
+  "No",
+  "One",
+  "Two",
+  "Three",
+  "Four",
+  "Five",
+  "Six",
+  "Seven",
+  "Eight",
+  "Nine",
+  "Ten",
+];
+
+function countWord(n: number): string {
+  return COUNT_WORD[n] ?? NUM_FMT.format(n);
+}
+
+function stamp(d: Date): string {
+  return `${DATE_FMT.format(d)} ${TIME_FMT.format(d)}`;
+}
+
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ warehouse?: string }>;
+}) {
+  await requireRole("staff");
+  const { warehouse } = await searchParams;
+
+  // An unknown id in the URL must not silently pretend to be a filter, so it
+  // is validated against the real list and otherwise falls back to "all".
+  const warehouses = await listWarehousesServer();
+  const scoped = warehouses.find((w) => w.id === warehouse);
+  const warehouseId = scoped?.id;
+
+  const [lowStock, recent, valuation, products] = await Promise.all([
+    listLowStockProductsServer({ limit: 10, warehouseId }),
+    listRecentMovementsServer({ limit: 8, warehouseId }),
+    getValuationServer({ warehouseId }),
+    listProductsServer(),
+  ]);
 
   const lowStockCount = lowStock.length;
+  const onHand = [...valuation.perProduct.values()].reduce(
+    (sum, v) => sum + v.qty,
+    0,
+  );
+  const tracked = products.filter((p) => p.isActive).length;
+  const lastMovement = recent[0]?.createdAt ?? null;
+
+  const verdict =
+    lowStockCount === 0
+      ? "Nothing is at or below reorder."
+      : lowStockCount === 1
+        ? "One product is at or below reorder."
+        : `${countWord(lowStockCount)} products are at or below reorder.`;
 
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-6 py-8">
-      <header className="flex flex-col gap-1">
-        <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-          Dashboard
-        </p>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Welcome, {user.name ?? user.email}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Signed in as <span className="font-medium">{user.role}</span>.
-        </p>
-      </header>
+    <main className="pad">
+      <p className="stamp fig">{STAMP_FMT.format(new Date())}</p>
+      <h1>{verdict}</h1>
+      <p className="lede">
+        {lowStockCount === 0
+          ? "Nothing needs you today."
+          : "Nothing else needs you today."}
+      </p>
 
-      {/* KPI row — real data driven. Total stock value still pending Phase 6 valuation. */}
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader>
-            <CardDescription>Total stock value</CardDescription>
-            <CardTitle className="text-2xl font-semibold tabular-nums">
-              {MONEY_FMT.format(Math.round(valuation.totalValue))}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <span className="text-xs text-muted-foreground">
-              Perpetual weighted-average cost across {valuation.perProduct.size}{" "}
-              SKU{valuation.perProduct.size === 1 ? "" : "s"}.
-            </span>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardDescription>SKUs at or below reorder</CardDescription>
-            <CardTitle
-              className={cn(
-                "text-2xl font-semibold tabular-nums",
-                lowStockCount > 0 && "text-warning-text",
-              )}
-            >
-              {lowStockCount}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {lowStockCount > 0 ? (
-              <StockStatusBadge status="low-stock" />
-            ) : (
-              <StockStatusBadge status="in-stock" />
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardDescription>Stock-outs (24h)</CardDescription>
-            <CardTitle className="text-2xl font-semibold tabular-nums">
-              {stockOuts24h}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <span className="text-xs text-muted-foreground">
-              Issuances recorded since yesterday.
-            </span>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardDescription>Active transfers (24h)</CardDescription>
-            <CardTitle className="text-2xl font-semibold tabular-nums">
-              {activeTransfers}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <span className="text-xs text-muted-foreground">
-              Distinct paired transfers in the last day.
-            </span>
-          </CardContent>
-        </Card>
-      </section>
-
-      {/* Top items by value — Phase 6.4 chart */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div className="flex flex-col gap-1">
-            <CardTitle className="text-base">Top items by stock value</CardTitle>
-            <CardDescription>
-              Current on-hand × WAC. Sorted descending.
-            </CardDescription>
-          </div>
-          <Link
-            href="/catalog"
-            className="inline-flex items-center gap-0.5 text-xs text-muted-foreground hover:text-foreground"
-          >
-            Catalog <ChevronRight className="size-3.5" />
-          </Link>
-        </CardHeader>
-        <CardContent>
-          {topProducts.length === 0 ? (
-            <EmptyState
-              icon={BarChart3}
-              title="No valued inventory"
-              description="Receive stock with a unit cost to see this fill in."
-            />
-          ) : (
-            <TopProductsChart data={topProducts} />
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Low-stock + recent activity side-by-side */}
-      <section className="grid gap-4 lg:grid-cols-[1fr_1fr]">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div className="flex flex-col gap-1">
-              <CardTitle className="text-base">Low stock</CardTitle>
-              <CardDescription>
-                Products at or below their reorder point.
-              </CardDescription>
+      <div className="work">
+        <div>
+          <section className="panel">
+            <div className="panelhead">
+              <h2>Needs you</h2>
+              <span className="count fig">{lowStockCount}</span>
+              {lowStockCount > 0 ? (
+                <Link className="btn btn-act" href="/orders">
+                  Raise purchase orders
+                </Link>
+              ) : null}
             </div>
-            {lowStockCount > 0 ? (
-              <Link
-                href="/catalog"
-                className="inline-flex items-center gap-0.5 text-xs text-muted-foreground hover:text-foreground"
-              >
-                Catalog <ChevronRight className="size-3.5" />
-              </Link>
-            ) : null}
-          </CardHeader>
-          <CardContent>
+
             {lowStockCount === 0 ? (
-              <EmptyState
-                icon={PackageOpen}
-                title="Everything stocked"
-                description="No products at or below their reorder point."
-              />
+              <div className="statebox">
+                <strong>Every product is above its reorder point.</strong>
+                <span>
+                  Reorder points live on the product record, so this list fills
+                  itself as stock moves.
+                </span>
+                <Link className="btn" href="/catalog">
+                  Review reorder points
+                </Link>
+              </div>
             ) : (
-              <ul className="flex flex-col divide-y divide-border/60">
-                {lowStock.map((p) => {
-                  const health = classifyStockHealth(p.onHand, p.reorderPoint);
-                  return (
-                    <li
-                      key={p.productId}
-                      className="flex items-center justify-between gap-3 py-2.5 text-sm"
-                    >
-                      <div className="flex flex-col min-w-0">
-                        <span className="truncate">{p.name}</span>
-                        <span className="font-mono text-[10px] text-muted-foreground">
-                          {p.sku}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="tabular-nums text-xs text-muted-foreground">
-                          {p.onHand} / {p.reorderPoint}
-                        </span>
-                        {health === "out-of-stock" ? (
-                          <Badge
-                            variant="outline"
-                            className="border-destructive/20 bg-destructive/10 text-destructive-text"
-                          >
-                            Out
-                          </Badge>
-                        ) : (
-                          <Badge
-                            variant="outline"
-                            className="border-warning/30 bg-warning/10 text-warning-text"
-                          >
-                            Low
-                          </Badge>
-                        )}
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
+              lowStock.map((p) => (
+                <Link className="qrow" key={p.productId} href="/catalog">
+                  <span className="qname">
+                    <span className="nm">{p.name}</span>
+                    <span className="sku fig">{p.sku}</span>
+                  </span>
+                  <span className="qlvl">
+                    <b>{NUM_FMT.format(p.onHand)}</b> of{" "}
+                    {NUM_FMT.format(p.reorderPoint)}
+                  </span>
+                  <span className="qgo">
+                    <ArrowRight className="ic" strokeWidth={1.75} aria-hidden="true" />
+                  </span>
+                </Link>
+              ))
             )}
-          </CardContent>
-        </Card>
+          </section>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div className="flex flex-col gap-1">
-              <CardTitle className="text-base">Recent movements</CardTitle>
-              <CardDescription>The append-only ledger, fresh top.</CardDescription>
+          <section className="ledger">
+            <div className="ledgerhead">
+              <h2>What moved</h2>
+              <span className="sub">
+                {recent.length === 0 ? "nothing yet" : `${recent.length} latest`}
+              </span>
+              <Link href="/movements">
+                All movements{" "}
+                <ArrowRight className="ic" strokeWidth={1.75} aria-hidden="true" />
+              </Link>
             </div>
-            <Link
-              href="/movements"
-              className="inline-flex items-center gap-0.5 text-xs text-muted-foreground hover:text-foreground"
-            >
-              All <ChevronRight className="size-3.5" />
-            </Link>
-          </CardHeader>
-          <CardContent>
+
             {recent.length === 0 ? (
-              <EmptyState
-                icon={PackageOpen}
-                title="No movements yet"
-                description="Record a stock-in to start the ledger."
-                action={
-                  <Link
-                    href="/movements/new/stock-in"
-                    className={buttonVariants({ variant: "default" })}
-                  >
+              <div className="panel">
+                <div className="statebox">
+                  <strong>The ledger is empty.</strong>
+                  <span>
+                    Every stock change is an append-only entry. Record the first
+                    receipt and it shows up here.
+                  </span>
+                  <Link className="btn btn-act" href="/movements/new/stock-in">
                     Record stock-in
                   </Link>
-                }
-              />
+                </div>
+              </div>
             ) : (
-              <ul className="flex flex-col divide-y divide-border/60">
-                {recent.map((m) => (
-                  <li
-                    key={m.id}
-                    className="flex items-center justify-between gap-3 py-2.5 text-sm"
-                  >
-                    <div className="flex flex-col min-w-0">
-                      <span className="truncate">{m.productName ?? "—"}</span>
-                      <span className="text-[10px] text-muted-foreground">
-                        {m.type.replace(/_/g, " ")} · {m.locationCode ?? "—"}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3 shrink-0">
-                      <span
-                        className={cn(
-                          "tabular-nums text-sm font-medium",
-                          m.quantity > 0 && "text-success-text",
-                          m.quantity < 0 && "text-destructive-text",
-                        )}
-                      >
+              <table>
+                <thead>
+                  <tr>
+                    <th>When</th>
+                    <th>Type</th>
+                    <th>Product</th>
+                    <th className="s1">Bin</th>
+                    <th>Qty</th>
+                    <th className="s2">Reason</th>
+                    <th className="s2">Reference</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recent.map((m) => (
+                    <tr key={m.id}>
+                      <td className="fig">{stamp(new Date(m.createdAt))}</td>
+                      <td>{TYPE_LABEL[m.type] ?? m.type}</td>
+                      <td>
+                        <span className="nm">{m.productName ?? "unknown"}</span>{" "}
+                        <span className="sku fig">{m.productSku ?? ""}</span>
+                      </td>
+                      <td className="fig s1">{m.locationCode ?? "none"}</td>
+                      <td className={m.quantity < 0 ? "q n" : "q p"}>
                         {m.quantity > 0 ? "+" : ""}
-                        {m.quantity}
-                      </span>
-                      <span className="font-mono text-[10px] text-muted-foreground">
-                        {format.dateTime(new Date(m.createdAt), "compact")}
-                      </span>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+                        {NUM_FMT.format(m.quantity)}
+                      </td>
+                      <td className="s2">
+                        {m.reason ? m.reason.replace(/_/g, " ") : "none"}
+                      </td>
+                      <td className="fig s2">{m.reference ?? "none"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             )}
-          </CardContent>
-        </Card>
-      </section>
+          </section>
+        </div>
+
+        <aside className="side">
+          <h2>Standing facts</h2>
+          <div className="fact">
+            <span className="k">Stock on hand</span>
+            <span className="v fig">{NUM_FMT.format(onHand)}</span>
+          </div>
+          <div className="fact">
+            <span className="k">Products tracked</span>
+            <span className="v fig">{NUM_FMT.format(tracked)}</span>
+          </div>
+          <div className="fact">
+            <span className="k">Last movement</span>
+            <span className="v fig">
+              {lastMovement
+                ? `${SHORT_DATE_FMT.format(new Date(lastMovement))}, ${TIME_FMT.format(new Date(lastMovement))}`
+                : "none yet"}
+            </span>
+          </div>
+          <div className="fact">
+            <span className="k">Rows ever edited</span>
+            <span className="v fig">0</span>
+          </div>
+          <p className="sidenote">
+            These four do not expire. They change only when the data changes,
+            never because the clock moved.
+          </p>
+        </aside>
+      </div>
     </main>
   );
 }

@@ -7,8 +7,12 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* ONE family for the whole product (S3). `--font-mono` is deliberately
+     aliased to the same stack: any surviving `font-mono` utility then computes
+     to a byte-identical font-family string, so the "one typeface" gate stays
+     honest instead of quietly reporting two. */
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-sans);
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -181,5 +185,864 @@
   }
   html {
     @apply font-sans;
+  }
+}
+/* =====================================================================
+   App shell (S3) — ported verbatim from the approved D1k prototype
+   (prototype-app-2026-09-01/D1k-shift-open.html, ACC 1 Sep 2026 after 12
+   rounds). Every value below has a history: copy the decision, do not
+   re-derive it.
+
+   The token names are deliberately NOT the shadcn ones. shadcn's
+   --background/--card/--muted family still dresses every other surface in
+   the product (dialogs, tables, forms); the shell owns a small, separate
+   vocabulary so the two never fight and so the rail can stay near-black in
+   BOTH themes without dragging the rest of the palette with it.
+   ===================================================================== */
+
+:root {
+  /* Working canvas is pure WHITE. Grey canvas + white cards is the default
+     face of every admin template, and it reads as slop; depth here comes
+     from a hairline plus one shadow, never from a difference in grey. */
+  --canvas: #ffffff;
+  --panel: #ffffff;
+  --topbar: #ffffff;
+  /* TWO ink values, both dark, and zero opacity on any text. Dimming text
+     with `opacity` produces literally the same grey pixels as a grey token,
+     it is just counted differently. */
+  --ink: #0b0b0b;
+  --ink-2: #3f4145;
+  --line: #e6e6e6;
+  --line-soft: #f0f0f0;
+  --hover: #f5f5f5;
+  --pill: #ffffff;
+  --pill-line: #dcdcdc;
+  /* Action = maximum-contrast neutral. Amber is a low-stock SEMANTIC only. */
+  --acc: #0b0b0b;
+  --on-acc: #ffffff;
+  --amber: #8a4b00;
+  --neg: #a0331f;
+  --pos: #0b5c30;
+  --lift: 0 1px 2px rgb(17 17 17 / 0.05), 0 12px 30px -16px rgb(17 17 17 / 0.18);
+  --bar: #d2d2d2;
+  --bar-hi: #adadad;
+  --av: #0b0b0b;
+  --av-ink: #ffffff;
+}
+
+/* The rail is near-black in BOTH themes, and that is structural, not taste:
+   light mode has only white and near-white to work with, so without a
+   constant dark spine the page has no backbone. Navigation is the constant;
+   what swaps is the work area. Measured: white on #0B0B0B = 19.68:1.
+   Anything living inside this constant chrome MUST use these tokens, never
+   the theme tokens, or it vanishes in one of the two modes. */
+:root,
+.dark {
+  --rail: #0b0b0b;
+  --rail-ink: #ffffff;
+  --rail-hover: #1c1c1c;
+  --rail-line: #242424;
+}
+
+.dark {
+  /* Measured ladder: canvas #0E0E0E L* 4.0, panel #1A1A1A L* 9.3, +5.3 points. */
+  --canvas: #0e0e0e;
+  --panel: #1a1a1a;
+  --topbar: #0e0e0e;
+  --ink: #ffffff;
+  --ink-2: #c7cace;
+  --line: #282828;
+  --line-soft: #212121;
+  --hover: #242424;
+  --pill: #242424;
+  --pill-line: #343434;
+  --acc: #f5f5f5;
+  --on-acc: #0b0b0b;
+  --amber: #f0be68;
+  --neg: #f09b94;
+  --pos: #66ce95;
+  --lift: 0 1px 2px rgb(0 0 0 / 0.5), 0 12px 32px -16px rgb(0 0 0 / 0.7);
+  --bar: #3a3a3a;
+  --bar-hi: #525252;
+  --av: #ffffff;
+  --av-ink: #0b0b0b;
+}
+
+/* The page itself never scrolls; the rail and the content region scroll
+   independently. Scoped with :has() to pages that actually render the shell,
+   so the marketing page and the sign-in screen keep their normal document
+   scroll instead of being clipped. */
+html:has([data-app-shell]),
+html:has([data-app-shell]) body {
+  height: 100%;
+  overflow: hidden;
+}
+
+html:has([data-app-shell]) body {
+  background: var(--canvas);
+  color: var(--ink);
+}
+
+@layer base {
+  /* Tailwind v4 flips buttons to `cursor: default`. Restored once, here, not
+     per component. */
+  button,
+  [role="button"],
+  summary,
+  label:has(input) {
+    cursor: pointer;
+  }
+  button:disabled,
+  [role="button"][aria-disabled="true"] {
+    cursor: default;
+  }
+  /* Without `color: inherit` a form control takes the UA default colour and
+     disappears in one of the two themes. Buttons inherit `font` but NOT
+     `color`, which is exactly the trap. */
+  button,
+  input,
+  select,
+  textarea,
+  kbd {
+    font: inherit;
+    letter-spacing: inherit;
+    color: inherit;
+  }
+  /* Browser-default scrollbars are one more default axis leaking onto the
+     screen. Styled in both themes. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--bar) transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 11px;
+    height: 11px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--bar);
+    border-radius: 99px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--bar-hi);
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+  /* sonner ships its own font-family on the toaster root; left alone it puts a
+     second family on the page and the "one typeface" gate fails. */
+  [data-sonner-toaster] {
+    font-family: inherit;
+  }
+}
+
+@layer components {
+  .app-shell {
+    height: 100dvh;
+    display: grid;
+    grid-template-columns: 232px minmax(0, 1fr);
+    overflow: hidden;
+    background: var(--canvas);
+    color: var(--ink);
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 1.5;
+    letter-spacing: 0;
+  }
+  .app-shell h1,
+  .app-shell h2 {
+    margin: 0;
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.25;
+  }
+  .app-shell p {
+    margin: 0;
+  }
+  .app-shell a {
+    color: inherit;
+    text-decoration: none;
+  }
+  .fig {
+    font-variant-numeric: tabular-nums;
+  }
+  .ic {
+    width: 16px;
+    height: 16px;
+    flex: none;
+  }
+
+  /* ---- rail ---- */
+  .rail {
+    background: var(--rail);
+    color: var(--rail-ink);
+    border-right: 1px solid var(--rail-line);
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .rail .top {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    height: 56px;
+    padding: 0 16px 10px;
+    font-weight: 600;
+    font-size: 15px;
+    flex: none;
+  }
+  .rail .top svg {
+    width: 17px;
+    height: 17px;
+    fill: var(--rail-ink);
+  }
+  .navgrp {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--rail-ink);
+    padding: 16px 16px 5px;
+  }
+  /* Brand and SCOPE are two different objects, so their SHAPES differ, not
+     just their positions. Brand: glyph + wordmark, no container. Scope: a
+     contained block with an icon, a small caption, and a chevron. It sits at
+     the TOP because everything below it is subject to it. */
+  .scope {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 6px 8px 2px;
+    padding: 7px 9px;
+    border-radius: 9px;
+    border: 1px solid var(--rail-line);
+    background: var(--rail-hover);
+    color: var(--rail-ink);
+    cursor: pointer;
+    text-align: left;
+    width: calc(100% - 16px);
+  }
+  .scope:hover {
+    border-color: var(--rail-ink);
+  }
+  .scope:focus-visible {
+    outline: 2px solid var(--rail-ink);
+    outline-offset: 1px;
+  }
+  .scope .sic {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
+    background: var(--rail);
+    flex: none;
+  }
+  .scope .sic .ic {
+    width: 14px;
+    height: 14px;
+  }
+  .scope .stx {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+    min-width: 0;
+  }
+  .scope .sk {
+    font-size: 10.5px;
+    font-weight: 500;
+    color: var(--rail-ink);
+  }
+  .scope .sv {
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .scope .sch {
+    margin-left: auto;
+    color: var(--rail-ink);
+    display: flex;
+  }
+  .scope .sch .ic {
+    width: 14px;
+    height: 14px;
+  }
+  .rail nav a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 32px;
+    margin: 0 8px;
+    padding: 0 8px;
+    border-radius: 7px;
+    color: var(--rail-ink);
+    font-weight: 500;
+    font-size: 14px;
+  }
+  .rail nav a:hover {
+    background: var(--rail-hover);
+  }
+  .rail nav a[data-active] {
+    background: var(--rail-hover);
+    font-weight: 600;
+  }
+  .rail nav a:focus-visible {
+    outline: 2px solid var(--rail-ink);
+    outline-offset: -2px;
+  }
+
+  /* ---- column ---- */
+  .col {
+    display: grid;
+    grid-template-rows: 56px minmax(0, 1fr);
+    min-width: 0;
+    min-height: 0;
+  }
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 22px;
+    border-bottom: 1px solid var(--line);
+    background: var(--topbar);
+    color: var(--ink);
+    min-width: 0;
+  }
+  .bar .crumb {
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .bar .sp {
+    margin-left: auto;
+  }
+  .iconbtn {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 7px;
+    border: 1px solid transparent;
+    background: none;
+    color: var(--ink);
+    cursor: pointer;
+    flex: none;
+  }
+  .iconbtn:hover {
+    background: var(--hover);
+  }
+  .iconbtn:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 1px;
+  }
+  .iconbtn .ic {
+    grid-area: 1/1;
+    transition:
+      transform 0.34s cubic-bezier(0.2, 0.8, 0.2, 1),
+      opacity 0.2s ease;
+  }
+  .i-sun {
+    opacity: 0;
+    transform: rotate(90deg) scale(0.5);
+  }
+  .i-moon {
+    opacity: 1;
+    transform: none;
+  }
+  .dark .i-moon {
+    opacity: 0;
+    transform: rotate(-90deg) scale(0.5);
+  }
+  .dark .i-sun {
+    opacity: 1;
+    transform: none;
+  }
+  .find {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    height: 32px;
+    padding: 0 10px;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    font-weight: 500;
+    font-size: 13px;
+    min-width: 186px;
+    cursor: pointer;
+    background: var(--panel);
+    color: var(--ink-2);
+  }
+  .find:hover {
+    border-color: var(--ink-2);
+  }
+  .find:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 1px;
+  }
+  .find kbd {
+    margin-left: auto;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--ink-2);
+  }
+  .me {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    height: 36px;
+    padding: 0 10px 0 5px;
+    border-radius: 99px;
+    border: 1px solid var(--pill-line);
+    background: var(--pill);
+    color: var(--ink);
+    cursor: pointer;
+    flex: none;
+  }
+  .me:hover {
+    border-color: var(--ink);
+  }
+  .me:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 1px;
+  }
+  .me .av {
+    width: 26px;
+    height: 26px;
+    border-radius: 99px;
+    background: var(--av);
+    color: var(--av-ink);
+    display: grid;
+    place-items: center;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .me .who {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+    text-align: left;
+  }
+  .me .nm2 {
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: 1.15;
+  }
+  .me .rl {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--ink-2);
+  }
+
+  /* ---- content ---- */
+  .scroll {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    min-height: 0;
+    min-width: 0;
+  }
+  .pad {
+    padding: 22px 26px 56px;
+    max-width: 1200px;
+  }
+  .stamp {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-2);
+  }
+  .pad h1 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-top: 4px;
+  }
+  .lede {
+    font-size: 15px;
+    font-weight: 500;
+    margin-top: 3px;
+    color: var(--ink-2);
+  }
+
+  /* Two working columns: what must be acted on at left, what only needs to be
+     known at right. */
+  .work {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 248px;
+    gap: 24px;
+    margin-top: 20px;
+    align-items: start;
+  }
+
+  /* ONE raised surface, and only for the subject of the screen. A screen where
+     every field is as bright as its floor reads as a wireframe. */
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--lift);
+  }
+  .panelhead {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+  }
+  .panelhead h2 {
+    font-size: 15px;
+  }
+  .count {
+    display: inline-grid;
+    place-items: center;
+    min-width: 21px;
+    height: 21px;
+    padding: 0 6px;
+    border-radius: 99px;
+    background: var(--hover);
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    padding: 0 14px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--ink);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .btn:hover {
+    background: var(--hover);
+  }
+  .btn:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 1px;
+  }
+  .btn-act {
+    background: var(--acc);
+    border-color: var(--acc);
+    color: var(--on-acc);
+    margin-left: auto;
+  }
+  .btn-act:hover {
+    background: var(--acc);
+    filter: brightness(1.06);
+  }
+
+  .qrow {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto 18px;
+    gap: 16px;
+    align-items: center;
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--line-soft);
+    color: inherit;
+  }
+  .qrow:last-child {
+    border-bottom: 0;
+  }
+  .qrow:hover {
+    background: var(--hover);
+  }
+  .qname {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+  }
+  .nm {
+    font-weight: 600;
+  }
+  .sku {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-2);
+  }
+  .qlvl {
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-2);
+  }
+  /* Amber lives on the NUMBER that is actually low. As a 3px bar down the edge
+     of the row it read as a floating orange stick, not as a marker. */
+  .qlvl b {
+    font-weight: 700;
+    color: var(--amber);
+  }
+  .qgo {
+    display: flex;
+    justify-content: flex-end;
+    color: var(--ink-2);
+  }
+  .qrow:hover .qgo {
+    color: var(--ink);
+  }
+  .qgo .ic {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* Right rail: facts that need no action, so they earn no surface. */
+  .side h2 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-2);
+  }
+  .fact {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .fact:last-of-type {
+    border-bottom: 0;
+  }
+  .fact .k {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-2);
+  }
+  .fact .v {
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .sidenote {
+    margin-top: 14px;
+    font-size: 12.5px;
+    font-weight: 500;
+    line-height: 1.55;
+    color: var(--ink-2);
+  }
+
+  .ledger {
+    margin-top: 22px;
+  }
+  .ledgerhead {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding-bottom: 9px;
+  }
+  .ledgerhead h2 {
+    font-size: 15px;
+  }
+  .ledgerhead .sub {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-2);
+  }
+  .ledgerhead a {
+    margin-left: auto;
+    font-size: 13px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-height: 28px;
+    color: var(--ink-2);
+  }
+  .ledgerhead a:hover {
+    color: var(--ink);
+  }
+  .ledgerhead a .ic {
+    width: 14px;
+    height: 14px;
+  }
+  .ledger table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--lift);
+  }
+  .ledger thead th {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-2);
+    text-align: left;
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  .ledger td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--line-soft);
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+  .ledger tbody tr:last-child td {
+    border-bottom: 0;
+  }
+  .ledger tbody tr:hover td {
+    background: var(--hover);
+  }
+  .ledger .q {
+    font-weight: 600;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .ledger th:nth-child(5) {
+    text-align: right;
+  }
+  .ledger .q.n {
+    color: var(--neg);
+  }
+  .ledger .q.p {
+    color: var(--pos);
+  }
+
+  /* Empty + error states inside the shell reuse the same ink, so they do not
+     invent a third palette. */
+  .statebox {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 28px 16px 32px;
+    color: var(--ink-2);
+    font-size: 13px;
+  }
+  .statebox strong {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  /* skeleton — a shape, not a spinner. Brightness only, zero opacity, so the
+     opacity gate stays at nil. */
+  .sk-block {
+    border-radius: 7px;
+    background: var(--hover);
+    animation: sk-pulse 1.6s ease-in-out infinite;
+  }
+  .dark .sk-block {
+    background: var(--line);
+  }
+}
+
+@keyframes sk-pulse {
+  0%,
+  100% {
+    background-color: var(--hover);
+  }
+  50% {
+    background-color: var(--line);
+  }
+}
+
+@media (max-width: 1120px) {
+  .work {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+  .rail {
+    display: none;
+  }
+  .pad {
+    padding: 20px 16px 72px;
+  }
+  .find {
+    display: none;
+  }
+  .bar {
+    padding: 0 16px;
+  }
+  .ledger table,
+  .ledger tbody,
+  .ledger tr,
+  .ledger td {
+    display: block;
+    width: 100%;
+  }
+  .ledger thead {
+    display: none;
+  }
+  .ledger table {
+    border-radius: 12px;
+  }
+  .ledger td {
+    padding: 0;
+    border: 0;
+    white-space: normal;
+  }
+  .ledger tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 2px 12px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line-soft);
+    align-items: center;
+  }
+  .ledger td:nth-child(1) {
+    order: 1;
+  }
+  .ledger td:nth-child(3) {
+    order: 2;
+  }
+  .ledger td:nth-child(2) {
+    order: 3;
+  }
+  .ledger td:nth-child(5) {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+    font-size: 17px;
+    align-self: center;
+  }
+  .ledger .s1,
+  .ledger .s2 {
+    display: none;
+  }
+}
+
+/* ---- theme swap: a WIPE, not a colour interpolation ----
+   A per-frame recording of the interpolated version showed the background
+   moving 255, 221, 123, 77, 47, 16 while the text moved the other way, so at
+   the midpoint text and background were both grey and the words VANISHED for
+   a moment. That is the flicker, and interpolation is its cause. A View
+   Transition wipes a circle out of the button: every pixel is always either
+   the old colour or the new one, never an average of the two. Browsers
+   without support, and reduced-motion users, get an instant swap. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-old(root) {
+  z-index: 0;
+}
+::view-transition-new(root) {
+  z-index: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:has([data-app-shell]) *,
+  html:has([data-app-shell]) *::before,
+  html:has([data-app-shell]) *::after {
+    transition: none !important;
+    animation: none !important;
   }
 }

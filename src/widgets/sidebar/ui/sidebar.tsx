@@ -1,50 +1,58 @@
 import { getTranslations } from "next-intl/server";
 import type { Role } from "@/shared/lib/auth/require-role";
-import { BRAND_ICON, filterNavForRole } from "./nav-items";
+import { listWarehousesServer } from "@/entities/warehouse/api/server";
+import { filterNavForRole } from "./nav-items";
 import { SidebarNavLink } from "./sidebar-nav-link";
+import { BrandMark } from "./brand-mark";
+import { ScopeBlock } from "./scope-block";
 
+/**
+ * The rail is near-black in BOTH themes. That is structure, not taste: light
+ * mode only has white and near-white to work with, so without one constant
+ * dark spine the page has no backbone. Navigation is the constant; the work
+ * area is what swaps. Everything inside here therefore uses the rail tokens
+ * (see globals.css), never the theme tokens.
+ */
 export async function Sidebar({ role }: { role: Role }) {
   const groups = filterNavForRole(role);
   const t = await getTranslations("nav");
-  const Brand = BRAND_ICON;
+  const warehouses = await listWarehousesServer();
 
   return (
-    <aside
-      className="hidden w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar md:flex"
-      aria-label="Primary"
-    >
-      <div className="flex h-12 items-center gap-2 px-4 border-b border-sidebar-border">
-        <Brand className="size-4 text-sidebar-foreground" aria-hidden="true" />
-        <span className="text-sm font-semibold tracking-tight text-sidebar-foreground">
-          Crate
-        </span>
-      </div>
+    <div className="rail">
+      <span className="top">
+        <BrandMark />
+        Crate
+      </span>
 
-      <nav className="flex-1 overflow-y-auto px-2 py-3">
+      <ScopeBlock
+        warehouses={warehouses.map((w) => ({
+          id: w.id,
+          name: w.name,
+          code: w.code,
+        }))}
+      />
+
+      <nav aria-label="Primary">
         {groups.map((g) => (
-          <div key={g.labelKey} className="mb-4 last:mb-0">
-            <div
-              className="px-2 pb-1.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground font-mono"
-            >
-              {t(`groups.${g.labelKey}`)}
-            </div>
-            <ul className="flex flex-col gap-0.5">
-              {g.items.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <li key={item.href}>
-                    <SidebarNavLink
-                      href={item.href}
-                      label={t(`items.${item.labelKey}`)}
-                      icon={<Icon className="size-4 shrink-0" aria-hidden="true" />}
-                    />
-                  </li>
-                );
-              })}
-            </ul>
+          <div key={g.labelKey}>
+            <p className="navgrp">{t(`groups.${g.labelKey}`)}</p>
+            {g.items.map((item) => {
+              const Icon = item.icon;
+              return (
+                <SidebarNavLink
+                  key={item.href}
+                  href={item.href}
+                  label={t(`items.${item.labelKey}`)}
+                  icon={
+                    <Icon className="ic" strokeWidth={1.75} aria-hidden="true" />
+                  }
+                />
+              );
+            })}
           </div>
         ))}
       </nav>
-    </aside>
+    </div>
   );
 }

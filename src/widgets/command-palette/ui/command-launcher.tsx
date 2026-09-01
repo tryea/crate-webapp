@@ -22,18 +22,17 @@ export function CommandLauncher() {
 
   return (
     <>
+      {/* `.find` (globals.css) carries the shape AND hides itself below 900px,
+          so there are no display utilities here to fight the media query. */}
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="hidden md:inline-flex items-center gap-2 rounded-md border border-input bg-muted/40 px-2.5 py-1 text-xs text-muted-foreground hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+        className="find"
         aria-label={t("launcherAria")}
       >
-        <Search className="size-3.5" aria-hidden="true" />
+        <Search className="ic" strokeWidth={1.75} aria-hidden="true" />
         <span>{t("placeholder")}</span>
-        <kbd
-          className="ml-2 font-mono text-[10px] rounded border border-border/80 bg-background px-1 py-0.5"
-          suppressHydrationWarning
-        >
+        <kbd suppressHydrationWarning>
           {typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform) ? "⌘K" : "Ctrl K"}
         </kbd>
       </button>
