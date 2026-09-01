@@ -54,26 +54,33 @@ export default async function ProtectedLayout({
   }
 
   return (
-    <div className="app-shell" data-app-shell>
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-foreground focus:shadow-md focus:outline-none focus:ring-2 focus:ring-ring"
-      >
-        {t("skipToContent")}
-      </a>
-      <Sidebar role={role} />
-      <div className="col">
-        <Topbar
-          crumbLabels={crumbLabels}
-          user={user}
-          actions={<CommandLauncher />}
-          leading={<MobileNav role={role} />}
-        />
-        <div id="main-content" tabIndex={-1} className="scroll">
-          {children}
+    <>
+      <div className="app-shell" data-app-shell>
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-foreground focus:shadow-md focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          {t("skipToContent")}
+        </a>
+        <Sidebar role={role} />
+        <div className="col">
+          <Topbar
+            crumbLabels={crumbLabels}
+            user={user}
+            actions={<CommandLauncher />}
+            leading={<MobileNav role={role} />}
+          />
+          <div id="main-content" tabIndex={-1} className="scroll">
+            {children}
+          </div>
         </div>
       </div>
+      {/* Outside the shell on purpose. sonner renders its live region as a
+          plain <section> with position: static, so as a child of the grid it
+          was a GRID ITEM: it took an implicit second row and squeezed the rail
+          to 757px of a 900px viewport on /audit. Measured, not guessed. It is
+          an overlay, so it belongs beside the shell, not inside its columns. */}
       <Toaster />
-    </div>
+    </>
   );
 }
