@@ -8,7 +8,6 @@ import {
   Package,
   ScrollText,
   Settings,
-  ShieldCheck,
   UsersRound,
   Warehouse,
 } from "lucide-react";
@@ -72,5 +71,3 @@ export function filterNavForRole(role: Role): NavGroup[] {
     items: g.items.filter((i) => ROLE_RANK[role] >= ROLE_RANK[i.minRole]),
   })).filter((g) => g.items.length > 0);
 }
-
-export const BRAND_ICON = ShieldCheck;
