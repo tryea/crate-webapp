@@ -174,7 +174,7 @@ function ReportPreview({
                     }
                   >
                     {value == null || value === ""
-                      ? "—"
+                      ? "none"
                       : isNumeric && typeof value === "number"
                         ? value.toLocaleString()
                         : String(value)}

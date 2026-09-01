@@ -43,7 +43,7 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  /* Phase 3.1 — IMS semantic tokens. Use restrainedly (audit principle 7 SUB-RULE) — */
+  /* Phase 3.1, IMS semantic tokens. Use restrainedly (audit principle 7 SUB-RULE): */
   /* one signal per surface, never decoratively across stats. */
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
@@ -51,14 +51,14 @@
   --color-warning-foreground: var(--warning-foreground);
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
-  /* DEC-017 — status hue at TEXT-legible contrast (≥4.5:1 on white/`/10` tint). */
+  /* DEC-017, status hue at TEXT-legible contrast (>=4.5:1 on white or `/10` tint). */
   /* Distinct from the *fill* tokens above: use `text-{status}-text`, never the */
   /* fill token, when the status color is the foreground text. */
   --color-success-text: var(--success-text);
   --color-warning-text: var(--warning-text);
   --color-destructive-text: var(--destructive-text);
   --color-info-text: var(--info-text);
-  /* DEC-025 — neutral badge-text shade: the `*-text` sibling for the muted */
+  /* DEC-025, neutral badge-text shade: the `*-text` sibling for the muted */
   /* tint. Use `text-muted-foreground-strong` for badge/chip text on `bg-muted`; */
   /* leave `--muted-foreground` (secondary body text) untouched (DEC-017 freeze). */
   --color-muted-foreground-strong: var(--muted-foreground-strong);
@@ -104,20 +104,20 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
-  /* IMS semantic (light) — calm green / amber / blue at consistent L+C. */
+  /* IMS semantic (light): calm green, amber, blue at consistent L+C. */
   --success: oklch(0.62 0.14 152);
   --success-foreground: oklch(0.985 0 0);
   --warning: oklch(0.78 0.14 78);
   --warning-foreground: oklch(0.205 0 0);
   --info: oklch(0.66 0.13 235);
   --info-foreground: oklch(0.985 0 0);
-  /* DEC-017 — accessible text shade of each status hue (same H, lower L). */
-  /* axe-verified ≥4.5:1 on white + on the `/10` tint at 10–14px. */
+  /* DEC-017, accessible text shade of each status hue (same H, lower L). */
+  /* axe-verified >=4.5:1 on white and on the `/10` tint at 10-14px. */
   --success-text: oklch(0.50 0.13 152);
   --warning-text: oklch(0.47 0.11 65);
   --destructive-text: oklch(0.50 0.22 27);
   --info-text: oklch(0.50 0.15 235);
-  /* DEC-025 — neutral badge text on `bg-muted` (0.97). `--muted-foreground` */
+  /* DEC-025, neutral badge text on `bg-muted` (0.97). `--muted-foreground` */
   /* (0.556) lands at 4.34 here; this shade computes (0.97³+0.05)/(0.53³+0.05) */
   /* = 4.84 ≥ AA 4.5. Chroma-0, so Y=L³ reproduces axe's 4.34 exactly → reality */
   /* anchor, not a guess. Δ0.026 L from secondary text: hierarchy visually intact. */
@@ -156,21 +156,21 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
-  /* IMS semantic (dark) — slightly brighter to clear the dark canvas. */
+  /* IMS semantic (dark): slightly brighter to clear the dark canvas. */
   --success: oklch(0.72 0.16 152);
   --success-foreground: oklch(0.18 0.03 152);
   --warning: oklch(0.84 0.15 80);
   --warning-foreground: oklch(0.20 0.04 78);
   --info: oklch(0.72 0.14 235);
   --info-foreground: oklch(0.18 0.04 235);
-  /* DEC-017 — in dark the bright status tokens already clear 4.5:1 as text, so */
+  /* DEC-017, in dark the bright status tokens already clear 4.5:1 as text, so */
   /* the text shade IS the fill token here → the `text-*-text` swap is a no-op in */
   /* dark (zero regression by construction), darker only in light. */
   --success-text: var(--success);
   --warning-text: var(--warning);
   --destructive-text: var(--destructive);
   --info-text: var(--info);
-  /* DEC-025 — dark muted-foreground (0.708) on dark muted fill (0.269) already */
+  /* DEC-025, dark muted-foreground (0.708) on dark muted fill (0.269) already */
   /* clears 4.5 (5.83), so alias to it → the swap is a no-op in dark, darker only */
   /* in light (zero dark regression by construction, mirrors the `*-text` family). */
   --muted-foreground-strong: var(--muted-foreground);
@@ -188,7 +188,7 @@
   }
 }
 /* =====================================================================
-   App shell (S3) — ported verbatim from the approved D1k prototype
+   App shell (S3), ported verbatim from the approved D1k prototype
    (prototype-app-2026-09-01/D1k-shift-open.html, ACC 1 Sep 2026 after 12
    rounds). Every value below has a history: copy the decision, do not
    re-derive it.
@@ -931,7 +931,7 @@ html:has([data-app-shell]) body {
     color: var(--ink);
   }
 
-  /* skeleton — a shape, not a spinner. Brightness only, zero opacity, so the
+  /* skeleton: a shape, not a spinner. Brightness only, zero opacity, so the
      opacity gate stays at nil. */
   .sk-block {
     border-radius: 7px;

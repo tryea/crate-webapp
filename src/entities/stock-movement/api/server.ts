@@ -199,7 +199,7 @@ export async function listLowStockProductsServer(
 }
 
 /**
- * Active transfer count — last N hours' worth of unique transferGroupIds.
+ * Active transfer count: last N hours' worth of unique transferGroupIds.
  * A transfer = one row pair sharing the same group_id, so distinct count
  * = number of actual transfer events.
  */

@@ -35,7 +35,7 @@ export default async function RootLayout({
 }>) {
   // Resolved from the NEXT_LOCALE cookie via i18n/request.ts (DEC-007).
   // NextIntlClientProvider inherits locale + messages from that request
-  // config automatically in RSC — no need to pass them as props.
+  // config automatically in RSC, no need to pass them as props.
   const locale = await getLocale();
 
   return (

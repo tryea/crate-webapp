@@ -10,7 +10,7 @@ import { useTheme } from "@/shared/lib/theme/use-theme";
  * mid-grey, and for a frame or two the words disappear. A View Transition
  * wipes a circle out of this button instead: every pixel is either the old
  * colour or the new one, never an average of the two. The rate is deliberately
- * `linear` — the mask sweeps space, it is not an object with mass, so easing
+ * `linear`, the mask sweeps space, it is not an object with mass, so easing
  * out reads as a stutter.
  *
  * Browsers without startViewTransition, and anyone on prefers-reduced-motion,

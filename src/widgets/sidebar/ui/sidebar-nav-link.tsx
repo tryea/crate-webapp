@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 /**
  * Icon is passed as a pre-rendered ReactNode (not a component reference)
  * so it survives the Server→Client boundary. Lucide icons are
- * forwardRef-based — passing the component itself trips
+ * forwardRef-based, so passing the component itself trips
  * "Functions cannot be passed directly to Client Components" in Next 16.
  *
  * Styling lives on `.rail nav a` in globals.css: the rail is constant chrome

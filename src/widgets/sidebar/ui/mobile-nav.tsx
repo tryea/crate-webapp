@@ -12,7 +12,7 @@ import { SidebarNavLink } from "./sidebar-nav-link";
 
 /**
  * Mobile counterpart of <Sidebar />. The desktop sidebar is `hidden md:flex`,
- * so below md there must be SOME way to reach the nav — without this, mobile
+ * so below md there must be SOME way to reach the nav, and without this mobile
  * had no menu trigger at all. Fully client-side: it recomputes the RBAC nav
  * with filterNavForRole(role) (a pure fn) and renders lucide icons directly,
  * which is allowed inside a client component (the Server→Client "can't pass a
@@ -56,7 +56,7 @@ export function MobileNav({ role }: { role: Role }) {
             </DialogPrimitive.Close>
           </div>
 
-          {/* Close on link tap (event delegation) — navigation is the only way
+          {/* Close on link tap (event delegation), navigation is the only way
               to change route from inside the drawer, so this covers it without
               a setState-in-effect on pathname. */}
           <nav
