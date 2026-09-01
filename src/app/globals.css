@@ -739,6 +739,12 @@ html:has([data-app-shell]) body {
     background: var(--acc);
     border-color: var(--acc);
     color: var(--on-acc);
+  }
+  /* Pushing the action to the right edge is the panel head's job, not the
+     button variant's. Left on `.btn-act` it also shoved the button in the
+     empty state and in the error boundary, both of which are left-aligned
+     stacks. */
+  .panelhead .btn-act {
     margin-left: auto;
   }
   .btn-act:hover {
