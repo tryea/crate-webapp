@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, desc, eq, gte, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, sql } from "drizzle-orm";
 import { db } from "@/db/client";
 import {
   locations,
@@ -7,6 +7,37 @@ import {
   stockMovements,
   type StockMovement,
 } from "@/db/schema";
+
+/**
+ * Warehouse scope for the dashboard queries (S4).
+ *
+ * `warehouseId: undefined` means EVERY warehouse, and that is the behaviour
+ * these five functions have always had, so the default is a no-op by
+ * construction.
+ *
+ * The options are an object rather than positional arguments on purpose:
+ * `countStockOutsServer` and `countActiveTransfersServer` already carried an
+ * optional `hours`, and a second optional positional would have forced every
+ * caller to write `(24, id)` with two interchangeable-looking values next to
+ * each other.
+ */
+export interface WarehouseScope {
+  /** undefined = all warehouses. */
+  warehouseId?: string;
+}
+
+/**
+ * Movements do not carry a warehouse; they carry a location, and a location
+ * belongs to one warehouse. Scoping is therefore always "locationId IN (the
+ * locations of this warehouse)". Returned as a subquery so the filter stays
+ * inside one round trip.
+ */
+function locationsOf(warehouseId: string) {
+  return db
+    .select({ id: locations.id })
+    .from(locations)
+    .where(eq(locations.warehouseId, warehouseId));
+}
 
 /**
  * Aggregate stock level for one (product, location). Returns 0 when no
@@ -71,7 +102,7 @@ export async function getTotalStockByProductServer(): Promise<
  * Joins to product+location for human-readable display without N+1.
  */
 export async function listRecentMovementsServer(
-  limit = 50,
+  opts: WarehouseScope & { limit?: number } = {},
 ): Promise<
   Array<
     StockMovement & {
@@ -81,6 +112,7 @@ export async function listRecentMovementsServer(
     }
   >
 > {
+  const { limit = 50, warehouseId } = opts;
   return db
     .select({
       id: stockMovements.id,
@@ -102,6 +134,9 @@ export async function listRecentMovementsServer(
     .from(stockMovements)
     .leftJoin(products, eq(stockMovements.productId, products.id))
     .leftJoin(locations, eq(stockMovements.locationId, locations.id))
+    .where(
+      warehouseId ? eq(locations.warehouseId, warehouseId) : undefined,
+    )
     .orderBy(desc(stockMovements.createdAt))
     .limit(limit);
 }
@@ -125,8 +160,9 @@ export interface LowStockProductRow {
  * consistent across this query and the dashboard badge logic.
  */
 export async function listLowStockProductsServer(
-  limit = 50,
+  opts: WarehouseScope & { limit?: number } = {},
 ): Promise<LowStockProductRow[]> {
+  const { limit = 50, warehouseId } = opts;
   return db
     .select({
       productId: products.id,
@@ -136,7 +172,19 @@ export async function listLowStockProductsServer(
       onHand: sql<number>`COALESCE(SUM(${stockMovements.quantity}), 0)::int`,
     })
     .from(products)
-    .leftJoin(stockMovements, eq(stockMovements.productId, products.id))
+    // The warehouse filter belongs in the JOIN condition, not in WHERE: a
+    // product with zero movements in this warehouse must still surface, at
+    // on-hand 0, because "nothing here at all" is the most urgent low-stock
+    // case there is. In WHERE the NULL row from the LEFT JOIN would drop it.
+    .leftJoin(
+      stockMovements,
+      warehouseId
+        ? and(
+            eq(stockMovements.productId, products.id),
+            inArray(stockMovements.locationId, locationsOf(warehouseId)),
+          )
+        : eq(stockMovements.productId, products.id),
+    )
     .where(eq(products.isActive, true))
     .groupBy(products.id)
     .having(
@@ -155,7 +203,10 @@ export async function listLowStockProductsServer(
  * A transfer = one row pair sharing the same group_id, so distinct count
  * = number of actual transfer events.
  */
-export async function countActiveTransfersServer(hours = 24): Promise<number> {
+export async function countActiveTransfersServer(
+  opts: WarehouseScope & { hours?: number } = {},
+): Promise<number> {
+  const { hours = 24, warehouseId } = opts;
   const since = new Date(Date.now() - hours * 60 * 60 * 1000);
   const [row] = await db
     .select({
@@ -166,6 +217,9 @@ export async function countActiveTransfersServer(hours = 24): Promise<number> {
       and(
         eq(stockMovements.type, "transfer_out"),
         gte(stockMovements.createdAt, since),
+        warehouseId
+          ? inArray(stockMovements.locationId, locationsOf(warehouseId))
+          : undefined,
       ),
     );
   return row?.total ?? 0;
@@ -175,7 +229,10 @@ export async function countActiveTransfersServer(hours = 24): Promise<number> {
  * Stock-out movement count in the last N hours. Used for the dashboard's
  * "Stock-outs (24h)" KPI.
  */
-export async function countStockOutsServer(hours = 24): Promise<number> {
+export async function countStockOutsServer(
+  opts: WarehouseScope & { hours?: number } = {},
+): Promise<number> {
+  const { hours = 24, warehouseId } = opts;
   const since = new Date(Date.now() - hours * 60 * 60 * 1000);
   const [row] = await db
     .select({ total: sql<number>`COUNT(*)::int` })
@@ -184,6 +241,9 @@ export async function countStockOutsServer(hours = 24): Promise<number> {
       and(
         eq(stockMovements.type, "stock_out"),
         gte(stockMovements.createdAt, since),
+        warehouseId
+          ? inArray(stockMovements.locationId, locationsOf(warehouseId))
+          : undefined,
       ),
     );
   return row?.total ?? 0;
@@ -202,10 +262,13 @@ import {
  * we'd switch to an incremental aggregate (materialized view); the
  * cutoff is ~50k movements where the round-trip + JS walk gets slow.
  */
-export async function getValuationServer(): Promise<{
+export async function getValuationServer(
+  opts: WarehouseScope = {},
+): Promise<{
   perProduct: Map<string, ProductValuationState>;
   totalValue: number;
 }> {
+  const { warehouseId } = opts;
   const rows = await db
     .select({
       productId: stockMovements.productId,
@@ -214,7 +277,12 @@ export async function getValuationServer(): Promise<{
       unitCost: stockMovements.unitCost,
       createdAt: stockMovements.createdAt,
     })
-    .from(stockMovements);
+    .from(stockMovements)
+    .where(
+      warehouseId
+        ? inArray(stockMovements.locationId, locationsOf(warehouseId))
+        : undefined,
+    );
 
   const movements = rows.map((r) => ({
     productId: r.productId,

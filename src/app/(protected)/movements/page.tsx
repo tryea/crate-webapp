@@ -15,7 +15,7 @@ const QUICK_ACTIONS = [
 
 export default async function MovementsPage() {
   await requireRole("staff");
-  const rows = await listRecentMovementsServer(500);
+  const rows = await listRecentMovementsServer({ limit: 500 });
 
   // Coerce the JOIN result rows to the MovementRow type expected by the table.
   const data: MovementRow[] = rows.map((r) => ({

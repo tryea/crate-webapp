@@ -20,7 +20,7 @@ export default async function ReportsPage() {
   const [levels, valuation, lowStock, productRows, locationRows] = await Promise.all([
     getAllStockLevelsServer(),
     getValuationServer(),
-    listLowStockProductsServer(500),
+    listLowStockProductsServer({ limit: 500 }),
     db
       .select({
         id: products.id,
