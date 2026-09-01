@@ -58,9 +58,15 @@
   --color-warning-text: var(--warning-text);
   --color-destructive-text: var(--destructive-text);
   --color-info-text: var(--info-text);
-  /* DEC-025, neutral badge-text shade: the `*-text` sibling for the muted */
-  /* tint. Use `text-muted-foreground-strong` for badge/chip text on `bg-muted`; */
-  /* leave `--muted-foreground` (secondary body text) untouched (DEC-017 freeze). */
+  /* Neutral badge-text shade for chip/badge text on `bg-muted`. */
+  /* SUPERSEDED: this token is now an ALIAS of `--muted-foreground` in BOTH */
+  /* themes, because that token was raised past it (see `:root` below). The */
+  /* name is kept so ~10 call sites keep compiling; retiring it is a separate */
+  /* ticket, not a silent deletion. */
+  /* The old "leave `--muted-foreground` untouched (DEC-017 freeze)" note that */
+  /* stood here is GONE: it was pinned to a >=4.5:1 target, and the standing */
+  /* rule is now "4.5 is the legal floor, not the taste target; muted sits at */
+  /* 7-11". A comment cannot promise a standard the product no longer holds. */
   --color-muted-foreground-strong: var(--muted-foreground-strong);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
@@ -83,7 +89,14 @@
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
+  /* Secondary text ink. Was oklch(0.556) = rgb(115,115,115) = 4.74:1 on white,
+     i.e. parked one notch above the legal floor, which is why the product still
+     read grey while every hard gate passed. Raised to the NEUTRAL twin of the
+     shell's `--ink-2` (#3f4145, 10.4:1): chroma 0, and for a chroma-0 oklch
+     colour Y = L^3 exactly, so 0.371^3 + 0.05 gives 10.37:1 on white by
+     construction, not by guess. Measured against the three backdrops this token
+     actually lands on in light mode: white 10.37, #fbfbfb 10.02, #f5f5f5 9.51. */
+  --muted-foreground: oklch(0.371 0 0);
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
@@ -117,11 +130,14 @@
   --warning-text: oklch(0.47 0.11 65);
   --destructive-text: oklch(0.50 0.22 27);
   --info-text: oklch(0.50 0.15 235);
-  /* DEC-025, neutral badge text on `bg-muted` (0.97). `--muted-foreground` */
-  /* (0.556) lands at 4.34 here; this shade computes (0.97³+0.05)/(0.53³+0.05) */
-  /* = 4.84 ≥ AA 4.5. Chroma-0, so Y=L³ reproduces axe's 4.34 exactly → reality */
-  /* anchor, not a guess. Δ0.026 L from secondary text: hierarchy visually intact. */
-  --muted-foreground-strong: oklch(0.53 0 0);
+  /* Was oklch(0.53 0 0): a shade invented to clear 4.5:1 on `bg-muted` back
+     when `--muted-foreground` sat at 0.556. Now that secondary ink is 0.371,
+     the "strong" token would be the WEAKEST neutral text in the product
+     (4.84:1 on `bg-muted`) and the hierarchy would read backwards. Aliased
+     instead of deleted: every `text-muted-foreground-strong` call site keeps
+     working and now resolves to 9.51:1 on `bg-muted`. The token is redundant
+     by construction; removing the NAME is a follow-up ticket. */
+  --muted-foreground-strong: var(--muted-foreground);
 }
 
 .dark {
@@ -136,7 +152,15 @@
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
+  /* Dark twin of the light change. Was oklch(0.708), which measured 5.59-7.66
+     depending on the surface underneath, so half the secondary text in dark sat
+     below 7 too. The shell sibling here is `--ink-2` #c7cace, but its NEUTRAL
+     equivalent (L 0.838) would read 12.04:1 on the darkest surface this token
+     lands on (#0a0a0a, 113 of the 209 measured nodes), i.e. through the top of
+     the 7-11 band rather than into it. 0.79 is the value that keeps EVERY
+     measured backdrop inside the band: #0a0a0a 10.24, #0e0e0e 9.98, #151515
+     9.28, #171717 9.11, #1a1a1a 8.85, #262626 7.82. */
+  --muted-foreground: oklch(0.79 0 0);
   --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
@@ -170,9 +194,9 @@
   --warning-text: var(--warning);
   --destructive-text: var(--destructive);
   --info-text: var(--info);
-  /* DEC-025, dark muted-foreground (0.708) on dark muted fill (0.269) already */
-  /* clears 4.5 (5.83), so alias to it → the swap is a no-op in dark, darker only */
-  /* in light (zero dark regression by construction, mirrors the `*-text` family). */
+  /* Already an alias here before this change, and still one after it: dark
+     never needed a separate badge shade. Light now matches, which is what makes
+     the token redundant in both themes. */
   --muted-foreground-strong: var(--muted-foreground);
 }
 
