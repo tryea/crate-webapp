@@ -124,7 +124,7 @@ export function ProductsTable({
         cell: ({ row }) => (
           <span
             className={
-              row.original.isActive ? "" : "text-muted-foreground italic"
+              row.original.isActive ? "" : "italic"
             }
           >
             {row.original.name}
@@ -159,7 +159,7 @@ export function ProductsTable({
         meta: { align: "right" as ColumnAlign },
         size: 90,
         cell: ({ row }) => (
-          <span className="tabular-nums text-muted-foreground">
+          <span className="tabular-nums">
             {row.original.reorderPoint}
           </span>
         ),

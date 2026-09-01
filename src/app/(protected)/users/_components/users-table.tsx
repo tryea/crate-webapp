@@ -61,7 +61,7 @@ export function UsersTable({ rows }: { rows: UsersTableRow[] }) {
         header: "Email",
         size: 240,
         cell: ({ row }) => (
-          <span className="font-mono text-xs text-muted-foreground">
+          <span className="font-mono text-xs">
             {row.original.email}
           </span>
         ),
@@ -89,7 +89,7 @@ export function UsersTable({ rows }: { rows: UsersTableRow[] }) {
         header: "Joined",
         size: 120,
         cell: ({ row }) => (
-          <span className="font-mono text-[11px] text-muted-foreground">
+          <span className="font-mono text-[11px]">
             {format.dateTime(new Date(row.original.createdAt), "date")}
           </span>
         ),

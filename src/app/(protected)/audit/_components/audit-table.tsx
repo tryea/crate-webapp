@@ -42,7 +42,7 @@ export function AuditTable({ rows }: { rows: AuditTableRow[] }) {
         header: "When",
         size: 180,
         cell: ({ row }) => (
-          <span className="font-mono text-[11px] text-muted-foreground">
+          <span className="font-mono text-[11px]">
             {format.dateTime(new Date(row.original.createdAt), "timestamp")}
           </span>
         ),
@@ -54,7 +54,7 @@ export function AuditTable({ rows }: { rows: AuditTableRow[] }) {
         cell: ({ row }) => (
           <div className="flex flex-col">
             <span className="text-sm">{row.original.userName ?? "none"}</span>
-            <span className="text-[10px] text-muted-foreground">
+            <span className="text-[10px]">
               {row.original.userEmail ?? "none"}
             </span>
           </div>
@@ -92,7 +92,7 @@ export function AuditTable({ rows }: { rows: AuditTableRow[] }) {
         size: 110,
         cell: ({ row }) =>
           row.original.resourceId ? (
-            <span className="font-mono text-[10px] text-muted-foreground">
+            <span className="font-mono text-[10px]">
               {row.original.resourceId.slice(0, 8)}
             </span>
           ) : (
@@ -106,7 +106,7 @@ export function AuditTable({ rows }: { rows: AuditTableRow[] }) {
         cell: ({ row }) => {
           const summary = summarizeDiff(row.original.diff);
           return (
-            <span className="text-xs text-muted-foreground line-clamp-2">
+            <span className="text-xs line-clamp-2">
               {summary}
             </span>
           );

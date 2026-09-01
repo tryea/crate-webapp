@@ -104,7 +104,7 @@ export function WarehousesTable({
         header: "Address",
         cell: ({ row }) =>
           row.original.address ? (
-            <span className="truncate text-muted-foreground">
+            <span className="truncate">
               {row.original.address}
             </span>
           ) : (

@@ -50,7 +50,7 @@ export function MovementsTable({ initial }: { initial: MovementRow[] }) {
         header: "When",
         size: 160,
         cell: ({ row }) => (
-          <span className="font-mono text-[11px] text-muted-foreground">
+          <span className="font-mono text-[11px]">
             {format.dateTime(new Date(row.original.createdAt), "dateTime")}
           </span>
         ),
@@ -80,7 +80,7 @@ export function MovementsTable({ initial }: { initial: MovementRow[] }) {
         cell: ({ row }) => (
           <div className="flex flex-col">
             <span className="text-sm">{row.original.productName ?? "none"}</span>
-            <span className="font-mono text-[10px] text-muted-foreground">
+            <span className="font-mono text-[10px]">
               {row.original.productSku ?? "none"}
             </span>
           </div>
@@ -120,7 +120,7 @@ export function MovementsTable({ initial }: { initial: MovementRow[] }) {
         header: "Reason",
         size: 140,
         cell: ({ row }) => (
-          <span className="text-xs text-muted-foreground">
+          <span className="text-xs">
             {row.original.reason.replace(/_/g, " ")}
           </span>
         ),
@@ -133,7 +133,7 @@ export function MovementsTable({ initial }: { initial: MovementRow[] }) {
           row.original.reference ? (
             <span className="font-mono text-xs">{row.original.reference}</span>
           ) : row.original.transferGroupId ? (
-            <span className="font-mono text-[10px] text-muted-foreground">
+            <span className="font-mono text-[10px]">
               tx-{row.original.transferGroupId.slice(0, 8)}
             </span>
           ) : (

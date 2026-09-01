@@ -102,7 +102,7 @@ export function PoReceiveForm({
                 <td className="px-3 py-2">
                   <div className="flex flex-col">
                     <span>{l.productName ?? "none"}</span>
-                    <span className="font-mono text-[10px] text-muted-foreground">
+                    <span className="font-mono text-[10px]">
                       {l.productSku ?? "none"}
                     </span>
                   </div>
@@ -110,7 +110,7 @@ export function PoReceiveForm({
                 <td className="px-3 py-2 text-right tabular-nums">
                   {l.quantityOrdered}
                 </td>
-                <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">
+                <td className="px-3 py-2 text-right tabular-nums">
                   {l.quantityReceived}
                 </td>
                 <td className="px-3 py-2 text-right">

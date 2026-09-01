@@ -83,7 +83,7 @@ export function CategoriesTable({
         header: "Created",
         size: 140,
         cell: ({ row }) => (
-          <span className="text-xs text-muted-foreground">
+          <span className="text-xs">
             {format.dateTime(new Date(row.original.createdAt), "date")}
           </span>
         ),

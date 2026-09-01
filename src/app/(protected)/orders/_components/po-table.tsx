@@ -101,7 +101,7 @@ export function PoTable({
         meta: { align: "right" as ColumnAlign },
         size: 70,
         cell: ({ row }) => (
-          <span className="tabular-nums text-muted-foreground">
+          <span className="tabular-nums">
             {row.original.lineCount}
           </span>
         ),
@@ -135,7 +135,7 @@ export function PoTable({
         header: "Created",
         size: 130,
         cell: ({ row }) => (
-          <span className="font-mono text-[10px] text-muted-foreground">
+          <span className="font-mono text-[10px]">
             {format.dateTime(new Date(row.original.createdAt), "date")}
           </span>
         ),
