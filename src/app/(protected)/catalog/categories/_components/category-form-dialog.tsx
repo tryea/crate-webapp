@@ -133,7 +133,7 @@ export function CategoryFormDialog({
             name="slug"
             label="Slug"
             required
-            description="URL-safe — lowercase letters/numbers + dashes."
+            description="URL-safe: lowercase letters/numbers + dashes."
             render={({ id, value, onChange, ref, onBlur, "aria-invalid": invalid, "aria-describedby": describedBy }) => (
               <Input
                 id={id}

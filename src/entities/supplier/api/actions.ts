@@ -74,7 +74,7 @@ export async function updateSupplierAction(
 
 /**
  * Hard-delete. products.supplierId FK is ON DELETE SET NULL so deleting
- * a supplier leaves its products intact with no supplier — safe.
+ * a supplier leaves its products intact with no supplier, safe.
  */
 export async function deleteSupplierAction(
   id: string,

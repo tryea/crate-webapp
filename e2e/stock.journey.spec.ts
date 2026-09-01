@@ -2,7 +2,7 @@ import { test, expect, type Page } from "@playwright/test";
 import { authFile } from "../playwright/roles";
 
 /**
- * Phase-8 stock-movement journey — stock-in → valid stock-out → insufficient
+ * Phase-8 stock-movement journey: stock-in → valid stock-out → insufficient
  * BLOCK, end-to-end against the live seeded `crate_dev` DB (DEC-012) as a
  * `manager`. Reuses the manager storageState (no in-test login → ZERO
  * rate-limit budget), same harness contract as catalog.journey.spec.ts.
@@ -10,7 +10,7 @@ import { authFile } from "../playwright/roles";
  * The third phase is the point: it proves Vox's §4.3 no-negative-stock
  * integrity rule is enforced SERVER-SIDE, not just by the client form. The
  * quantity schema is `z.number().int().positive()` with NO max, so a wildly
- * over-budget quantity passes the client zodResolver and reaches the server —
+ * over-budget quantity passes the client zodResolver and reaches the server,
  * where the stock gate rejects it with a field error and the form STAYS put
  * (no router.push). Asserting "URL unchanged + error copy visible" is the
  * server-observable proof (Bima's DoD), the mirror of the create/edit phases.
@@ -32,7 +32,7 @@ test.describe("movements · stock lifecycle journey", () => {
   const refOut = `E2E-OUT-${stamp}`;
 
   /** Product + location are stable seed targets shared across all phases. */
-  const PRODUCT = /BEV-001/; // "Mineral Water 600ml" — unique SKU
+  const PRODUCT = /BEV-001/; // "Mineral Water 600ml", unique SKU
   const LOCATION = /A1/; // first match = Jakarta Central A1 (deterministic order)
 
   /** The single ledger row carrying our unique reference (header never matches). */
@@ -43,7 +43,7 @@ test.describe("movements · stock lifecycle journey", () => {
    * Pick an option from a base-ui Select. The Trigger exposes role=combobox
    * labelled by its FormField <Label htmlFor>, so getByLabel resolves it; the
    * popup Items expose role=option (verified against @base-ui/react v1.5.0
-   * source — R-ADAPTER discipline, never assume Radix semantics).
+   * source: R-ADAPTER discipline, never assume Radix semantics).
    */
   async function pick(page: Page, fieldLabel: string, optionName: RegExp) {
     await page.getByLabel(fieldLabel).click();

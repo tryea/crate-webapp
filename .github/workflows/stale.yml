@@ -9,12 +9,12 @@
 #  - day 14: bot closes the issue
 #  - any new comment / label change resets the timer
 #
-# PRs are NOT subject to staleness — they have their own review cycle.
+# PRs are NOT subject to staleness, they have their own review cycle.
 name: Stale issue cleanup
 
 on:
   schedule:
-    - cron: "0 1 * * *" # 01:00 UTC daily — quiet hours
+    - cron: "0 1 * * *" # 01:00 UTC daily, quiet hours
 
 permissions:
   issues: write
@@ -44,7 +44,7 @@ jobs:
             Auto-closing per the DEC-005 14-day rule. No commit
             reference and no `keep-open` label.
 
-            If this work still matters, re-open and add `keep-open` —
+            If this work still matters, re-open and add `keep-open`,
             no questions asked.
           # Disable PR staleness explicitly
           days-before-pr-stale: -1

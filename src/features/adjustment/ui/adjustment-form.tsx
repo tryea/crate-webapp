@@ -181,7 +181,7 @@ export function AdjustmentForm({
             onChange={(e) => onChange(e.target.value)}
             onBlur={onBlur}
             rows={3}
-            placeholder="Counted 47, system said 50 — discrepancy investigated, no damage found."
+            placeholder="Counted 47, system said 50. Discrepancy investigated, no damage found."
             aria-invalid={invalid}
             aria-describedby={describedBy}
           />

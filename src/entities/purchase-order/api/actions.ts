@@ -66,7 +66,7 @@ export async function createPurchaseOrderAction(
       return unexpectedActionError(err, "createPurchaseOrder");
     }
   }
-  return { ok: false, error: "Could not allocate a PO number — retry." };
+  return { ok: false, error: "Could not allocate a PO number. Retry." };
 }
 
 export async function setPoStatusAction(
@@ -169,7 +169,7 @@ import {
 /**
  * Receive against PO. Transactional: for each line where receiveNow > 0,
  *   - INSERT a stock_in movement (qty = receiveNow at the PO's warehouse
- *     first-location — we pick a default; operator can later split via
+ *     first-location, we pick a default; operator can later split via
  *     transfer if needed). Phase 7 polish can add per-line location picker.
  *   - UPDATE po_lines.quantityReceived += receiveNow.
  *   - DB CHECK po_lines_qty_received_le_ordered prevents over-receive.
@@ -231,7 +231,7 @@ export async function receivePoAction(
         .limit(1);
       if (!destLoc) {
         throw new Error(
-          "NO_LOCATION::This warehouse has no locations — add at least one location before receiving.",
+          "NO_LOCATION::This warehouse has no locations, add at least one location before receiving.",
         );
       }
 

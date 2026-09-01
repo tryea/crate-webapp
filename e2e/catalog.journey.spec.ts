@@ -2,13 +2,13 @@ import { test, expect, type Page } from "@playwright/test";
 import { authFile } from "../playwright/roles";
 
 /**
- * DEC-010 catalog journey — product create → edit → archive, end-to-end
+ * DEC-010 catalog journey: product create → edit → archive, end-to-end
  * against the live seeded DB as a `manager`. Reuses the manager storageState
  * (no in-test login, so it spends ZERO rate-limit budget).
  *
  * Each phase asserts a SERVER-OBSERVABLE effect (Bima's DoD): after a full
  * navigation (fresh RSC query from Postgres) the new row / renamed row /
- * archived status is present — not merely a transient success toast. Dialog
+ * archived status is present, not merely a transient success toast. Dialog
  * close is itself a server signal here: the form only closes `onOpenChange`
  * AFTER the awaited server action resolves ok.
  *
@@ -69,8 +69,8 @@ test.describe("catalog · product lifecycle journey", () => {
     await rowBySku(page).getByRole("button", { name: /^Actions for/ }).click();
     await page.getByRole("menuitem", { name: "Archive" }).click();
     // No dialog here, and the action is fire-and-forget inside a transition.
-    // Assert the SERVER-OBSERVABLE effect — the row's status badge flips to
-    // "Archived" once revalidatePath refetches from Postgres — NOT the
+    // Assert the SERVER-OBSERVABLE effect, the row's status badge flips to
+    // "Archived" once revalidatePath refetches from Postgres, NOT the
     // transient success toast (same DoD principle as the create/edit phases;
     // the toast is ~4s, ambiguous with this badge, and lives in a layout that
     // an error boundary can unmount). Scoped to our row so nothing else matches.
@@ -78,7 +78,7 @@ test.describe("catalog · product lifecycle journey", () => {
 
     await openCatalogFilteredToRow(page);
     await expect(rowBySku(page).getByText("Archived")).toBeVisible();
-    // The action flips to "Unarchive" — confirms isActive=false round-tripped.
+    // The action flips to "Unarchive", confirms isActive=false round-tripped.
     await rowBySku(page).getByRole("button", { name: /^Actions for/ }).click();
     await expect(page.getByRole("menuitem", { name: "Unarchive" })).toBeVisible();
   });

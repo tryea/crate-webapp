@@ -268,7 +268,7 @@ describe("classifyStockHealth", () => {
  * Simulates: receive 100, sell 30, transfer 20 to L2, receive 50 → expect
  * L1=100 L2=20 at the end (after the transfer the sale's already happened).
  *
- * Wait — sell 30 first, then transfer 20.
+ * Wait, sell 30 first, then transfer 20.
  *   L1 starts: 0
  *   +stock_in 100  → L1=100
  *   +stock_out -30 → L1=70

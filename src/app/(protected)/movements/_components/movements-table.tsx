@@ -79,9 +79,9 @@ export function MovementsTable({ initial }: { initial: MovementRow[] }) {
         size: 260,
         cell: ({ row }) => (
           <div className="flex flex-col">
-            <span className="text-sm">{row.original.productName ?? "—"}</span>
+            <span className="text-sm">{row.original.productName ?? "none"}</span>
             <span className="font-mono text-[10px] text-muted-foreground">
-              {row.original.productSku ?? "—"}
+              {row.original.productSku ?? "none"}
             </span>
           </div>
         ),
@@ -94,7 +94,7 @@ export function MovementsTable({ initial }: { initial: MovementRow[] }) {
           row.original.locationCode ? (
             <span className="font-mono text-xs">{row.original.locationCode}</span>
           ) : (
-            <span className="text-muted-foreground">—</span>
+            <span className="text-muted-foreground">none</span>
           ),
       },
       {
@@ -137,7 +137,7 @@ export function MovementsTable({ initial }: { initial: MovementRow[] }) {
               tx-{row.original.transferGroupId.slice(0, 8)}
             </span>
           ) : (
-            <span className="text-muted-foreground">—</span>
+            <span className="text-muted-foreground">none</span>
           ),
       },
     ],

@@ -29,7 +29,7 @@ export default async function StockInPage() {
   const locationOptions = locationRows.map((l) => ({
     id: l.id,
     code: l.code,
-    warehouseName: l.warehouseName ?? "—",
+    warehouseName: l.warehouseName ?? "none",
   }));
 
   return (

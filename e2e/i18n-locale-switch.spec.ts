@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 /**
- * DEC-007 spec — switching the UI language from the user menu re-renders
+ * DEC-007 spec: switching the UI language from the user menu re-renders
  * the shell in the new locale and persists via the NEXT_LOCALE cookie.
  *
  * Reality-based check (not a unit assertion on the catalog): drives the real

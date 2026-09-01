@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 /**
- * DEC-003 spec 1/3 — unauthenticated requests to protected surfaces must
+ * DEC-003 spec 1/3: unauthenticated requests to protected surfaces must
  * redirect to /sign-in with a callbackUrl that preserves the target.
  *
  * This is the cheap-but-essential guardrail. It does not require a live DB

@@ -12,7 +12,7 @@ import { Badge } from "@/shared/ui/badge";
 import { SignOutButton } from "./_components/sign-out-button";
 
 /**
- * Profile / account page — the destination for the topbar user-menu "Account"
+ * Profile / account page: the destination for the topbar user-menu "Account"
  * item. Before this existed the menu pushed to a non-existent /account, which
  * surfaced the generic error boundary. Everyone can view their own account, so
  * the gate is the baseline "staff".
@@ -22,7 +22,7 @@ export default async function AccountPage() {
   const format = await getFormatter();
 
   const rows: { label: string; value: ReactNode }[] = [
-    { label: "Name", value: user.name ?? "—" },
+    { label: "Name", value: user.name ?? "none" },
     { label: "Email", value: user.email },
     {
       label: "Role",

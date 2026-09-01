@@ -24,7 +24,7 @@ export default async function TransferPage() {
           <h1 className="text-2xl font-semibold tracking-tight">Transfer</h1>
           <p className="text-sm text-muted-foreground">
             Move stock between locations. Inserted as a paired
-            transfer_out + transfer_in within a single transaction — never
+            transfer_out + transfer_in within a single transaction, never
             partial.
           </p>
         </header>

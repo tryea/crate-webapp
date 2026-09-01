@@ -24,7 +24,7 @@ export default async function StockOutPage() {
           <h1 className="text-2xl font-semibold tracking-tight">Stock out</h1>
           <p className="text-sm text-muted-foreground">
             Record outgoing stock. The server blocks if the requested quantity
-            exceeds what&apos;s on hand — no negative stock.
+            exceeds what&apos;s on hand, so there is no negative stock.
           </p>
         </header>
       </div>

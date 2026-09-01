@@ -1,7 +1,7 @@
 /**
  * @jest-environment node
  *
- * Phase 8 coverage — categoryFormSchema slug rules + the pure suggestSlug
+ * Phase 8 coverage: categoryFormSchema slug rules + the pure suggestSlug
  * helper. Bima's gate per COUNCIL §0 rule 5 (Zod = validation SSOT). The
  * slug regex is a business rule SQL can't express, so it MUST be unit-tested.
  */
@@ -48,7 +48,7 @@ describe("suggestSlug", () => {
   });
 });
 
-describe("categoryFormSchema — slug regex", () => {
+describe("categoryFormSchema: slug regex", () => {
   const valid = ["cold-brews", "ok123", "a", "a-b-c", "x1-y2"];
   const invalid = ["Cold-Brews", "-leading", "trailing-", "double--dash", "has space", "UPPER"];
 
@@ -65,7 +65,7 @@ describe("categoryFormSchema — slug regex", () => {
   });
 });
 
-describe("categoryFormSchema — name + parentId", () => {
+describe("categoryFormSchema: name + parentId", () => {
   test("blank name fails", () => {
     const r = categoryFormSchema.safeParse({ name: "", slug: "ok" });
     expect(r.success).toBe(false);

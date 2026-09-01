@@ -53,9 +53,9 @@ export function AuditTable({ rows }: { rows: AuditTableRow[] }) {
         size: 220,
         cell: ({ row }) => (
           <div className="flex flex-col">
-            <span className="text-sm">{row.original.userName ?? "—"}</span>
+            <span className="text-sm">{row.original.userName ?? "none"}</span>
             <span className="text-[10px] text-muted-foreground">
-              {row.original.userEmail ?? "—"}
+              {row.original.userEmail ?? "none"}
             </span>
           </div>
         ),
@@ -96,7 +96,7 @@ export function AuditTable({ rows }: { rows: AuditTableRow[] }) {
               {row.original.resourceId.slice(0, 8)}
             </span>
           ) : (
-            <span className="text-muted-foreground">—</span>
+            <span className="text-muted-foreground">none</span>
           ),
       },
       {
@@ -146,7 +146,7 @@ export function AuditTable({ rows }: { rows: AuditTableRow[] }) {
         <EmptyState
           icon={History}
           title="No audit entries yet"
-          description="Every protected mutation lands here. Sign in / out, stock movements, PO receipts — all of it."
+          description="Every protected mutation lands here. Sign in / out, stock movements, PO receipts, all of it."
         />
       }
     />
@@ -154,7 +154,7 @@ export function AuditTable({ rows }: { rows: AuditTableRow[] }) {
 }
 
 function summarizeDiff(diff: unknown): string {
-  if (diff == null) return "—";
+  if (diff == null) return "none";
   if (typeof diff !== "object") return String(diff);
   try {
     const obj = diff as Record<string, unknown>;

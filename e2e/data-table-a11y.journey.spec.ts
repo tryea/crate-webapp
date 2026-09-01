@@ -2,19 +2,19 @@ import { test, expect } from "@playwright/test";
 import { authFile } from "../playwright/roles";
 
 /**
- * task-#99 regression guard — WCAG 2.1.1 (Keyboard) / axe
+ * task-#99 regression guard: WCAG 2.1.1 (Keyboard) / axe
  * `scrollable-region-focusable`.
  *
  * The shared DataTable (`src/shared/ui/data-table/data-table.tsx`) renders its
  * virtualized rows inside an `overflow-auto` container with a clamped height
- * (`max-h-[70svh]`). That container overflows and holds only read-only cells —
- * no focusable descendants — so a keyboard-only user had no way to scroll it
+ * (`max-h-[70svh]`). That container overflows and holds only read-only cells,
+ * no focusable descendants, so a keyboard-only user had no way to scroll it
  * (axe flagged it "serious" on /movements). The seam fix makes the container a
  * tab stop (`tabIndex={0}`, gated on `virtualize` so short non-overflowing
  * tables don't get a dead focus stop) with a `focus-visible` inset ring.
  *
  * This guard is i18n-independent and dependency-free (no @axe-core/playwright):
- * it drives the actual keyboard behaviour the axe rule stands in for — the
+ * it drives the actual keyboard behaviour the axe rule stands in for, the
  * region is focusable and PageDown scrolls it. If someone drops the tabIndex,
  * `scrollTop` stays 0 and this fails.
  *

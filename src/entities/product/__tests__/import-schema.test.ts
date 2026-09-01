@@ -1,7 +1,7 @@
 /**
  * @jest-environment node
  *
- * Closes GH issue #9 — Jest coverage for productImportRowSchema edge
+ * Closes GH issue #9, Jest coverage for productImportRowSchema edge
  * cases. Bima's gate per COUNCIL §0 rule 3.
  *
  * The schema is the critical bottleneck for bulk CSV import correctness.
@@ -14,7 +14,7 @@ const minimalValidRaw = {
   name: "Mineral Water 600ml",
 };
 
-describe("productImportRowSchema — happy path", () => {
+describe("productImportRowSchema: happy path", () => {
   test("minimal valid input (sku + name) parses with defaults", () => {
     const r = productImportRowSchema.safeParse(minimalValidRaw);
     expect(r.success).toBe(true);
@@ -61,7 +61,7 @@ describe("productImportRowSchema — happy path", () => {
   });
 });
 
-describe("productImportRowSchema — required fields", () => {
+describe("productImportRowSchema: required fields", () => {
   test("missing sku fails with field-level error", () => {
     const r = productImportRowSchema.safeParse({ name: "Foo" });
     expect(r.success).toBe(false);
@@ -91,7 +91,7 @@ describe("productImportRowSchema — required fields", () => {
   });
 });
 
-describe("productImportRowSchema — SKU regex", () => {
+describe("productImportRowSchema: SKU regex", () => {
   test("uppercase alphanumeric + dashes passes", () => {
     for (const sku of ["A", "ABC", "A-B-C", "BEV-001", "STA-001-X9"]) {
       const r = productImportRowSchema.safeParse({ sku, name: "x" });
@@ -123,7 +123,7 @@ describe("productImportRowSchema — SKU regex", () => {
   });
 });
 
-describe("productImportRowSchema — money regex", () => {
+describe("productImportRowSchema: money regex", () => {
   test("zero / no decimals passes", () => {
     const r = productImportRowSchema.safeParse({
       ...minimalValidRaw,
@@ -189,7 +189,7 @@ describe("productImportRowSchema — money regex", () => {
   });
 });
 
-describe("productImportRowSchema — integer coercion", () => {
+describe("productImportRowSchema: integer coercion", () => {
   test("integer string parses", () => {
     const r = productImportRowSchema.safeParse({
       ...minimalValidRaw,
@@ -243,7 +243,7 @@ describe("productImportRowSchema — integer coercion", () => {
   });
 });
 
-describe("productImportRowSchema — boolean coercion", () => {
+describe("productImportRowSchema: boolean coercion", () => {
   test("'true' → true", () => {
     const r = productImportRowSchema.safeParse({ ...minimalValidRaw, is_active: "true" });
     expect(r.success).toBe(true);
@@ -294,7 +294,7 @@ describe("productImportRowSchema — boolean coercion", () => {
   });
 });
 
-describe("productImportRowSchema — trimToNull on optional fields", () => {
+describe("productImportRowSchema: trimToNull on optional fields", () => {
   test("blank description / image / barcode → null", () => {
     const r = productImportRowSchema.parse({
       ...minimalValidRaw,
@@ -318,7 +318,7 @@ describe("productImportRowSchema — trimToNull on optional fields", () => {
   });
 });
 
-describe("productImportRowSchema — length caps", () => {
+describe("productImportRowSchema: length caps", () => {
   test("description over 2000 chars fails", () => {
     const r = productImportRowSchema.safeParse({
       ...minimalValidRaw,

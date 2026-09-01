@@ -1,4 +1,4 @@
--- Issue #2 — replace permissive `_rw_all` identity policies with
+-- Issue #2: replace permissive `_rw_all` identity policies with
 -- user-aware versions, per docs/setup/02-docker-postgres-rls.md §"Per-request
 -- user binding".
 --
@@ -17,7 +17,7 @@
 --                         identity WRITES are denied outright.
 --
 -- The hard invariant this buys: a transaction bound as staff/manager cannot
--- read another user's session NOR escalate "user".role — even via SQL
+-- read another user's session NOR escalate "user".role, even via SQL
 -- injection inside a bound action. Verified manually:
 --
 --   psql "$DATABASE_URL"   -- as app_user
@@ -118,7 +118,7 @@ CREATE POLICY session_delete_unbound_or_admin ON session
     OR current_setting('app.current_user_role', true) = 'admin'
   );
 
--- ===== account (holds password hashes — most sensitive) =================
+-- ===== account (holds password hashes, most sensitive) =================
 DROP POLICY IF EXISTS account_rw_all ON account;
 
 CREATE POLICY account_select_bound_own ON account
@@ -162,7 +162,7 @@ CREATE POLICY account_delete_unbound_or_admin ON account
 -- ===== verification ======================================================
 -- No user column (identifier/value rows for email flows). BetterAuth needs
 -- full access pre-identity, but a BOUND transaction has no business reading
--- pending verification tokens — deny everything when bound (non-admin).
+-- pending verification tokens, deny everything when bound (non-admin).
 DROP POLICY IF EXISTS verification_rw_all ON verification;
 
 CREATE POLICY verification_all_unbound_or_admin ON verification

@@ -1,8 +1,8 @@
 /**
- * DEC-023 — pins the fail-closed seam every entity action delegates to.
+ * DEC-023: pins the fail-closed seam every entity action delegates to.
  *
  * The catch blocks themselves need a live DB to fire, and our Jest tier is
- * pure-unit / no-DB (Bima/DEC-011) — so we do NOT fake a DB. Instead we pin
+ * pure-unit / no-DB (Bima/DEC-011), so we do NOT fake a DB. Instead we pin
  * the HELPER, which is the actual security boundary: if it holds (generic
  * out, raw cause never in the returned `error`, real cause logged), then
  * every site that delegates to it holds by construction.
@@ -43,7 +43,7 @@ describe("unexpectedActionError (DEC-023 info-disclosure seam)", () => {
     expect(res.error).not.toContain("Failed query");
   });
 
-  test("preserves diagnostics — the real cause IS logged server-side (not swallowed)", () => {
+  test("preserves diagnostics: the real cause IS logged server-side (not swallowed)", () => {
     const rawCause = new Error('relation "po_lines" does not exist');
     unexpectedActionError(rawCause, "receivePo");
 

@@ -4,7 +4,7 @@ import type { NextRequest } from "next/server";
 /**
  * Per DEC-003 + Next 16 file convention: `proxy.ts` replaces `middleware.ts`.
  *
- * Cheap cookie-presence check only — the actual session validation happens
+ * Cheap cookie-presence check only, the actual session validation happens
  * in the (protected) layout via getServerSession(). This split is intentional:
  * proxy runs at the edge and should not hit the DB on every navigation.
  *
@@ -13,7 +13,7 @@ import type { NextRequest } from "next/server";
  *   prod (HTTPS):     `__Secure-crate.session_token`
  *
  * RFC 6265bis: any cookie issued with the `Secure` flag and the `__Secure-`
- * prefix MUST keep that prefix in the Cookie header — browsers enforce.
+ * prefix MUST keep that prefix in the Cookie header, browsers enforce.
  * BetterAuth auto-applies the prefix in production. Production deploy at
  * app.crate.ersaptaaristo.dev got bounced from /dashboard on 2026-05-29
  * because the proxy only knew the dev name.

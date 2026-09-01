@@ -2,7 +2,7 @@ import { test, expect, type Page } from "@playwright/test";
 import { authFile } from "../playwright/roles";
 
 /**
- * Phase-8 adjustment journey — the THIRD and final decrement flow that runs
+ * Phase-8 adjustment journey: the THIRD and final decrement flow that runs
  * through the shared `getLevelLocked` gate DEC-013 repaired (stock-out and
  * transfer are the other two). A negative `delta` takes the advisory lock +
  * checkDecrementAllowed exactly like the others; this proves the fix holds on
@@ -16,11 +16,11 @@ import { authFile } from "../playwright/roles";
  * MOST-RECENT `Adjustment` row: `listRecentMovementsServer` orders
  * `desc(createdAt)` and the table's initial sort state is empty (preserves
  * data order), so the first `Adjustment` row is deterministically the one we
- * just recorded — robust against ledger accumulation across reseeds.
+ * just recorded, robust against ledger accumulation across reseeds.
  *
  * Self-contained against the persistent DB: Phase 1 stock-ins +30 at A1 so the
  * valid −6 can't depend on accumulated state (survives a fresh reseed). Notes
- * are REQUIRED on adjustments (Zod min(1)) — filled in BOTH adjustment phases,
+ * are REQUIRED on adjustments (Zod min(1)), filled in BOTH adjustment phases,
  * else the client schema would reject on `notes` before the server gate runs.
  *
  * Server-observable assertions only (Bima DoD): route transitions + refetched
@@ -38,11 +38,11 @@ test.describe("movements · adjustment journey", () => {
 
   /**
    * base-ui Select: combobox trigger → role=option (v1.5.0, R-ADAPTER). Target
-   * the trigger by its `combobox` role with an EXACT accessible name — NOT
+   * the trigger by its `combobox` role with an EXACT accessible name, NOT
    * `getByLabel`, which substring-matches across roles (short labels collide
    * with the Next.js / TanStack devtools buttons) and folds the required "*"
    * into the label so `{ exact }` never matches. The combobox's accessible
-   * name is the bare field label (asterisk excluded) — exact-matchable.
+   * name is the bare field label (asterisk excluded), exact-matchable.
    */
   async function pick(page: Page, fieldLabel: string, optionName: RegExp) {
     await page.getByRole("combobox", { name: fieldLabel, exact: true }).click();
@@ -76,7 +76,7 @@ test.describe("movements · adjustment journey", () => {
     await expect(page).toHaveURL(/\/movements$/);
 
     // Re-fetch the ledger and assert the newest Adjustment row is ours: a
-    // signed −6 at A1, reason "damage". (No reference to filter on — the
+    // signed −6 at A1, reason "damage". (No reference to filter on, the
     // desc(createdAt) order makes the first Adjustment row deterministic.)
     await page.goto("/movements");
     await expect(page.getByRole("heading", { name: "Movements" })).toBeVisible();

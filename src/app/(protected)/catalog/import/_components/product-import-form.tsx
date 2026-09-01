@@ -107,8 +107,8 @@ export function ProductImportForm() {
         rawRows.forEach((raw, i) => {
           const parsed = productImportRowSchema.safeParse(raw);
           const rowNumber = i + 2;
-          const sku = String(raw?.sku ?? "").trim() || "—";
-          const name = String(raw?.name ?? "").trim() || "—";
+          const sku = String(raw?.sku ?? "").trim() || "none";
+          const name = String(raw?.name ?? "").trim() || "none";
 
           if (parsed.success) {
             preview.push({ rowNumber, sku, name, ok: true });
@@ -201,7 +201,7 @@ export function ProductImportForm() {
           <CardHeader>
             <CardTitle className="text-base">Pick a file</CardTitle>
             <CardDescription>
-              Drag &amp; drop coming in Phase 8 polish — file picker for now.
+              Drag &amp; drop coming in Phase 8 polish, file picker for now.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -240,7 +240,7 @@ export function ProductImportForm() {
               <div className="flex flex-col gap-1">
                 <CardTitle className="text-base">Preview · {state.fileName}</CardTitle>
                 <CardDescription>
-                  {validCount} valid · {invalidCount} invalid — only valid rows submit.
+                  {validCount} valid · {invalidCount} invalid, only valid rows submit.
                 </CardDescription>
               </div>
               <div className="flex items-center gap-2">
@@ -379,7 +379,7 @@ function ResultTable({ result }: { result: ProductImportResult }) {
               <td className="px-3 py-1.5 font-mono text-[10px] text-muted-foreground">
                 {r.rowNumber}
               </td>
-              <td className="px-3 py-1.5 font-mono text-xs">{r.sku ?? "—"}</td>
+              <td className="px-3 py-1.5 font-mono text-xs">{r.sku ?? "none"}</td>
               <td className="px-3 py-1.5">
                 {r.status === "inserted" && (
                   <Badge variant="outline" className="border-success/20 bg-success/10 text-success-text">

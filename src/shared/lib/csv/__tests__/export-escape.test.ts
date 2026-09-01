@@ -1,8 +1,8 @@
 /**
- * DEC-022 — CSV / formula-injection guard, pinned at the export SEAM.
+ * DEC-022: CSV / formula-injection guard, pinned at the export SEAM.
  *
  * These drive `downloadCsv()` itself (default jsdom env) and assert on the
- * CSV it hands to the Blob — NOT `Papa.unparse` in isolation. So a future
+ * CSV it hands to the Blob, NOT `Papa.unparse` in isolation. So a future
  * "cleanup" that drops `escapeFormulae: true` from export.ts fails HERE,
  * which is the whole point of the guard (Bima/DoD): the test proves the
  * seam escapes, not merely that the library *can*.
@@ -63,7 +63,7 @@ function firstRow(csv: string): Record<string, string> {
   }).data[0];
 }
 
-describe("downloadCsv — escapeFormulae guard (DEC-022)", () => {
+describe("downloadCsv: escapeFormulae guard (DEC-022)", () => {
   test("prefixes string cells leading with = + - @ with an apostrophe", async () => {
     const row = firstRow(
       await captureCsv([{ eq: "=A1", plus: "+1", minus: "-cmd", at: "@SUM(A1)" }]),

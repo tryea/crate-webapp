@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# DEC-012 — SSH tunnel to the VPS-hosted crate_dev Postgres.
+# DEC-012: SSH tunnel to the VPS-hosted crate_dev Postgres.
 #
 # Maps local  localhost:5436  ->  portfolio-vps  ->  postgres-shared container
 # (published on the VPS host's localhost:5434). The DB port is bound to
-# 127.0.0.1 on the VPS, so it is never exposed to the public internet — the
+# 127.0.0.1 on the VPS, so it is never exposed to the public internet, the
 # tunnel is the only way in.
 #
 # The tunnel MUST be running for `bun dev`, `db:migrate/seed/rls`, and the

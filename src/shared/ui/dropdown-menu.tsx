@@ -85,12 +85,12 @@ function DropdownMenuItem({
   variant?: "default" | "destructive"
   /**
    * shadcn/Radix compatibility shim. base-ui's `Menu.Item` fires `onClick`,
-   * NOT Radix's `onSelect` — and because it renders a `<div>`, a stray
+   * NOT Radix's `onSelect`, and because it renders a `<div>`, a stray
    * `onSelect` silently binds to the native text-selection event (valid DOM
    * attr → typechecks → never runs on click). We map it to `onClick` so the
    * ported shadcn call sites (and future muscle-memory `onSelect`) just work.
    * NOTE: to keep the menu open after activation, use base-ui's
-   * `closeOnClick={false}` — NOT Radix's `event.preventDefault()`.
+   * `closeOnClick={false}`, NOT Radix's `event.preventDefault()`.
    */
   onSelect?: (event: React.MouseEvent<HTMLDivElement>) => void
 }) {

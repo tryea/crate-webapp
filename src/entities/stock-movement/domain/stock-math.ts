@@ -1,15 +1,15 @@
 /**
  * Stock-math domain layer.
  *
- * Pure functions only — NO DB, NO server, NO React. Everything here is unit-
+ * Pure functions only: NO DB, NO server, NO React. Everything here is unit-
  * tested in `__tests__/stock-math.test.ts` PER COUNCIL §0 rule 3 (domain
  * logic has tests BEFORE it's marked done).
  *
  * The invariants this module guards:
  *  - Quantity sign convention per movement type (see expectedSignForType).
  *  - Quantity is never zero on an actual movement.
- *  - Stock level = SUM(quantity) across all movements for a (product, location)
- *    — the table is append-only; the level is derived.
+ *  - Stock level = SUM(quantity) across all movements for a (product, location);
+ *    the table is append-only, so the level is derived.
  *  - Stock-out never drives a level below zero unless backorder is allowed.
  *  - Transfer = two opposing movements w/ same transferGroupId, summing to 0.
  */
@@ -42,7 +42,7 @@ export interface MovementShape {
 }
 
 // Movement input as used by builders (callers supply the magnitude as a
-// positive number — `quantity`; we set the sign per type). adjustment is
+// positive number, `quantity`; we set the sign per type). adjustment is
 // special: caller supplies a signed delta directly.
 export interface DirectionalInput {
   productId: string;
@@ -130,7 +130,7 @@ export function buildLevelMap(
  */
 export function checkDecrementAllowed({
   currentLevel,
-  decrementBy, // positive number — how much to take out
+  decrementBy, // positive number: how much to take out
   allowBackorder = false,
 }: {
   currentLevel: number;
@@ -153,7 +153,7 @@ export function checkDecrementAllowed({
 
 /**
  * Build a paired transfer (two movements, opposing signs, same group id).
- * Caller supplies a fresh transferGroupId — typically `crypto.randomUUID()`.
+ * Caller supplies a fresh transferGroupId, typically `crypto.randomUUID()`.
  *
  * The PAIR is what an operator submits via the transfer UI; the server
  * action wraps both inserts in a single transaction so partial failure is

@@ -19,7 +19,7 @@ import {
   validateMovementShape,
 } from "../domain/stock-math";
 // DEC-013 advisory-lock gate, extracted to a plain module (DEC-015) so the
-// concurrency proof can import the real function — see ./level-lock.
+// concurrency proof can import the real function, see ./level-lock.
 import { getLevelLocked } from "./level-lock";
 import {
   adjustmentFormSchema,
@@ -34,7 +34,7 @@ import {
 import { settings as settingsTable } from "@/db/schema";
 
 /**
- * Read `allowBackorder` from the `settings` table directly — FSD
+ * Read `allowBackorder` from the `settings` table directly, FSD
  * boundaries (DEC-002) forbid entity→entity imports, so we query the
  * raw table here rather than calling the settings entity's server fn.
  * Default false matches COUNCIL §0 + STOCK_SETTINGS_DEFAULTS.
@@ -63,7 +63,7 @@ function auditDiff(op: string, m: StockMovement) {
 // --- Stock In -----------------------------------------------------------
 
 /**
- * Stock In — append a single positive movement at (product, location).
+ * Stock In: append a single positive movement at (product, location).
  *
  * Per COUNCIL §4.3:
  *  - Wrapped in a transaction so the audit_log row commits with the movement.
@@ -131,7 +131,7 @@ export async function stockInAction(
 // --- Stock Out ----------------------------------------------------------
 
 /**
- * Stock Out — serializes the level read via getLevelLocked's advisory lock
+ * Stock Out: serializes the level read via getLevelLocked's advisory lock
  * inside the tx (DEC-013), runs checkDecrementAllowed (tested), refuses with
  * field-level error when insufficient. Concurrent decrements at the same
  * (product, location) serialize through the lock so two parallel sales can't
@@ -214,7 +214,7 @@ export async function stockOutAction(
 // --- Transfer (atomic two-sided) ---------------------------------------
 
 /**
- * Transfer — buildTransferPair() builds the paired rows; both insert in
+ * Transfer: buildTransferPair() builds the paired rows; both insert in
  * ONE transaction. If either fails, both roll back. checkDecrementAllowed
  * gate runs against the SOURCE location, serialized by getLevelLocked's
  * advisory lock (DEC-013).
@@ -330,7 +330,7 @@ export async function transferAction(
 // --- Adjustment ---------------------------------------------------------
 
 /**
- * Adjustment — signed delta (+ found, − correction). When delta is
+ * Adjustment: signed delta (+ found, − correction). When delta is
  * negative, we run the same lock + checkDecrementAllowed gate. Notes
  * are required (Zod min(1)) so adjustments are explainable.
  */

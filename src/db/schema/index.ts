@@ -1,4 +1,4 @@
-// Public schema barrel — drizzle-kit reads from here; runtime imports use it
+// Public schema barrel, drizzle-kit reads from here; runtime imports use it
 // as the single entry into the DB layer.
 export * from "./_shared";
 // BetterAuth-owned identity tables (user, session, account, verification)

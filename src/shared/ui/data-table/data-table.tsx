@@ -19,10 +19,10 @@ import { DENSITY_CLASSES, useDensity } from "./density";
 import { cn } from "@/shared/lib/utils";
 
 /**
- * Reusable DataTable — the workhorse for catalog, movements, POs, audit.
+ * Reusable DataTable: the workhorse for catalog, movements, POs, audit.
  *
  * Features (all opt-in via flags; sensible defaults):
- *   - Sort (click column header — asc → desc → none)
+ *   - Sort (click column header, asc → desc → none)
  *   - Global filter (toolbar input filters across all columns)
  *   - Pagination (TanStack's paginated row model; disabled when virtualize=true)
  *   - Sticky header

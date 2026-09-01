@@ -1,4 +1,4 @@
-// Client-safe barrel — schemas + Server Actions + Query keys. Domain
+// Client-safe barrel, schemas + Server Actions + Query keys. Domain
 // math and server-only DB helpers are imported directly from their files.
 export {
   movementReasonEnum,

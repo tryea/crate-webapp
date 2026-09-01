@@ -87,7 +87,7 @@ export function LocationsTable({
           row.original.name ? (
             <span>{row.original.name}</span>
           ) : (
-            <span className="text-muted-foreground">—</span>
+            <span className="text-muted-foreground">none</span>
           ),
       },
     ];

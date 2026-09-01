@@ -108,7 +108,7 @@ export function WarehousesTable({
               {row.original.address}
             </span>
           ) : (
-            <span className="text-muted-foreground">—</span>
+            <span className="text-muted-foreground">none</span>
           ),
       },
       {

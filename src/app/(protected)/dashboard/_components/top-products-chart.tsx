@@ -31,7 +31,7 @@ export interface TopProductRow {
 
 export function TopProductsChart({ data }: { data: TopProductRow[] }) {
   // Recharts wants `name` for the categorical axis. Use SKU as the
-  // identifier (compact, mono-ish) — the tooltip surfaces the full name.
+  // identifier (compact, mono-ish), the tooltip surfaces the full name.
   const chartData = data.map((d) => ({
     name: d.sku,
     fullName: d.name,

@@ -1,5 +1,5 @@
 ###############################################################################
-# crate-webapp — APP stack only.
+# crate-webapp: APP stack only.
 #
 # This file boots the Next.js app and connects to an EXTERNAL Postgres
 # running in its own independent docker-compose stack (see
@@ -31,8 +31,8 @@ services:
     environment:
       NODE_ENV: production
       # App runs with the non-superuser app_user role so RLS policies fire.
-      DATABASE_URL: ${DATABASE_URL:?missing — set in .env.local}
-      DATABASE_URL_DIRECT: ${DATABASE_URL_DIRECT:?missing — set in .env.local}
+      DATABASE_URL: ${DATABASE_URL:?missing, set in .env.local}
+      DATABASE_URL_DIRECT: ${DATABASE_URL_DIRECT:?missing, set in .env.local}
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?missing}
       BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}

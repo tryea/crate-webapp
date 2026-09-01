@@ -3,7 +3,7 @@ import { z } from "zod";
 import { suppliers } from "@/db/schema";
 
 /**
- * Suppliers schema — no unique constraints, no FKs to itself, so the
+ * Suppliers schema: no unique constraints, no FKs to itself, so the
  * shape is leaner than Categories. Optional contact fields get
  * nullable-empty handling so the form can submit a blank input as null
  * (Zod default would coerce empty string → fail email validation).

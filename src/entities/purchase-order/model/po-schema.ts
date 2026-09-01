@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 /**
- * Purchase Orders — header form + line-item form (added on detail page).
+ * Purchase Orders: header form + line-item form (added on detail page).
  * PO number is generated server-side ("PO-2026-NNN") so two operators
  * creating drafts concurrently never collide.
  */
@@ -41,7 +41,7 @@ export const poLineFormSchema = z.object({
 export type PoLineFormValues = z.infer<typeof poLineFormSchema>;
 
 /**
- * Receive form — captures per-line "received THIS time" qty. Server adds
+ * Receive form: captures per-line "received THIS time" qty. Server adds
  * to po_lines.quantityReceived and inserts a stock_in movement per line
  * in the same transaction.
  */

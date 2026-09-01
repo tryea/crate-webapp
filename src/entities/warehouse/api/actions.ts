@@ -49,7 +49,7 @@ export async function createWarehouseAction(
       return {
         ok: false,
         error: "That code is already taken.",
-        fieldErrors: { code: ["Already in use — pick a different code."] },
+        fieldErrors: { code: ["Already in use. Pick a different code."] },
       };
     }
     return unexpectedActionError(err, "createWarehouse");
@@ -92,7 +92,7 @@ export async function updateWarehouseAction(
       return {
         ok: false,
         error: "That code is already taken.",
-        fieldErrors: { code: ["Already in use — pick a different code."] },
+        fieldErrors: { code: ["Already in use. Pick a different code."] },
       };
     }
     return unexpectedActionError(err, "updateWarehouse");
@@ -100,7 +100,7 @@ export async function updateWarehouseAction(
 }
 
 /**
- * locations.warehouseId is ON DELETE RESTRICT — deleting a warehouse with
+ * locations.warehouseId is ON DELETE RESTRICT, deleting a warehouse with
  * locations errors at the DB. Surface a clear message instead of raw SQL.
  */
 export async function deleteWarehouseAction(
@@ -263,7 +263,7 @@ export async function deleteLocationAction(
     if (message.toLowerCase().includes("violates foreign key")) {
       return {
         ok: false,
-        error: "This location has stock movements — delete it via a stock zeroing flow instead.",
+        error: "This location has stock movements, so delete it via a stock zeroing flow instead.",
       };
     }
     return unexpectedActionError(err, "deleteLocation");

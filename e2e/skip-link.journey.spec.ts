@@ -2,7 +2,7 @@ import { test, expect, type Page } from "@playwright/test";
 import { authFile } from "../playwright/roles";
 
 /**
- * task-#99 regression guard — WCAG 2.4.1 (Bypass Blocks, Level A).
+ * task-#99 regression guard: WCAG 2.4.1 (Bypass Blocks, Level A).
  *
  * The protected shell renders sidebar + topbar before page content, so a
  * keyboard user would otherwise Tab through every nav link on every page
@@ -15,14 +15,14 @@ import { authFile } from "../playwright/roles";
  * axe's automated pass because axe does not model "first Tab reaches a working
  * bypass"). Only a test that actually drives Tab → Enter → Tab catches a
  * regression, e.g. someone reordering the layout or dropping `tabIndex={-1}`
- * (which makes the hash update but leaves focus stranded — a silent failure).
+ * (which makes the hash update but leaves focus stranded, a silent failure).
  *
  * Assertions are i18n-independent: the link is matched by its `href`
  * (`#main-content`) and the focus target by its `id`, never by the translated
  * "Skip to content" copy.
  *
  * Runs in the DB-gated `journeys` project, reusing the manager storageState
- * (zero login cost — DEC-010). The shell is protected, so it needs an
+ * (zero login cost, DEC-010). The shell is protected, so it needs an
  * authenticated session; it does not touch the DB.
  */
 test.use({ storageState: authFile("manager") });
@@ -59,7 +59,7 @@ test.describe("skip link · bypass blocks (task-#99 / WCAG 2.4.1)", () => {
     );
 
     // Tab #2: from #main-content, the next focusable element is INSIDE the
-    // main region — sidebar + topbar (earlier in the DOM) are bypassed.
+    // main region, sidebar + topbar (earlier in the DOM) are bypassed.
     await page.keyboard.press("Tab");
     const escaped = await page.evaluate(() => {
       const el = document.activeElement;

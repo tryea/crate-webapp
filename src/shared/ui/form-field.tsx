@@ -11,7 +11,7 @@ import { Label } from "@/shared/ui/label";
 import { cn } from "@/shared/lib/utils";
 
 /**
- * FormField — bridges React Hook Form's Controller to shadcn primitives
+ * FormField: bridges React Hook Form's Controller to shadcn primitives
  * with a consistent label + error layout. Per COUNCIL §0 rule 5, Zod is
  * SSOT for validation; this component only handles UI plumbing.
  *
@@ -27,7 +27,7 @@ import { cn } from "@/shared/lib/utils";
  *
  * Inline validation: error message shows BELOW the input as soon as RHF's
  * validation fires (per zodResolver). Optional description shows below
- * input when no error (COUNCIL §6 "forgiving forms" — inline guidance).
+ * input when no error (COUNCIL §6 "forgiving forms", inline guidance).
  */
 export function FormField<
   TFieldValues extends FieldValues = FieldValues,

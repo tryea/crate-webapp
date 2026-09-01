@@ -14,9 +14,9 @@ import {
 } from "../model/category-schema";
 
 /**
- * Server actions for category CRUD. Every one calls requireRole() —
+ * Server actions for category CRUD. Every one calls requireRole(),
  * scripts/check-auth-guards.sh enforces this at lint time (DEC-003).
- * The Zod schema runs server-side too — never trust client validation.
+ * The Zod schema runs server-side too, never trust client validation.
  */
 
 export async function createCategoryAction(
@@ -45,7 +45,7 @@ export async function createCategoryAction(
       return {
         ok: false,
         error: "That slug is already taken.",
-        fieldErrors: { slug: ["Already in use — pick a different slug."] },
+        fieldErrors: { slug: ["Already in use. Pick a different slug."] },
       };
     }
     return unexpectedActionError(err, "createCategory");
@@ -72,7 +72,7 @@ export async function updateCategoryAction(
     };
   }
 
-  // Self-parent guard (can't be your own parent — would be a structural cycle).
+  // Self-parent guard (can't be your own parent, would be a structural cycle).
   if (parsed.data.parentId === idParse.data) {
     return {
       ok: false,
@@ -98,7 +98,7 @@ export async function updateCategoryAction(
       return {
         ok: false,
         error: "That slug is already taken.",
-        fieldErrors: { slug: ["Already in use — pick a different slug."] },
+        fieldErrors: { slug: ["Already in use. Pick a different slug."] },
       };
     }
     return unexpectedActionError(err, "updateCategory");
@@ -107,7 +107,7 @@ export async function updateCategoryAction(
 
 /**
  * Hard-delete. FKs from products.categoryId have ON DELETE SET NULL, so
- * deleting a category leaves its products intact with no category — safe.
+ * deleting a category leaves its products intact with no category, safe.
  *
  * Pairs with `recreateCategoryAction` to power the undo-toast pattern:
  * the deleted row is returned so the client can re-create with the same id.
@@ -138,7 +138,7 @@ export async function deleteCategoryAction(
 }
 
 /**
- * Undo helper — re-creates a previously deleted category with its
+ * Undo helper: re-creates a previously deleted category with its
  * original id so any references that haven't been GC'd elsewhere can
  * heal. Idempotent on (id, slug) uniqueness.
  */

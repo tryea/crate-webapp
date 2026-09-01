@@ -1,11 +1,11 @@
 /**
- * DEC-015 — Parallel-decrement concurrency proof for the DEC-013 advisory lock.
+ * DEC-015: Parallel-decrement concurrency proof for the DEC-013 advisory lock.
  *
  * Standalone bun script (NOT Jest, NOT Playwright). Run via:
  *   bun run check:concurrency
  *
  * It drives the REAL `getLevelLocked` (imported from the extracted plain
- * module — DEC-015) against the live `crate_dev` DB over the SSH tunnel, and
+ * module, DEC-015) against the live `crate_dev` DB over the SSH tunnel, and
  * compares it to a test-only `getLevelNaive` (the same SUM read MINUS the
  * advisory-lock line). The differential is the proof the lock is load-bearing:
  *
@@ -14,7 +14,7 @@
  *
  * Determinism comes from a rendezvous-with-timeout BARRIER: both
  * `db.transaction()`s open, both park just before the level read, then both
- * read concurrently — forcing a genuine overlap in the read-then-write window
+ * read concurrently, forcing a genuine overlap in the read-then-write window
  * (Vox's Red-Team risk: "two transactions that accidentally serialize prove
  * nothing"). The barrier lives ONLY in this test; no `pg_sleep` ever touches
  * the production critical section.
@@ -28,7 +28,7 @@ import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/db/client";
 import { locations, products, stockMovements } from "@/db/schema";
 import { checkDecrementAllowed } from "@/entities/stock-movement/domain/stock-math";
-// The REAL production gate — same symbol actions.ts imports (DEC-015 extraction).
+// The REAL production gate, same symbol actions.ts imports (DEC-015 extraction).
 import { getLevelLocked, type Tx } from "@/entities/stock-movement/api/level-lock";
 
 type Gate = (tx: Tx, productId: string, locationId: string) => Promise<number>;
@@ -56,7 +56,7 @@ const getLevelNaive: Gate = async (tx, productId, locationId) => {
 /**
  * Rendezvous-with-timeout barrier (count-to-`parties`). `arrive()` blocks each
  * caller until either everyone has arrived OR `timeoutMs` elapses since the
- * first arrival — the timeout breaks the deadlock when one party legitimately
+ * first arrival, the timeout breaks the deadlock when one party legitimately
  * can't reach the barrier (e.g. it's blocked in the DB behind another party's
  * advisory lock). Latches open after first release, so latecomers pass through.
  */
@@ -77,7 +77,7 @@ function makeBarrier(parties: number, timeoutMs: number) {
   };
 
   return async function arrive(): Promise<void> {
-    if (released) return; // latecomer — pass immediately
+    if (released) return; // latecomer, pass immediately
     count += 1;
     if (count >= parties) release();
     else if (!timer) timer = setTimeout(release, timeoutMs);
@@ -100,7 +100,7 @@ async function attemptStockOut(
 ): Promise<"won" | "blocked"> {
   return db.transaction(async (tx) => {
     // Both transactions are now OPEN (connection checked out). Park here so
-    // neither reads the level until both are ready — guarantees real overlap.
+    // neither reads the level until both are ready, guarantees real overlap.
     await arrive();
 
     const level = await gate(tx, productId, locationId);
@@ -193,9 +193,9 @@ async function runScenario(
 }
 
 async function main() {
-  // Movements must attach to a real location — reuse the first seeded one.
+  // Movements must attach to a real location, reuse the first seeded one.
   const [loc] = await db.select({ id: locations.id }).from(locations).limit(1);
-  assert(loc, "No seeded location found — run `bun run db:seed` first.");
+  assert(loc, "No seeded location found, run `bun run db:seed` first.");
 
   console.log(
     "→ Scenario A: REAL locked gate (getLevelLocked, pg_advisory_xact_lock)",
@@ -212,7 +212,7 @@ async function main() {
   );
 
   console.log(
-    "→ Scenario B: NAIVE gate (plain SUM, NO advisory lock) — counterfactual",
+    "→ Scenario B: NAIVE gate (plain SUM, NO advisory lock), counterfactual",
   );
   const naive = await runScenario("NAIVE", getLevelNaive, loc.id);
   console.log(
@@ -226,7 +226,7 @@ async function main() {
   );
 
   console.log(
-    "PASS — DEC-013 advisory lock is load-bearing (locked final=0, naive final=-5).",
+    "PASS: DEC-013 advisory lock is load-bearing (locked final=0, naive final=-5).",
   );
 }
 
@@ -236,7 +236,7 @@ main()
     process.exit(0);
   })
   .catch(async (err) => {
-    console.error("FAIL —", err instanceof Error ? err.message : err);
+    console.error("FAIL:", err instanceof Error ? err.message : err);
     await db.$client.end();
     process.exit(1);
   });

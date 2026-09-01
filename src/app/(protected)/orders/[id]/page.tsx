@@ -84,7 +84,7 @@ export default async function PurchaseOrderDetailPage({
               </Badge>
             </h1>
             <p className="text-sm text-muted-foreground">
-              {supplier?.name ?? "—"}
+              {supplier?.name ?? "none"}
               {po.expectedDate ? (
                 <>
                   {" · Expected "}

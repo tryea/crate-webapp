@@ -3,7 +3,7 @@ import { cn } from "@/shared/lib/utils";
 
 /**
  * Single-signal status chip for stock state. Uses the Phase 3.1 semantic
- * tokens (success/warning/destructive/info) as soft tints — not saturated
+ * tokens (success/warning/destructive/info) as soft tints, not saturated
  * fills (ui-audit principle 7 SUB-RULE).
  *
  * Status policy:

@@ -4,7 +4,7 @@ const SKU_REGEX = /^[A-Z0-9][A-Z0-9-]*$/;
 const MONEY_REGEX = /^\d+(\.\d{1,2})?$/;
 
 /**
- * Form-side schema (no transforms — input type == output type) so
+ * Form-side schema (no transforms, input type == output type) so
  * react-hook-form's Resolver generic stays sound. Server-side
  * normalization (empty string → null, money string → 2-decimal,
  * reorderPoint coerce) happens in the action before DB insert.

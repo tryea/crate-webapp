@@ -49,7 +49,7 @@ export const purchaseOrders = pgTable(
 );
 
 /**
- * po_lines — one row per (PO, product). qty_received accumulates as receipts
+ * po_lines: one row per (PO, product). qty_received accumulates as receipts
  * land. CHECK ensures we never receive more than ordered and never receive
  * negative.
  */

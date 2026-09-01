@@ -41,7 +41,7 @@ export async function createProductAction(
       return {
         ok: false,
         error: "That SKU is already taken.",
-        fieldErrors: { sku: ["Already in use — pick a different SKU."] },
+        fieldErrors: { sku: ["Already in use. Pick a different SKU."] },
       };
     }
     return unexpectedActionError(err, "createProduct");
@@ -83,7 +83,7 @@ export async function updateProductAction(
       return {
         ok: false,
         error: "That SKU is already taken.",
-        fieldErrors: { sku: ["Already in use — pick a different SKU."] },
+        fieldErrors: { sku: ["Already in use. Pick a different SKU."] },
       };
     }
     return unexpectedActionError(err, "updateProduct");
@@ -118,7 +118,7 @@ export async function deleteProductAction(
     if (message.toLowerCase().includes("violates foreign key")) {
       return {
         ok: false,
-        error: "This product has stock movements — archive it (set inactive) instead of deleting.",
+        error: "This product has stock movements, so archive it (set inactive) instead of deleting.",
       };
     }
     return unexpectedActionError(err, "deleteProduct");
@@ -145,7 +145,7 @@ export async function recreateProductAction(
 }
 
 /**
- * Archive toggle — common-case alternative to delete. Sets isActive
+ * Archive toggle: common-case alternative to delete. Sets isActive
  * without touching anything else. UI surfaces this as the safe choice.
  */
 export async function setProductActiveAction(
@@ -320,7 +320,7 @@ export async function importProductsAction(
                 sellingPrice: insertValues.sellingPrice,
                 isActive: insertValues.isActive,
                 // Drizzle's `$onUpdate` hook fires only for `db.update()`, NOT
-                // for an onConflictDoUpdate set clause — so updated_at must be
+                // for an onConflictDoUpdate set clause, so updated_at must be
                 // bumped explicitly here, else every upsert leaves it frozen at
                 // insert time (DEC-014).
                 updatedAt: sql`now()`,
@@ -328,7 +328,7 @@ export async function importProductsAction(
             })
             // `xmax = 0` ⇔ the row was freshly INSERTED; non-zero ⇔ an existing
             // row was UPDATED by the conflict path. Deterministic verdict from
-            // Postgres itself — replaces the old createdAt/updatedAt timing
+            // Postgres itself, replaces the old createdAt/updatedAt timing
             // heuristic, which could not survive a sub-second re-import (DEC-014).
             .returning({
               sku: products.sku,
@@ -347,7 +347,7 @@ export async function importProductsAction(
           });
         } catch (err) {
           // DEC-023 defense-in-depth: never stash a raw cause (which can
-          // carry SQL/schema text) in a per-row record — one refactor from
+          // carry SQL/schema text) in a per-row record, one refactor from
           // "not returned today" to "returned tomorrow". Safe note for the
           // operator; real cause logged server-side.
           console.error(`[action:importProducts:row${rowNumber}]`, err);
@@ -357,7 +357,7 @@ export async function importProductsAction(
             sku: data.sku,
             error: "Row failed to import.",
           });
-          throw err; // roll back the whole tx — partial imports aren't allowed
+          throw err; // roll back the whole tx, partial imports aren't allowed
         }
       }
     });

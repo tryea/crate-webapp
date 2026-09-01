@@ -2,7 +2,7 @@ import { test, expect, type Page } from "@playwright/test";
 import { authFile } from "../playwright/roles";
 
 /**
- * issue-017 regression guard — the command palette must OPEN, not crash.
+ * issue-017 regression guard: the command palette must OPEN, not crash.
  *
  * The P0 it locks down: `CommandDialog` (shared/ui/command.tsx) used to render
  * `Dialog > DialogContent > {children}` WITHOUT wrapping the children in the
@@ -11,7 +11,7 @@ import { authFile } from "../playwright/roles";
  * `Cannot read properties of undefined (reading 'subscribe')` on mount → the
  * route-level error boundary replaced the whole page. tsc/lint/Jest were all
  * green (a missing *runtime* provider is invisible to them); only a test that
- * actually OPENS the palette catches it. That test did not exist — this is it.
+ * actually OPENS the palette catches it. That test did not exist, this is it.
  *
  * Assertions are i18n-independent where it matters: the open/no-crash guard and
  * focus-restore use structural hooks (`role="dialog"`, `[data-slot]`,
@@ -20,7 +20,7 @@ import { authFile } from "../playwright/roles";
  * ("movements"), which is what the harness runs under.
  *
  * Runs in the DB-gated `journeys` project, reusing the manager storageState
- * (zero login cost — DEC-010). The palette lives in the protected shell, so it
+ * (zero login cost, DEC-010). The palette lives in the protected shell, so it
  * needs an authenticated session; it does not touch the DB itself.
  */
 test.use({ storageState: authFile("manager") });
@@ -61,7 +61,7 @@ test.describe("command palette · open + operate (issue-017 regression)", () => 
     await page.keyboard.press("Enter");
     await expect(page).toHaveURL(/\/movements/);
 
-    // Re-open via the keyboard shortcut (Cmd/Ctrl+K) — the other entry path.
+    // Re-open via the keyboard shortcut (Cmd/Ctrl+K), the other entry path.
     await page.keyboard.press("ControlOrMeta+k");
     await expect(dialog(page)).toBeVisible();
 
@@ -71,7 +71,7 @@ test.describe("command palette · open + operate (issue-017 regression)", () => 
     await expect(launcher(page)).toBeFocused();
   });
 
-  test("traps focus while open — Tab/Shift+Tab never reach the page behind", async ({
+  test("traps focus while open: Tab/Shift+Tab never reach the page behind", async ({
     page,
   }) => {
     await page.goto("/dashboard");
@@ -86,9 +86,9 @@ test.describe("command palette · open + operate (issue-017 regression)", () => 
     // popup is portaled to the end of <body>; so a Tab first wraps focus to the
     // top of the document (skip-link → sidebar) for ONE frame, then base-ui's
     // focus guard bounces it back via requestAnimationFrame (enqueueFocus,
-    // sync:false — node_modules/@base-ui/react/floating-ui-react/utils/
+    // sync:false, node_modules/@base-ui/react/floating-ui-react/utils/
     // enqueueFocus.js:28). A one-shot read right after the keypress samples that
-    // pre-rAF frame and sees a false "escape" — which is exactly the bug the
+    // pre-rAF frame and sees a false "escape", which is exactly the bug the
     // DEC-021 principle warns about (never assert on the frame immediately after
     // an async settle). Assert the SETTLED state instead: poll until focus is
     // back off the page-behind. A genuine trap removal (focus stays out) never

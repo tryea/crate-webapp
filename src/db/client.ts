@@ -7,7 +7,7 @@ declare global {
 }
 
 /**
- * Build-time-safe URL fallback. postgres.js is lazy — it does not open a
+ * Build-time-safe URL fallback. postgres.js is lazy, it does not open a
  * connection on construction, only on first query. So providing a dummy
  * URL during `next build` (when env may be absent for route metadata
  * collection) is safe. The first real query against a dummy URL will fail

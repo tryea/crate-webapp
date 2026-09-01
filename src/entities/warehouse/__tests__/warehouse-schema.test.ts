@@ -1,7 +1,7 @@
 /**
  * @jest-environment node
  *
- * Phase 8 coverage — warehouse + location form schemas. Codes are
+ * Phase 8 coverage: warehouse + location form schemas. Codes are
  * uppercase-dashed (CODE_REGEX) and the optional text fields use the
  * blank-string → null transform so a blank input persists as NULL.
  */
@@ -10,7 +10,7 @@ import {
   locationFormSchema,
 } from "../model/warehouse-schema";
 
-describe("warehouseFormSchema — code regex", () => {
+describe("warehouseFormSchema: code regex", () => {
   test.each(["WH", "WH-1", "A1", "MAIN-DC-01"])("accepts %p", (code) => {
     expect(warehouseFormSchema.safeParse({ name: "Main", code }).success).toBe(true);
   });
@@ -20,7 +20,7 @@ describe("warehouseFormSchema — code regex", () => {
   });
 });
 
-describe("warehouseFormSchema — name + address", () => {
+describe("warehouseFormSchema: name + address", () => {
   test("blank name fails", () => {
     expect(warehouseFormSchema.safeParse({ name: "", code: "WH" }).success).toBe(false);
   });

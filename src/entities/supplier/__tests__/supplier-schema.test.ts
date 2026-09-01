@@ -1,13 +1,13 @@
 /**
  * @jest-environment node
  *
- * Phase 8 coverage — supplierFormSchema optional-contact coercion. The
+ * Phase 8 coverage: supplierFormSchema optional-contact coercion. The
  * blank-string → null transform is the subtle bit: a form submits "" for an
  * untouched email field, and naive z.email() would reject it. Bima's gate.
  */
 import { supplierFormSchema } from "../model/supplier-schema";
 
-describe("supplierFormSchema — name", () => {
+describe("supplierFormSchema: name", () => {
   test("name only is valid (all contact fields optional)", () => {
     const r = supplierFormSchema.safeParse({ name: "Acme Distributors" });
     expect(r.success).toBe(true);
@@ -22,7 +22,7 @@ describe("supplierFormSchema — name", () => {
   });
 });
 
-describe("supplierFormSchema — optional email coercion", () => {
+describe("supplierFormSchema: optional email coercion", () => {
   test("blank email coerces to null", () => {
     const r = supplierFormSchema.safeParse({ name: "Acme", contactEmail: "" });
     expect(r.success).toBe(true);
@@ -50,7 +50,7 @@ describe("supplierFormSchema — optional email coercion", () => {
   });
 });
 
-describe("supplierFormSchema — optional text coercion", () => {
+describe("supplierFormSchema: optional text coercion", () => {
   test("blank phone / address coerce to null", () => {
     const r = supplierFormSchema.safeParse({
       name: "Acme",

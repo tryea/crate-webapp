@@ -44,7 +44,7 @@ describe("DataTable", () => {
   test("clicking sortable header toggles sort order", () => {
     render(<DataTable data={DATA} columns={COLUMNS} />);
     const skuHeader = screen.getByText("SKU");
-    // Initial — alphabetical asc when clicked
+    // Initial, alphabetical asc when clicked
     fireEvent.click(skuHeader);
     // After first click, rows should be sorted ascending by SKU.
     const cells = screen.getAllByText(/A-001|B-002|C-003/);

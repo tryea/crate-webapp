@@ -10,7 +10,7 @@ import type { Role } from "./require-role";
 export type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 /**
- * Issue #2 — per-request RLS user-context binding (the final layer of the
+ * Issue #2: per-request RLS user-context binding (the final layer of the
  * defense-in-depth chain: proxy → layout → requireRole → tx → SQL).
  *
  * Wraps `db.transaction()` and binds `app.current_user_id` +
@@ -20,12 +20,12 @@ export type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
  * into the next.
  *
  * Policy contract (src/db/rls/0003_user_aware_policies.sql):
- *   - UNBOUND queries (no GUC set) keep working — BetterAuth's own
+ *   - UNBOUND queries (no GUC set) keep working, BetterAuth's own
  *     sign-in/session reads run on this same `app_user` connection without
  *     a context and must not break.
  *   - BOUND queries are restricted: identity-table SELECTs return only the
  *     bound user's rows (admins see all); identity-table WRITES are denied
- *     outright — a bound staff/manager transaction cannot escalate
+ *     outright, a bound staff/manager transaction cannot escalate
  *     `user.role` even via SQL injection.
  *
  * Usage in a Server Action (after requireRole):

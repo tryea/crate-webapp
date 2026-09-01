@@ -30,15 +30,15 @@ Policies then reference these via `current_setting('app.current_user_id', true)`
 The current DB client is a single shared connection pool, so the GUC
 binding requires either (a) per-request transactions or (b) connection
 pinning per-request via `postgres.js` `reserve()`. This is a Phase 8
-hardening task — wiring noted in `src/shared/lib/auth/session-binding.ts`
+hardening task, wiring noted in `src/shared/lib/auth/session-binding.ts`
 (to be added).
 
 ## Files in this directory
 
-- `0001_enable_rls.sql` — turn on RLS for sensitive tables (audit_log,
+- `0001_enable_rls.sql`: turn on RLS for sensitive tables (audit_log,
   user, session, account, verification). Applied via `bun run db:rls`.
-- `0002_baseline_policies.sql` — initial policies (all currently
-  permissive for the app_user — restrictive policies arrive once
+- `0002_baseline_policies.sql`: initial policies (all currently
+  permissive for the app_user, restrictive policies arrive once
   per-request user binding is wired in Phase 8).
 
 ## Why ship policy stubs now

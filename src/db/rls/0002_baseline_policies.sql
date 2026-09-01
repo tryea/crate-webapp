@@ -1,6 +1,6 @@
 -- Baseline policies: permissive read + write for app_user across the
 -- enabled tables, EXCEPT stock_movements which is INSERT+SELECT only
--- (no UPDATE, no DELETE — append-only enforced at SQL).
+-- (no UPDATE, no DELETE: append-only enforced at SQL).
 --
 -- Phase 8 will tighten these into per-user-role policies once
 -- per-request app.current_user_id binding is wired into the DB client.

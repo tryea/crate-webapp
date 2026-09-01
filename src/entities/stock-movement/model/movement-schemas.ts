@@ -48,7 +48,7 @@ export const stockInFormSchema = z.object({
 export type StockInFormValues = z.infer<typeof stockInFormSchema>;
 
 /**
- * Stock-Out form — caller submits magnitude (positive), server flips sign.
+ * Stock-Out form: caller submits magnitude (positive), server flips sign.
  * Insufficient-stock check happens in the action via checkDecrementAllowed
  * BEFORE the insert transaction begins.
  */
@@ -63,7 +63,7 @@ export const stockOutFormSchema = z.object({
 export type StockOutFormValues = z.infer<typeof stockOutFormSchema>;
 
 /**
- * Transfer form — same product moves between two locations. Server uses
+ * Transfer form: same product moves between two locations. Server uses
  * buildTransferPair (tested) and inserts BOTH rows in one transaction so
  * partial failure is impossible.
  */
@@ -86,7 +86,7 @@ export const transferFormSchema = z
 export type TransferFormValues = z.infer<typeof transferFormSchema>;
 
 /**
- * Adjustment form — caller submits a SIGNED delta (positive = found
+ * Adjustment form: caller submits a SIGNED delta (positive = found
  * extra; negative = correction down). reason MUST be count_correction
  * for true counts; other reasons allowed for damage/loss adjustments.
  */

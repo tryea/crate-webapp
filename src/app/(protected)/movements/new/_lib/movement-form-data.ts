@@ -28,7 +28,7 @@ export async function loadMovementFormData() {
   const locationOptions = locationRows.map((l) => ({
     id: l.id,
     code: l.code,
-    warehouseName: l.warehouseName ?? "—",
+    warehouseName: l.warehouseName ?? "none",
   }));
 
   return { products: productRows, locations: locationOptions };

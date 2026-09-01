@@ -9,10 +9,10 @@ import Papa from "papaparse";
  * `escapeFormulae: true` (DEC-022) neutralizes CSV/formula injection:
  * a string cell leading with `= + - @` TAB or CR is prefixed with `'`
  * so spreadsheets treat it as text, not an executable formula. RFC-4180
- * quoting alone does NOT mitigate this — it fixes parsing, not evaluation.
+ * quoting alone does NOT mitigate this, it fixes parsing, not evaluation.
  * Only string cells are escaped; numbers (e.g. a valuation `-5`) pass
  * through untouched. Any future server-side `Papa.unparse` caller must
- * pass `escapeFormulae: true` too — the library default is `false`.
+ * pass `escapeFormulae: true` too, the library default is `false`.
  *
  * Server-side routes can call Papa.unparse directly and return the
  * string from a route handler if we ever need server-rendered CSV

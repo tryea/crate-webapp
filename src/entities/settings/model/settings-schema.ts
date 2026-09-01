@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 /**
- * Stock-domain settings — currently just the backorder toggle. Each
+ * Stock-domain settings: currently just the backorder toggle. Each
  * setting "domain" is one row in the `settings` table, keyed by the
  * domain name ("stock", "valuation", "locations", …).
  */

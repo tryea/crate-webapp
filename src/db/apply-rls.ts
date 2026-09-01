@@ -3,7 +3,7 @@
  * Runs AFTER `drizzle-kit migrate` because RLS targets tables that must
  * already exist.
  *
- * Uses DATABASE_URL_DIRECT (superuser) — RLS is configured by the
+ * Uses DATABASE_URL_DIRECT (superuser), RLS is configured by the
  * owner, not by app_user.
  *
  * Idempotent-ish: ALTER TABLE ... ENABLE ROW LEVEL SECURITY is safe to

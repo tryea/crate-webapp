@@ -2,13 +2,13 @@ import type { LucideIcon } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 
 /**
- * EmptyState — per COUNCIL §6: "every empty state guides the next action."
+ * EmptyState, per COUNCIL §6: "every empty state guides the next action."
  * Pattern: icon → headline → 1-line explanation → primary action.
  *
  * Variant guidance:
- *  - `default` for empty lists ("No products yet — Add your first.")
- *  - `search` for empty filter results ("No matches — Try different filters.")
- *  - `error` for failed loads ("Couldn't load — Retry.")
+ *  - `default` for empty lists ("No products yet. Add your first.")
+ *  - `search` for empty filter results ("No matches. Try different filters.")
+ *  - `error` for failed loads ("Couldn't load. Retry.")
  */
 export function EmptyState({
   icon: Icon,

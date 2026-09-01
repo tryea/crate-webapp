@@ -83,7 +83,7 @@ export async function getPurchaseOrderServer(
 }
 
 /**
- * Generate the next PO number — "PO-YYYY-NNN" where NNN is monotonically
+ * Generate the next PO number: "PO-YYYY-NNN" where NNN is monotonically
  * incremented across the current year. Race-safe because the unique index
  * on po_number rejects duplicates; the INSERT in createPurchaseOrderAction
  * catches conflict + retries with next number.

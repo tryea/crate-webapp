@@ -1,5 +1,5 @@
 /**
- * Inventory valuation — perpetual weighted-average cost (WAC).
+ * Inventory valuation: perpetual weighted-average cost (WAC).
  *
  * Pure functions only. The same Bima-gate discipline as stock-math:
  * tests come BEFORE this module is used in a feature.
@@ -12,7 +12,7 @@
  *     stock_in:        qty += q;  totalValue += q × unitCost
  *     stock_out:       qty -= q;  totalValue -= q × current_WAC   (COGS at WAC)
  *     transfer_in:     qty += q;  totalValue += q × unitCost (uses current
- *                      WAC if unitCost absent — transfers are cost-neutral
+ *                      WAC if unitCost absent, transfers are cost-neutral
  *                      at product-level since the pair cancels out)
  *     transfer_out:    qty -= q;  totalValue -= q × current_WAC
  *     adjustment +:    qty += q;  totalValue += q × current_WAC
@@ -86,7 +86,7 @@ export function computeProductValuations(
       const magnitude = Math.abs(m.quantity);
       cur.qty -= magnitude;
       cur.totalValue -= magnitude * wac;
-      // Floor at zero — shouldn't happen under CHECK + checkDecrementAllowed,
+      // Floor at zero, shouldn't happen under CHECK + checkDecrementAllowed,
       // but defends against bad data getting in via direct DB writes.
       if (cur.qty <= 0) {
         cur.qty = 0;

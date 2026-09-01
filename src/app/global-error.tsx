@@ -2,7 +2,7 @@
 
 /*
  * Last-resort error boundary. ONLY renders when the root layout itself
- * throws — at which point it REPLACES the root layout, so neither
+ * throws, at which point it REPLACES the root layout, so neither
  * globals.css nor the theme class is applied. Vox red-team note: relying
  * on the design-token classes here would render an UNSTYLED page (another
  * credibility leak), so this surface is deliberately self-sufficient with

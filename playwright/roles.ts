@@ -1,11 +1,11 @@
 import path from "node:path";
 
 /**
- * DEC-010 — role catalog + storageState path helper, kept in a SIDE-EFFECT-FREE
+ * DEC-010: role catalog + storageState path helper, kept in a SIDE-EFFECT-FREE
  * module on purpose. `auth.setup.ts` declares the per-role sign-in *tests*
  * (calls `setup(...)` in a loop); journey specs only need the cookie-file path.
  * If specs imported `authFile` from `auth.setup.ts`, Playwright would re-run
- * those `setup()` registrations while collecting each journey file — silently
+ * those `setup()` registrations while collecting each journey file, silently
  * adding 3 extra sign-ins per spec and blowing past BetterAuth's 5/15min rate
  * limit (the exact failure DEC-010 exists to avoid). Importing THIS module
  * registers nothing.
@@ -20,6 +20,6 @@ export const ROLES = [
 
 export type Role = (typeof ROLES)[number]["role"];
 
-/** Canonical storageState path for a role — `playwright/.auth/<role>.json` (gitignored). */
+/** Canonical storageState path for a role, `playwright/.auth/<role>.json` (gitignored). */
 export const authFile = (role: Role): string =>
   path.join(__dirname, ".auth", `${role}.json`);

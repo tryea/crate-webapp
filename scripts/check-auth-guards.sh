@@ -2,7 +2,7 @@
 # DEC-003 CI guardrail.
 #
 # Fails if any route.ts / actions.ts under the FSD layout (src/app, src/entities,
-# src/features, src/widgets, src/screens — see the find on line ~34, the real
+# src/features, src/widgets, src/screens, see the find on line ~34, the real
 # mutation surface lives in src/entities/*/api/actions.ts) does NOT call
 # `requireRole(...)` AND is not in the public-endpoint allowlist.
 #
@@ -18,7 +18,7 @@ set -euo pipefail
 # Public endpoints that legitimately do NOT call requireRole().
 # Add a justification comment when extending.
 PUBLIC_ALLOWLIST=(
-  # BetterAuth's own catch-all — handles its own auth + rate-limiting.
+  # BetterAuth's own catch-all, handles its own auth + rate-limiting.
   "src/app/api/auth/[...all]/route.ts"
 )
 
@@ -26,7 +26,7 @@ repo_root="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$repo_root"
 
 # Collect every server-side handler file across the FSD layout
-# (route.ts + actions.ts in app/, entities/, features/ — anywhere
+# (route.ts + actions.ts in app/, entities/, features/, anywhere
 # Server Actions or route handlers can land per DEC-002).
 # Portable: macOS bash 3.2 lacks mapfile.
 handlers=()
@@ -61,7 +61,7 @@ for f in "${handlers[@]}"; do
   # user context. Direct `db.transaction(` / `db.insert|update|delete(` in a
   # handler means the write skips `withUserContext` → the 0003 policies see
   # an unbound query and the per-user enforcement silently does not apply.
-  # Reads (`db.select`) stay allowed unbound — list pages don't need binding.
+  # Reads (`db.select`) stay allowed unbound, list pages don't need binding.
   if grep -qE "db\.(transaction|insert|update|delete)\(" "$f"; then
     if ! grep -q "withUserContext(" "$f"; then
       echo "✗ UNBOUND WRITE: $f"
@@ -74,7 +74,7 @@ done
 
 if [[ $violations -gt 0 ]]; then
   echo ""
-  echo "Auth-guard check FAILED — $violations unguarded handler(s)."
+  echo "Auth-guard check FAILED: $violations unguarded handler(s)."
   echo "See DEC-003: every protected mutation must call requireRole()."
   exit 1
 fi

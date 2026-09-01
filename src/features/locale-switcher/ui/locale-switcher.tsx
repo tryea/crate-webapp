@@ -14,7 +14,7 @@ import { setLocale } from "../model/actions";
 /**
  * Language radio group for the UserMenu (DEC-007). Writes the NEXT_LOCALE
  * cookie via the server action, then router.refresh() so Server Components
- * re-render in the new locale — the documented cookie-mode switch (no URL
+ * re-render in the new locale, the documented cookie-mode switch (no URL
  * change, persists across sessions).
  */
 export function LocaleSwitcher() {

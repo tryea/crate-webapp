@@ -25,7 +25,7 @@ export default async function SettingsPage() {
         <CardHeader>
           <CardTitle className="text-base">Stock</CardTitle>
           <CardDescription>
-            Inventory-side behavior — guards against negative stock and the
+            Inventory-side behavior: guards against negative stock and the
             standing COUNCIL §0 rule.
           </CardDescription>
         </CardHeader>

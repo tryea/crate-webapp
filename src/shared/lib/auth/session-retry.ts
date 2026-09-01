@@ -1,5 +1,5 @@
 /**
- * DEC-024 — fail-closed resilience seam for the authenticated shell's session
+ * DEC-024: fail-closed resilience seam for the authenticated shell's session
  * fetch.
  *
  * Why this exists (reality, not theory): `(protected)/layout.tsx` awaits the
@@ -8,8 +8,8 @@
  * `APIError(INTERNAL_SERVER_ERROR)` on a DB/infra failure
  * (`node_modules/better-auth/.../api/routes/session.mjs:266-270`). A transient
  * tunnel `CONNECT_TIMEOUT` (witnessed during DEC-012) therefore throws out of
- * the layout, and — because a segment's `error.tsx` wraps its children but not
- * its own layout — bubbles to the ROOT `error.tsx`, replacing the whole
+ * the layout, and, because a segment's `error.tsx` wraps its children but not
+ * its own layout, bubbles to the ROOT `error.tsx`, replacing the whole
  * authenticated subtree (`<Toaster>` included). A one-request blip nukes the
  * shell mid-action.
  *
@@ -26,7 +26,7 @@
  *     unverified).
  *
  * Retry is safe against side-effects: BetterAuth's session refresh is an
- * idempotent UPDATE of expiresAt/updatedAt — re-running just re-freshes.
+ * idempotent UPDATE of expiresAt/updatedAt, re-running just re-freshes.
  */
 
 const DEFAULT_RETRIES = 2;
@@ -48,7 +48,7 @@ export interface SessionRetryOptions {
  * Run `fetchSession` with bounded retry and a fail-closed `null` default.
  *
  * Generic over the session shape so it is pure-unit testable with no DB / no
- * BetterAuth import — the resilience boundary is pinned here (Bima/DEC-011).
+ * BetterAuth import, the resilience boundary is pinned here (Bima/DEC-011).
  */
 export async function resolveSessionWithRetry<T>(
   fetchSession: () => Promise<T | null>,

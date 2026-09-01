@@ -8,7 +8,7 @@
  *                `fieldErrors` for inline RHF field mapping
  *
  * Pattern lives in shared because every entity returns one (entity↔entity
- * imports are disallowed by FSD boundaries — DEC-002).
+ * imports are disallowed by FSD boundaries, DEC-002).
  */
 export type ActionResult<T = unknown> =
   | { ok: true; data: T }

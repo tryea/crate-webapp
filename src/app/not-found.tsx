@@ -4,7 +4,7 @@ import { buttonVariants } from "@/shared/ui/button";
 
 /*
  * Global 404. Catches any unknown URL (and any `notFound()` call that
- * isn't caught by a closer not-found boundary). Server Component — no
+ * isn't caught by a closer not-found boundary). Server Component, no
  * client JS needed. Links back to `/`, which the root route redirects
  * to /dashboard or /sign-in depending on session, so this works for
  * both authenticated and anonymous visitors.

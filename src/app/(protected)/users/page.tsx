@@ -15,7 +15,7 @@ export default async function UsersPage() {
         <h1 className="text-2xl font-semibold tracking-tight">Users</h1>
         <p className="text-sm text-muted-foreground">
           Everyone with access to this workspace and the role that scopes what
-          they can do. Roles are seeded for the demo — invite &amp; role
+          they can do. Roles are seeded for the demo, invite &amp; role
           management is on the roadmap.
         </p>
       </header>

@@ -1,7 +1,7 @@
 /**
  * @jest-environment node
  *
- * Phase 8 coverage — stock-movement FORM schemas (movement-schemas.ts).
+ * Phase 8 coverage: stock-movement FORM schemas (movement-schemas.ts).
  * These are the validation SSOT the server actions re-parse before any write
  * (COUNCIL §0 rule 5 + §4.3). The domain math already has 34 specs; this
  * fills the gap on the per-flow input contracts: reason partitioning,
@@ -70,7 +70,7 @@ describe("POSITIVE_INT quantity (shared across in/out)", () => {
 describe("stockOutFormSchema", () => {
   const base = { productId: U1, locationId: U2, quantity: 3, reason: "sale" as const };
 
-  test("minimal valid issue parses (magnitude positive — server flips sign)", () => {
+  test("minimal valid issue parses (magnitude positive, server flips sign)", () => {
     expect(stockOutFormSchema.safeParse(base).success).toBe(true);
   });
 

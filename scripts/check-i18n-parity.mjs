@@ -68,7 +68,7 @@ for (const file of localeFiles) {
 
 if (violations > 0) {
   console.error("");
-  console.error(`i18n parity check FAILED — ${violations} catalog(s) diverge.`);
+  console.error(`i18n parity check FAILED: ${violations} catalog(s) diverge.`);
   console.error("See DEC-007: every locale must define the same key set.");
   process.exit(1);
 }

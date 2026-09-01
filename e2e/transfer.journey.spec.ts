@@ -2,7 +2,7 @@ import { test, expect, type Page } from "@playwright/test";
 import { authFile } from "../playwright/roles";
 
 /**
- * Phase-8 transfer journey — the two-sided, single-transaction flow, end-to-end
+ * Phase-8 transfer journey: the two-sided, single-transaction flow, end-to-end
  * against the live seeded `crate_dev` DB (DEC-012) as a `manager`. Reuses the
  * manager storageState (ZERO rate-limit budget), same harness contract as
  * catalog/stock journeys.
@@ -30,21 +30,21 @@ test.describe("movements · transfer journey", () => {
 
   const PRODUCT = /BEV-001/; // "Mineral Water 600ml"
   const SOURCE = /A1/; // first match = Jakarta Central A1 (deterministic order)
-  const DEST = /A2/; // first match = Jakarta Central A2 — distinct from source
+  const DEST = /A2/; // first match = Jakarta Central A2, distinct from source
 
   const rowByRef = (page: Page, ref: string) =>
     page.getByRole("row").filter({ hasText: ref });
 
   /**
    * base-ui Select: combobox trigger → role=option (v1.5.0, R-ADAPTER). Target
-   * the trigger by its `combobox` role with an EXACT accessible name — NOT
+   * the trigger by its `combobox` role with an EXACT accessible name, NOT
    * `getByLabel`. Two traps `getByRole` sidesteps at once:
    *   1. `getByLabel` substring-matches across roles, so the short "To"/"From"
    *      labels collide with the Next.js / TanStack devtools BUTTONS
    *      ("…Dev Tools" / "…devtools" both contain "to").
    *   2. `getByLabel` folds the required-field "*" into the label ("Product *"),
    *      so `{ exact: true }` there never matches. The combobox's accessible
-   *      name is the bare field label (asterisk excluded) — exact-matchable.
+   *      name is the bare field label (asterisk excluded), exact-matchable.
    */
   async function pick(page: Page, fieldLabel: string, optionName: RegExp) {
     await page.getByRole("combobox", { name: fieldLabel, exact: true }).click();

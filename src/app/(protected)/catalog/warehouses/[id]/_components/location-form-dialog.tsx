@@ -101,7 +101,7 @@ export function LocationFormDialog({
             name="code"
             label="Code"
             required
-            description="Short identifier — uppercase letters/numbers + dashes."
+            description="Short identifier: uppercase letters/numbers + dashes."
             render={({ id, value, onChange, ref, onBlur, "aria-invalid": invalid, "aria-describedby": describedBy }) => (
               <Input
                 id={id}

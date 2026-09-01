@@ -85,7 +85,7 @@ export default function SignUpPage() {
 
         <div className="flex flex-col gap-1.5 text-sm">
           {/* Visible <label> bound by id so the input's accessible name stays
-              exactly "Password" for getByLabel("Password", { exact: true }) —
+              exactly "Password" for getByLabel("Password", { exact: true }),
               the toggle's "Show password" aria-label must not collide. */}
           <label htmlFor="password" className="font-medium">
             {t("password")}

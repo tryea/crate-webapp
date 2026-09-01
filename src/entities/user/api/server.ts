@@ -15,7 +15,7 @@ export interface UserRow {
 }
 
 /**
- * List all accounts for the admin Users screen. Read-only — user
+ * List all accounts for the admin Users screen. Read-only, user
  * provisioning (invite / role change / deactivate) is a future DEC, see
  * PROGRESS.md Parking Lot. Ordered admins-first, then by name.
  */

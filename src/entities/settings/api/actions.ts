@@ -19,7 +19,7 @@ import {
  * affect every operator's experience). Wrapped in a transaction so the
  * audit row commits with the settings change.
  *
- * UPSERT via ON CONFLICT — the row may not exist yet on first save.
+ * UPSERT via ON CONFLICT: the row may not exist yet on first save.
  */
 export async function updateStockSettingsAction(
   input: StockSettingsFormValues,
@@ -72,5 +72,5 @@ export async function updateStockSettingsAction(
     return unexpectedActionError(err, "updateStockSettings");
   }
 }
-// suppress unused-import warning — sql kept for potential future ad-hoc updates
+// suppress unused-import warning, sql kept for potential future ad-hoc updates
 void sql;

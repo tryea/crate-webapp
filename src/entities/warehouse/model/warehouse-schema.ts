@@ -5,7 +5,7 @@ import { locations, warehouses } from "@/db/schema";
 const CODE_REGEX = /^[A-Z0-9][A-Z0-9-]*$/;
 
 /**
- * Warehouses — code is uppercase, dash-allowed, unique. Address optional.
+ * Warehouses: code is uppercase, dash-allowed, unique. Address optional.
  */
 export const warehouseFormSchema = createInsertSchema(warehouses, {
   name: (s) => s.min(1, "Name is required").max(160),
@@ -27,7 +27,7 @@ export type WarehouseFormValues = z.infer<typeof warehouseFormSchema>;
 export const warehouseIdSchema = z.uuid();
 
 /**
- * Locations — code is uppercase, scoped per-warehouse (unique by
+ * Locations: code is uppercase, scoped per-warehouse (unique by
  * warehouseId + code). Name optional (e.g. "Aisle A · Bin 1").
  */
 export const locationFormSchema = createInsertSchema(locations, {

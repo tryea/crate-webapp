@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { authFile } from "../playwright/roles";
 
 /**
- * Phase-8 CSV round-trip journey — the ONLY flow that crosses the
+ * Phase-8 CSV round-trip journey: the ONLY flow that crosses the
  * client/server serialization boundary twice, end-to-end against the live
  * seeded `crate_dev` DB (DEC-012) as a `manager`. Reuses the manager
  * storageState (ZERO rate-limit budget), same harness contract as the
@@ -14,13 +14,13 @@ import { authFile } from "../playwright/roles";
  * (`downloadCsv`: Papa.unparse → Blob → `<a download>`, no server hop); import
  * re-parses that shape (`Papa.parse`) and drives it through the server-side
  * `importProductsAction` upsert (`onConflictDoUpdate` on SKU, manager-gated).
- * A header rename on one side only would silently break the round-trip — this
+ * A header rename on one side only would silently break the round-trip, this
  * is the assertion that catches it.
  *
  * One real asymmetry forces the upsert proof's shape: the insert-vs-update
  * verdict is INFERRED server-side (`|createdAt - updatedAt| < 1000ms`), not a
  * flag returned by Postgres. So the only way to prove the conflict target (SKU)
- * actually fired — rather than silently inserting a duplicate — is to re-import
+ * actually fired, rather than silently inserting a duplicate, is to re-import
  * the SAME SKU with an edited name and assert the result reads `0 inserted ·
  * 1 updated`, then confirm the catalog row carries the NEW name.
  *
@@ -28,7 +28,7 @@ import { authFile } from "../playwright/roles";
  * (`E2E-CSV-<stamp>`) keeps both the upsert idempotent and the catalog filter
  * exact across reseeds. Server-observable assertions only (Bima DoD): the
  * download's real bytes, the import result card refetched from the action, and
- * the catalog row after a fresh navigation — never the transient toast. Runs
+ * the catalog row after a fresh navigation, never the transient toast. Runs
  * only in `journeys` (SKIP_DB_E2E=0); per DEC-012 use `--workers=1` to dodge
  * cold-concurrency.
  */

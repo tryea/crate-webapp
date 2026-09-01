@@ -81,7 +81,7 @@ export function SuppliersTable({
               {row.original.contactEmail}
             </a>
           ) : (
-            <span className="text-muted-foreground">—</span>
+            <span className="text-muted-foreground">none</span>
           ),
       },
       {
@@ -92,7 +92,7 @@ export function SuppliersTable({
           row.original.contactPhone ? (
             <span className="font-mono text-xs">{row.original.contactPhone}</span>
           ) : (
-            <span className="text-muted-foreground">—</span>
+            <span className="text-muted-foreground">none</span>
           ),
       },
     ];

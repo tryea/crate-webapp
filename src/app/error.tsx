@@ -7,14 +7,14 @@ import { Button, buttonVariants } from "@/shared/ui/button";
 
 /*
  * Route-segment error boundary. Catches uncaught exceptions thrown while
- * rendering any page (NOT errors in the root layout itself — those are
+ * rendering any page (NOT errors in the root layout itself, those are
  * caught by global-error.tsx). Renders inside the root layout, so the
  * theme + design tokens are available here.
  *
  * Next 16 (≥16.2.0): the recovery prop is `unstable_retry` (re-fetches +
  * re-renders the segment), which replaces the older `reset` (re-render
  * only). For a Server Component that failed on a transient DB hiccup,
- * re-fetching is the correct recovery — so we wire `unstable_retry`.
+ * re-fetching is the correct recovery, so we wire `unstable_retry`.
  */
 export default function ErrorPage({
   error,

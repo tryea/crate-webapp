@@ -2,7 +2,7 @@ import { test, expect, type Page } from "@playwright/test";
 import { authFile } from "../playwright/roles";
 
 /**
- * Phase-8 purchase-order lifecycle journey — the full state machine end-to-end
+ * Phase-8 purchase-order lifecycle journey: the full state machine end-to-end
  * against the live seeded `crate_dev` DB (DEC-012) as a `manager`. Reuses the
  * manager storageState (ZERO rate-limit budget), same harness contract as the
  * catalog/stock/transfer/adjustment journeys.
@@ -12,19 +12,19 @@ import { authFile } from "../playwright/roles";
  * receive that writes a `stock_in` movement per line carrying the PO number as
  * its reference. This drives create → add-line → mark-sent → partial-receive,
  * then proves the OVER-RECEIVE guard (`receivePoAction`: projected qty >
- * quantityOrdered ⇒ rejected) holds against real DB state — not asserted.
+ * quantityOrdered ⇒ rejected) holds against real DB state, not asserted.
  *
  * Two real asymmetries force a different shape than the sibling journeys:
  *   1. The PO number is GENERATED server-side ("PO-2026-NNN"), so we can't
  *      pre-seed a unique reference. Instead we capture the real number from the
- *      detail `<h1>` after creation and use IT as the ledger filter — the
+ *      detail `<h1>` after creation and use IT as the ledger filter, the
  *      receive writes `stock_in` with `reference = po.poNumber`. Self-contained
  *      against a fresh reseed: every run drafts a brand-new PO.
  *   2. The over-receive error surfaces ONLY as a transient toast (the receive
  *      form has no field-error binding). Bima's DoD forbids asserting on the
  *      toast, so the block is proven SERVER-OBSERVABLY: after the rejected
  *      attempt the ledger still holds EXACTLY ONE `Stock in` row for this PO and
- *      the status is STILL "Partial" on reload — the second receipt never
+ *      the status is STILL "Partial" on reload, the second receipt never
  *      committed.
  *
  * Server-observable assertions only (Bima DoD): status badge in the heading,
@@ -41,10 +41,10 @@ test.describe("orders · purchase-order lifecycle journey", () => {
 
   /**
    * base-ui Select: combobox trigger → role=option (v1.5.0, R-ADAPTER). Target
-   * the trigger by its `combobox` role with an EXACT accessible name — NOT
+   * the trigger by its `combobox` role with an EXACT accessible name, NOT
    * `getByLabel`, which substring-matches across roles AND folds the required
    * "*" into the label so `{ exact }` never matches. The combobox's accessible
-   * name is the bare field label (asterisk excluded) — exact-matchable.
+   * name is the bare field label (asterisk excluded), exact-matchable.
    */
   async function pick(page: Page, fieldLabel: string, optionName: RegExp) {
     await page.getByRole("combobox", { name: fieldLabel, exact: true }).click();
@@ -84,13 +84,13 @@ test.describe("orders · purchase-order lifecycle journey", () => {
     await expect(page).toHaveURL(/\/orders\/[0-9a-f-]+$/);
     const poUrl = page.url();
     // The page <h1> ("PO-NNNN-NNN  <status>") collides with the app-shell brand
-    // <h1> ("Crate") under a bare level=1 query — pin the PO heading by its
+    // <h1> ("Crate") under a bare level=1 query, pin the PO heading by its
     // number pattern. The regex matches regardless of the status suffix, so the
     // same locator stays valid as the badge flips Draft → Sent → Partial.
     const heading = page.getByRole("heading", { name: /PO-\d{4}-\d+/ });
     await expect(heading).toContainText("Draft");
 
-    // The PO number is generated server-side — capture it; it becomes the
+    // The PO number is generated server-side, capture it; it becomes the
     // ledger reference carried by the receive movement.
     const poNumber = (await heading.textContent())?.match(/PO-\d{4}-\d+/)?.[0] ?? "";
     expect(poNumber).toMatch(/^PO-\d{4}-\d+$/);
@@ -106,7 +106,7 @@ test.describe("orders · purchase-order lifecycle journey", () => {
     // Unit cost auto-fills from catalog price on product pick; pin it explicitly
     // so the money-regex can't trip on an unexpected seed cost shape.
     await page.getByLabel("Unit cost").fill("1500");
-    // Submit "Add line" collides with the header trigger of the same name —
+    // Submit "Add line" collides with the header trigger of the same name,
     // scope to the dialog.
     await page
       .getByRole("dialog")
@@ -118,7 +118,7 @@ test.describe("orders · purchase-order lifecycle journey", () => {
 
     // --- PHASE 3 · MARK SENT --------------------------------------------
     // "Mark sent" appears only once the draft HAS a line (canSend = draft &&
-    // hasLines) — its presence is itself proof the line persisted.
+    // hasLines), its presence is itself proof the line persisted.
     await page.getByRole("button", { name: "Mark sent" }).click();
     await expect(heading).toContainText("Sent");
 
@@ -139,13 +139,13 @@ test.describe("orders · purchase-order lifecycle journey", () => {
     // Back on the PO: remaining is now 6. Typing 7 passes the client (the
     // `max` attr is a hint, not enforcement) → projected 4 + 7 = 11 > 10
     // ordered → the server gate rejects. Bima DoD: the error is a transient
-    // toast, so we DON'T assert it — we prove the block by server state.
+    // toast, so we DON'T assert it, we prove the block by server state.
     await page.goto(poUrl);
     await expect(heading).toContainText("Partial");
     await page.getByLabel(/Receive now for/).fill("7");
     await page.getByRole("button", { name: "Record receipt" }).click();
 
-    // Proof #1: exactly ONE receipt exists for this PO — the +7 never committed.
+    // Proof #1: exactly ONE receipt exists for this PO, the +7 never committed.
     await openLedgerFilteredTo(page, poNumber);
     await expect(
       rowByRef(page, poNumber).filter({ hasText: "Stock in" }),

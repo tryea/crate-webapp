@@ -58,7 +58,7 @@ export function ProductFormDialog({
     // RHF 7.76 + @hookform/resolvers 5 + Zod 4 has a Resolver generic
     // asymmetry (TIn vs TOut) that doesn't surface for our simpler forms.
     // Cast here is a deliberate, isolated workaround for the Products form
-    // with its larger schema. See Category/Supplier dialogs — they have no
+    // with its larger schema. See Category/Supplier dialogs, they have no
     // transforms in scope so the cast isn't needed there.
     resolver: zodResolver(productFormSchema) as unknown as Resolver<ProductFormValues>,
     defaultValues: {

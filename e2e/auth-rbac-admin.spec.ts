@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 /**
- * DEC-003 spec 3/3 — a signed-in `admin` user can reach every protected
+ * DEC-003 spec 3/3: a signed-in `admin` user can reach every protected
  * surface, including those gated to admin-only.
  *
  * Requires a live DB + seeded users.
@@ -28,6 +28,6 @@ test.describe("auth · RBAC · admin", () => {
     await expect(page.getByText(/signed in as.*admin/i)).toBeVisible();
   });
 
-  // Phase 2.3+ will add /users etc. — for now we just confirm admin lands
+  // Phase 2.3+ will add /users etc., for now we just confirm admin lands
   // on dashboard without bouncing.
 });

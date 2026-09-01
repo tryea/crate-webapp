@@ -79,7 +79,7 @@ export function PoTable({
         size: 220,
         cell: ({ row }) =>
           row.original.supplierName ?? (
-            <span className="text-muted-foreground">—</span>
+            <span className="text-muted-foreground">none</span>
           ),
       },
       {
@@ -127,7 +127,7 @@ export function PoTable({
               {format.dateTime(new Date(row.original.expectedDate), "date")}
             </span>
           ) : (
-            <span className="text-muted-foreground">—</span>
+            <span className="text-muted-foreground">none</span>
           ),
       },
       {

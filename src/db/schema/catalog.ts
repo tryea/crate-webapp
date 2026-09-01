@@ -8,7 +8,7 @@ import {
 import { id, timestamps } from "./_shared";
 
 /**
- * Hierarchical categories — self-referencing parent FK allows subcategories.
+ * Hierarchical categories: self-referencing parent FK allows subcategories.
  */
 export const categories = pgTable(
   "categories",

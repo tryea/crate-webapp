@@ -22,7 +22,7 @@ export default async function CatalogPage() {
         <h1 className="text-2xl font-semibold tracking-tight">Products</h1>
         <p className="text-sm text-muted-foreground">
           Every SKU you stock. Archive products you no longer carry instead
-          of deleting — preserves stock-movement history.
+          of deleting, which preserves stock-movement history.
         </p>
       </header>
 

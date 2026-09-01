@@ -8,7 +8,7 @@ import {
 } from "@/shared/i18n/config";
 
 /**
- * Per-request i18n config (DEC-007). Cookie-based, NO URL-locale prefix — so
+ * Per-request i18n config (DEC-007). Cookie-based, NO URL-locale prefix, so
  * `src/proxy.ts` stays single-purpose (auth + tenancy) and we never add
  * `next-intl/middleware`. The locale comes from the `NEXT_LOCALE` cookie
  * written by the UserMenu switcher; absent/invalid falls back to `en`.

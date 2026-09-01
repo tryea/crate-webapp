@@ -137,9 +137,9 @@ export function ProductsTable({
         size: 140,
         cell: ({ row }) =>
           row.original.categoryId ? (
-            <span>{categoriesById.get(row.original.categoryId) ?? "—"}</span>
+            <span>{categoriesById.get(row.original.categoryId) ?? "none"}</span>
           ) : (
-            <span className="text-muted-foreground">—</span>
+            <span className="text-muted-foreground">none</span>
           ),
       },
       {
@@ -148,9 +148,9 @@ export function ProductsTable({
         size: 160,
         cell: ({ row }) =>
           row.original.supplierId ? (
-            <span>{suppliersById.get(row.original.supplierId) ?? "—"}</span>
+            <span>{suppliersById.get(row.original.supplierId) ?? "none"}</span>
           ) : (
-            <span className="text-muted-foreground">—</span>
+            <span className="text-muted-foreground">none</span>
           ),
       },
       {

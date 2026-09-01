@@ -1,7 +1,7 @@
 /**
  * @jest-environment node
  *
- * Phase 8 coverage — dateStampedFilename. The UTC date suffix keeps
+ * Phase 8 coverage: dateStampedFilename. The UTC date suffix keeps
  * day-over-day report exports from overwriting each other. downloadCsv
  * itself is thin DOM/IO glue over Papa.unparse (RFC-4180 escaping is the
  * library's job) and is exercised in the browser, not unit-tested here.

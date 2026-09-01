@@ -32,7 +32,7 @@ export const movementTypeEnum = pgEnum("movement_type", [
 
 /**
  * MovementReason refines `type` with the business event behind it. Audit /
- * analytics-friendly. NOT exhaustive — extendable via migration.
+ * analytics-friendly. NOT exhaustive, extendable via migration.
  */
 export const movementReasonEnum = pgEnum("movement_reason", [
   "purchase",
@@ -47,7 +47,7 @@ export const movementReasonEnum = pgEnum("movement_reason", [
 ]);
 
 /**
- * stock_movements — append-only ledger. ALL stock changes go through this table.
+ * stock_movements: append-only ledger. ALL stock changes go through this table.
  * Current stock level for (product, location) = SUM(quantity) across all rows.
  *
  * Integrity invariants:

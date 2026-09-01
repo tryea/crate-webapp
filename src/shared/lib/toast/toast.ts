@@ -3,13 +3,13 @@
 import { toast as sonnerToast } from "sonner";
 
 /**
- * Toast helpers — thin wrapper around sonner. The undo pattern is the
+ * Toast helpers: thin wrapper around sonner. The undo pattern is the
  * value of this module: COUNCIL §6 mandates "undo on destructive actions
  * (toast with undo > scary modals where possible)."
  *
  * Usage:
  *   toast.success("Product saved");
- *   toast.error("Couldn't save", { description: "Network error — please retry." });
+ *   toast.error("Couldn't save", { description: "Network error, please retry." });
  *   toast.undoable("3 movements deleted", () => restoreMovements(ids));
  */
 export const toast = {
@@ -25,7 +25,7 @@ export const toast = {
   dismiss: (id?: string | number) => sonnerToast.dismiss(id),
 
   /**
-   * Undoable action toast — the COUNCIL §6 pattern. Action runs AFTER a
+   * Undoable action toast: the COUNCIL §6 pattern. Action runs AFTER a
    * 6s grace window unless the user dismisses or clicks Undo first.
    *
    * Important: the caller's `commit` function fires SOON (act with the

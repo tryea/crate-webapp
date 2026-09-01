@@ -7,7 +7,7 @@
 ALTER TABLE audit_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit_log FORCE ROW LEVEL SECURITY;
 
--- Identity tables (BetterAuth) — restrict in Phase 8 once per-request
+-- Identity tables (BetterAuth), restrict in Phase 8 once per-request
 -- user binding ships; for now RLS is enabled w/ permissive policies
 -- so app_user can still operate.
 ALTER TABLE "user" ENABLE ROW LEVEL SECURITY;

@@ -1,7 +1,7 @@
 /**
  * @jest-environment node
  *
- * Phase 8 coverage — purchase-order form schemas. Receiving has real
+ * Phase 8 coverage: purchase-order form schemas. Receiving has real
  * integrity stakes (double-receive guard lives in the action, but the
  * input contract is the first gate): receiveNow must be a non-negative
  * integer and a receipt must touch at least one line.

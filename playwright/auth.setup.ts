@@ -2,10 +2,10 @@ import { test as setup, expect } from "@playwright/test";
 import { ROLES, authFile } from "./roles";
 
 /**
- * DEC-010 — E2E auth via storageState. Sign in ONCE per role and persist the
+ * DEC-010: E2E auth via storageState. Sign in ONCE per role and persist the
  * session cookie so journey specs reuse it (no per-test login). Three sign-ins
  * per run stays under BetterAuth's 5/15min rate limit even when the prod-build
- * harness (E2E_PROD=1) re-arms it — so NO production rate-limit code is touched.
+ * harness (E2E_PROD=1) re-arms it, so NO production rate-limit code is touched.
  *
  * Runs only in the `setup` project (added when SKIP_DB_E2E=0, needs the seeded
  * DB). Outputs live in playwright/.auth/ which is gitignored and regenerated

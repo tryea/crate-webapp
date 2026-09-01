@@ -1,9 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
 
-// DEC-010 — harness modes.
+// DEC-010: harness modes.
 //  - useDb: SKIP_DB_E2E=0 → seeded local DB present. Adds the `setup` project
 //    (per-role storageState sign-in) + the `journeys` project. Default runs keep
-//    exactly the existing 5 specs against `next dev` — no regression.
+//    exactly the existing 5 specs against `next dev`, no regression.
 //  - prodBuild: E2E_PROD=1 → serve a precompiled production build for
 //    deterministic timing (no Turbopack cold compile), so we can run tight
 //    timeouts. Default stays `next dev` (wide timeouts) for fast feedback.

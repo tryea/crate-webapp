@@ -1,14 +1,14 @@
 /**
- * DEC-024 — pins the fail-closed resilience seam the protected shell layout
+ * DEC-024: pins the fail-closed resilience seam the protected shell layout
  * delegates to.
  *
  * BetterAuth's getSession + the DB need a live stack to throw, and our Jest
- * tier is pure-unit / no-DB (Bima/DEC-011). So we do NOT fake a DB — we pin
+ * tier is pure-unit / no-DB (Bima/DEC-011). So we do NOT fake a DB, we pin
  * the HELPER, which is the actual resilience boundary: if it holds (null
  * passthrough, retry-then-succeed, exhaust→null+log, no leak), the layout
  * holds by construction.
  *
- * Backoff is set to [0,0] so the suite stays fast without faking timers — the
+ * Backoff is set to [0,0] so the suite stays fast without faking timers, the
  * security-relevant behavior is the control flow, not the wall-clock delay.
  */
 import { resolveSessionWithRetry } from "../session-retry";
@@ -34,7 +34,7 @@ describe("resolveSessionWithRetry (DEC-024 session-fetch resilience seam)", () =
     expect(errSpy).not.toHaveBeenCalled();
   });
 
-  test("passes a legit null (no session) straight through — does NOT retry it", async () => {
+  test("passes a legit null (no session) straight through, does NOT retry it", async () => {
     // null is the unauth signal, not an error; retrying it would be wrong.
     const fetchSession = jest.fn().mockResolvedValue(null);
     const res = await resolveSessionWithRetry(fetchSession, FAST);

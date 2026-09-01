@@ -1,5 +1,5 @@
 /**
- * Seed script — populates a fresh database with sane demo data so the app
+ * Seed script: populates a fresh database with sane demo data so the app
  * boots into a "lived-in" state (not an empty grid).
  *
  * Idempotency: this script DELETES all data first (in dependency order),
@@ -73,7 +73,7 @@ function assertNeverNegative(rows: (typeof s.stockMovements.$inferInsert)[]) {
     const next = (balances.get(key) ?? 0) + r.quantity;
     if (next < 0) {
       throw new Error(
-        `seed ledger would drive ${key} negative (${next}) at ${(r.createdAt as Date).toISOString()} — ` +
+        `seed ledger would drive ${key} negative (${next}) at ${(r.createdAt as Date).toISOString()}: ` +
           `ref ${r.reference ?? "none"}. Fix the quantities, not this check.`,
       );
     }
@@ -177,7 +177,7 @@ async function main() {
   console.log("⟶ products…");
   // Eight SKUs across all four categories and all three suppliers. Reorder
   // points are derived from the sales velocity the ledger below actually
-  // produces (roughly a week of cover), not picked at random — three SKUs are
+  // produces (roughly a week of cover), not picked at random, three SKUs are
   // meant to sit at or under their point so the low-stock badges and the
   // dashboard reorder KPI have something real to report.
   const prods = await db
@@ -278,7 +278,7 @@ async function main() {
   /**
    * Timestamps are anchored to the moment the seed runs, so a dev database
    * never ages into looking abandoned. `at(3, "14:05")` means three days ago
-   * at 14:05 local time. Every row gets its own explicit `createdAt` — the
+   * at 14:05 local time. Every row gets its own explicit `createdAt`, the
    * ledger is ordered by `desc(created_at)`, and letting 50+ rows fall back to
    * `defaultNow()` would stamp them all with the same instant, which is both
    * an arbitrary display order and a dead giveaway that nothing really moved.
@@ -294,7 +294,7 @@ async function main() {
 
   console.log("⟶ purchase orders (all five states)…");
   // Every receipt in the ledger below quotes one of these PO numbers, and the
-  // quantity received on the line matches what the ledger actually booked —
+  // quantity received on the line matches what the ledger actually booked,
   // so `partial` really is partial and `received` really is complete. A
   // reviewer who cross-checks the two tables finds the story holds.
   const poSpecs = [
@@ -470,7 +470,7 @@ async function main() {
   sell(at(10, "16:40"), "BEV-001", "SBY-E", "A1", 60, "SO-2026-0155");
 
   sell(at(9, "08:30"), "STA-001", "JKT-C", "B1", 35, "SO-2026-0158");
-  recount(at(9, "11:45"), "STA-002", "JKT-C", "B1", -3, "Cycle count B1 — three boxes short");
+  recount(at(9, "11:45"), "STA-002", "JKT-C", "B1", -3, "Cycle count B1, three boxes short");
   sell(at(9, "15:20"), "CLN-002", "JKT-C", "A1", 8, "SO-2026-0161");
 
   receive(at(8, "09:15"), "BEV-002", "JKT-C", "A1", 96, "PO-2026-006", "8200.00");
@@ -490,7 +490,7 @@ async function main() {
   sell(at(5, "15:00"), "BEV-001", "SBY-E", "A1", 35, "SO-2026-0182");
 
   receive(at(4, "09:30"), "STA-002", "JKT-C", "B1", 36, "PO-2026-007", "21500.00");
-  recount(at(4, "12:15"), "CLN-001", "SBY-E", "A1", 2, "Cycle count A1 — two bottles found behind pallet");
+  recount(at(4, "12:15"), "CLN-001", "SBY-E", "A1", 2, "Cycle count A1, two bottles found behind pallet");
   sell(at(4, "16:20"), "SNK-001", "JKT-C", "A2", 64, "SO-2026-0187");
 
   transfer(at(3, "08:50"), "BEV-002", ["JKT-C", "A1"], ["SBY-E", "A1"], 60, "TRF-2026-0056");
@@ -511,7 +511,7 @@ async function main() {
   transfer(at(0, "11:50"), "STA-002", ["JKT-C", "B1"], ["SBY-E", "B1"], 12, "TRF-2026-0061");
   sell(at(0, "13:30"), "STA-002", "JKT-C", "B1", 52, "SO-2026-0215");
   sell(at(0, "15:10"), "CLN-001", "SBY-E", "A1", 9, "SO-2026-0217");
-  recount(at(0, "16:35"), "BEV-002", "JKT-C", "A1", -2, "Cycle count A1 — two bottles unaccounted");
+  recount(at(0, "16:35"), "BEV-002", "JKT-C", "A1", -2, "Cycle count A1, two bottles unaccounted");
 
   // Fail loudly rather than seed a state the API itself would have rejected.
   assertNeverNegative(ledger);

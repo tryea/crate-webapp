@@ -127,7 +127,7 @@ export function SupplierFormDialog({
             control={form.control}
             name="contactEmail"
             label="Email"
-            description="Optional — used for PO notifications."
+            description="Optional: used for PO notifications."
             render={({ id, value, onChange, ref, onBlur, "aria-invalid": invalid, "aria-describedby": describedBy }) => (
               <Input
                 id={id}

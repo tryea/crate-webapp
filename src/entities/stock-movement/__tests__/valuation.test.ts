@@ -13,7 +13,7 @@ import {
 
 const t = (iso: string) => new Date(iso);
 
-describe("computeProductValuations — basic shapes", () => {
+describe("computeProductValuations: basic shapes", () => {
   test("empty movements list = empty state", () => {
     const state = computeProductValuations([]);
     expect(state.size).toBe(0);
@@ -47,7 +47,7 @@ describe("computeProductValuations — basic shapes", () => {
   });
 });
 
-describe("computeProductValuations — stock_out depletes at WAC", () => {
+describe("computeProductValuations: stock_out depletes at WAC", () => {
   test("sell half at current WAC", () => {
     const state = computeProductValuations([
       { productId: "p1", type: "stock_in", quantity: 10, unitCost: 5, createdAt: t("2026-01-01") },
@@ -87,7 +87,7 @@ describe("computeProductValuations — stock_out depletes at WAC", () => {
   });
 });
 
-describe("computeProductValuations — transfers are cost-neutral", () => {
+describe("computeProductValuations: transfers are cost-neutral", () => {
   test("transfer_out + transfer_in pair within same product nets to zero state change", () => {
     const state = computeProductValuations([
       { productId: "p1", type: "stock_in", quantity: 100, unitCost: 10, createdAt: t("2026-01-01") },
@@ -101,7 +101,7 @@ describe("computeProductValuations — transfers are cost-neutral", () => {
   });
 });
 
-describe("computeProductValuations — adjustments use current WAC", () => {
+describe("computeProductValuations: adjustments use current WAC", () => {
   test("positive adjustment adds qty valued at current WAC", () => {
     const state = computeProductValuations([
       { productId: "p1", type: "stock_in", quantity: 10, unitCost: 5, createdAt: t("2026-01-01") },
@@ -125,7 +125,7 @@ describe("computeProductValuations — adjustments use current WAC", () => {
   });
 });
 
-describe("computeProductValuations — multi-product isolation", () => {
+describe("computeProductValuations: multi-product isolation", () => {
   test("two products tracked independently", () => {
     const state = computeProductValuations([
       { productId: "p1", type: "stock_in", quantity: 10, unitCost: 5, createdAt: t("2026-01-01") },
@@ -137,7 +137,7 @@ describe("computeProductValuations — multi-product isolation", () => {
   });
 });
 
-describe("computeProductValuations — chronological ordering", () => {
+describe("computeProductValuations: chronological ordering", () => {
   test("out-of-order input is sorted by createdAt", () => {
     const state = computeProductValuations([
       { productId: "p1", type: "stock_in", quantity: 100, unitCost: 12, createdAt: t("2026-01-02") },
@@ -204,7 +204,7 @@ describe("defends against bad data", () => {
   });
 });
 
-describe("computeProductValuations — createdAt type handling (asTime branches)", () => {
+describe("computeProductValuations: createdAt type handling (asTime branches)", () => {
   // The dashboard passes Date objects, but the ledger row's createdAt can
   // arrive as a numeric epoch (JSON) or an ISO string (raw SQL). asTime must
   // normalise all three so chronological sort stays correct regardless of source.

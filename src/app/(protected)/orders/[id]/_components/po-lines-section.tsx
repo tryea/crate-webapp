@@ -110,9 +110,9 @@ export function PoLinesSection({
                 <tr key={l.id} className="border-b border-border last:border-b-0">
                   <td className="px-3 py-2">
                     <div className="flex flex-col">
-                      <span>{l.productName ?? "—"}</span>
+                      <span>{l.productName ?? "none"}</span>
                       <span className="font-mono text-[10px] text-muted-foreground">
-                        {l.productSku ?? "—"}
+                        {l.productSku ?? "none"}
                       </span>
                     </div>
                   </td>
