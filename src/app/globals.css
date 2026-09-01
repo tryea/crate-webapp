@@ -11,7 +11,7 @@
      aliased to the same stack: any surviving `font-mono` utility then computes
      to a byte-identical font-family string, so the "one typeface" gate stays
      honest instead of quietly reporting two. */
-  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-archivo);
   --font-mono: var(--font-sans);
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -364,7 +364,11 @@ html:has([data-app-shell]) body {
   .app-shell p {
     margin: 0;
   }
-  .app-shell a {
+  /* Zero-specificity reset. Written as `.app-shell a` it scored (0,1,1) and
+     beat `.btn-act` at (0,1,0), so the primary action rendered near-black ink
+     on its near-black fill: the label was there, measurable, and invisible.
+     `:where()` contributes nothing, so anything with a class wins. */
+  :where(.app-shell) :where(a) {
     color: inherit;
     text-decoration: none;
   }
