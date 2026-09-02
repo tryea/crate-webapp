@@ -21,7 +21,9 @@
     "db:rls": "bun run src/db/apply-rls.ts",
     "check:auth-guards": "bash scripts/check-auth-guards.sh",
     "check:i18n-parity": "node scripts/check-i18n-parity.mjs",
-    "check:concurrency": "bun run scripts/concurrency-check.ts"
+    "check:concurrency": "bun run scripts/concurrency-check.ts",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
@@ -56,6 +58,9 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",
+    "@storybook/addon-a11y": "^10.4.1",
+    "@storybook/addon-themes": "^10.4.1",
+    "@storybook/react-vite": "^10.4.1",
     "@tailwindcss/postcss": "^4",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
@@ -73,6 +78,7 @@
     "jest-environment-jsdom": "^30.4.1",
     "prettier": "^3.8.3",
     "prettier-plugin-tailwindcss": "^0.8.0",
+    "storybook": "^10.4.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   },
