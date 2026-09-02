@@ -1,5 +1,5 @@
 /**
- * `safeCallbackPath` — CWE-601 open-redirect guard for the sign-in `callbackUrl`
+ * `safeCallbackPath`: CWE-601 open-redirect guard for the sign-in `callbackUrl`
  * (DEC-026). Returns `raw` only when it is a safe **same-site, root-relative**
  * path (e.g. `/orders?status=draft#tab`). Anything that could steer a browser
  * off-origin collapses to `fallback`.

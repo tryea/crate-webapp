@@ -12,7 +12,7 @@ const preview: Preview = {
     // a11y violations fail the test-runner (Bima DoD / Nadia WCAG 2.1 AA).
     // `region` is disabled: isolated component stories have no page landmarks
     // (`<main>`/`<nav>`), so the rule fires on #storybook-root as a harness
-    // false-positive. color-contrast stays ON — it caught the real light-theme
+    // false-positive. color-contrast stays ON, it caught the real light-theme
     // destructive-token AA failure (see DEC-029).
     a11y: {
       test: "error",

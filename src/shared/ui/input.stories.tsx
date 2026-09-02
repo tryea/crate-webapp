@@ -18,7 +18,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
-export const Filled: Story = { args: { defaultValue: "Acme Widget — 12mm" } };
+export const Filled: Story = { args: { defaultValue: "Acme Widget 12mm" } };
 export const Disabled: Story = { args: { disabled: true, defaultValue: "Read-only" } };
 export const Invalid: Story = {
   args: { "aria-invalid": true, defaultValue: "Invalid SKU" },

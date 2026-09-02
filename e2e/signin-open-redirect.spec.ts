@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 /**
- * DEC-026 — open-redirect (CWE-601) revert-guard.
+ * DEC-026: open-redirect (CWE-601) revert-guard.
  *
  * Asserts the sign-in `callbackUrl` can never steer the post-login navigation
  * off-origin: an attacker URL collapses to the safe fallback, while a legit

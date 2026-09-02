@@ -4,7 +4,7 @@ import { db } from "@/db/client";
 import { credentialRateLimitRules } from "./rate-limit";
 
 /**
- * BetterAuth server instance — single source of truth for sessions, sign-up
+ * BetterAuth server instance: single source of truth for sessions, sign-up
  * /sign-in, password hashing, and rate-limited credential checks.
  *
  * Per DEC-003 / DEC-028:
@@ -12,7 +12,7 @@ import { credentialRateLimitRules } from "./rate-limit";
  *   - Postgres-stored sessions (revocable)
  *   - 7-day sliding window (refreshed on use)
  *   - credential endpoint (`/sign-in/email`) capped at 10 attempts / 15 min per
- *     IP in prod via `customRules` (DEC-028) — this OVERRIDES better-auth's
+ *     IP in prod via `customRules` (DEC-028), this OVERRIDES better-auth's
  *     built-in 3/10s `/sign-in` special rule, which alone permits ~1080/hr/IP.
  *     The top-level `window/max` below is the global default for OTHER auth
  *     paths (get-session, sign-out); it does NOT govern sign-in.
@@ -46,7 +46,7 @@ export const auth = betterAuth({
   },
   rateLimit: {
     // Prod-only (mirrors better-auth's own `?? isProduction` default): forcing
-    // it on in dev/test trips the E2E suite — parallel sign-ins from 127.0.0.1
+    // it on in dev/test trips the E2E suite: parallel sign-ins from 127.0.0.1
     // would 429 and look like a broken sign-in. `customRules` (DEC-028) caps the
     // credential endpoint; `window/max` here is only the global default for
     // non-special auth paths (e.g. get-session, sign-out). NB: server-side

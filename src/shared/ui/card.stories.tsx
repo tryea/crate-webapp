@@ -52,7 +52,7 @@ export const Small: Story = {
         <CardDescription>3 items below threshold</CardDescription>
       </CardHeader>
       <CardContent>
-        <p className="text-muted-foreground">Riverbend clinic — compact density.</p>
+        <p className="text-muted-foreground">Riverbend clinic, compact density.</p>
       </CardContent>
     </Card>
   ),

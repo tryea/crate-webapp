@@ -36,7 +36,7 @@ export function SignInForm() {
     try {
       const res = await signIn.email({ email, password, callbackURL: callbackUrl });
       if (res.error) {
-        // Forgiving copy per Nadia's note — never leak which side was wrong.
+        // Forgiving copy per Nadia's note: never leak which side was wrong.
         setError(t("errorCredentials"));
         return;
       }
@@ -73,7 +73,7 @@ export function SignInForm() {
 
         <div className="flex flex-col gap-1.5 text-sm">
           {/* Keep the visible <label> bound to the input by id so the input's
-              accessible name stays exactly "Password" — the e2e specs use
+              accessible name stays exactly "Password", the e2e specs use
               getByLabel("Password", { exact: true }), which must NOT also
               match the toggle's "Show password" aria-label. */}
           <label htmlFor="password" className="font-medium">

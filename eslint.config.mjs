@@ -14,7 +14,7 @@ import boundaries from "eslint-plugin-boundaries";
  *
  * To prove the rule is live, intentionally write an upward import (e.g.
  * `src/entities/foo/index.ts` importing from `@/features/x`) and run
- * `bun run lint` — boundaries plugin should fail with element-types error.
+ * `bun run lint`: boundaries plugin should fail with element-types error.
  */
 const fsdElements = [
   { type: "app", pattern: "src/app/*" },

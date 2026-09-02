@@ -45,7 +45,7 @@ describe("DEC-028 credential rate-limit rule", () => {
   });
 
   it("stays above a usability floor so a small shared-NAT team is not locked out", () => {
-    // Nadia's floor: the key is (ip, path), not per-account — keep room for a
+    // Nadia's floor: the key is (ip, path), not per-account, so keep room for a
     // small office shift on one egress IP. Tunable, but never punitively low.
     expect(CREDENTIAL_RATE_LIMIT_MAX).toBeGreaterThanOrEqual(5);
   });
