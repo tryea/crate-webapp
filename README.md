@@ -9,7 +9,7 @@ A production-grade IMS, not a CRUD toy. Real transactional stock integrity:
 append-only movements, atomic two-sided transfers, no negative stock (unless
 backorder is explicitly toggled), SQL-level RLS, and a tamper-evident audit log.
 
-**Marketing site:** https://crate.ersaptaaristo.dev &nbsp;·&nbsp; **Live demo:** temporarily offline, screenshots below are from the running app against the seeded database
+**Marketing site:** https://crate.ersaptaaristo.dev &nbsp;·&nbsp; **Live demo:** https://app.crate.ersaptaaristo.dev &nbsp;·&nbsp; both up when probed on 3 September 2026 at 03:02 WIB: marketing site 200, app 307 to `/sign-in`, sign-in page 200 with the login form served. The app is login-gated, so that redirect is the demo working rather than an outage; seeded demo logins are further down this page.
 
 ---
 
