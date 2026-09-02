@@ -28,7 +28,11 @@ test.describe("i18n · locale switch", () => {
   test("user menu switches shell language to Indonesian and back", async ({
     page,
   }) => {
-    const sidebar = page.getByRole("complementary", { name: "Primary" });
+    // The rail is a `navigation` landmark, not `complementary`: the primary
+    // nav lives in `<nav aria-label="Primary">` inside an unnamed `<aside>`.
+    // Scoping to the landmark (not the whole page) is what keeps this spec
+    // about the SIDEBAR labels and not about stray text elsewhere.
+    const sidebar = page.getByRole("navigation", { name: "Primary" });
 
     // Default locale (no cookie) renders English.
     await expect(
