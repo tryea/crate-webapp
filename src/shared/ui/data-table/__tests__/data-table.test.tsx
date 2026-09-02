@@ -52,16 +52,19 @@ describe("DataTable", () => {
     expect(cells[2]).toHaveTextContent("C-003");
   });
 
-  test("shows empty state when no matches", () => {
+  test("a filter that matches nothing does NOT claim the table is empty", () => {
+    // Was: asserted the "no data yet" copy. That copy is false when rows exist
+    // and the filter simply excluded them, which is what CPP-FILTER-3 fixed.
     render(
       <DataTable
         data={DATA}
         columns={COLUMNS}
-        emptyState={<span>No matches.</span>}
+        emptyState={<span>No products yet.</span>}
       />,
     );
     const input = screen.getByLabelText(/filter table/i);
     fireEvent.change(input, { target: { value: "zzzzz" } });
-    expect(screen.getByText("No matches.")).toBeInTheDocument();
+    expect(screen.getByText(/No match for/)).toBeInTheDocument();
+    expect(screen.queryByText("No products yet.")).toBeNull();
   });
 });

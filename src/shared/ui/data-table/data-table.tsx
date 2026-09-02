@@ -38,6 +38,9 @@ import { cn } from "@/shared/lib/utils";
  *
  * Numeric alignment: pass `meta: { align: "right" }` in your ColumnDef.
  */
+import { SearchX } from "lucide-react";
+import { Button } from "@/shared/ui/button";
+import { EmptyState } from "@/shared/ui/empty-state";
 import {
   matchesSearchQuery,
   rowHaystack,
@@ -237,7 +240,25 @@ export function DataTable<T>({
                   colSpan={table.getAllColumns().length}
                   className="py-12 text-center text-sm text-muted-foreground"
                 >
-                  {emptyState ?? "No rows."}
+                  {globalFilter.trim().length > 0 ? (
+                    <EmptyState
+                      icon={SearchX}
+                      variant="search"
+                      title={`No match for \u201c${globalFilter.trim()}\u201d`}
+                      description="Every row is still here. The filter just hid them."
+                      action={
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setGlobalFilter("")}
+                        >
+                          Show all rows
+                        </Button>
+                      }
+                    />
+                  ) : (
+                    (emptyState ?? "No rows.")
+                  )}
                 </td>
               </tr>
             ) : virtualize ? (
