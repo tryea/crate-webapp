@@ -133,6 +133,35 @@ describe("DataTable global filter wiring", () => {
     expect(screen.getByText("No movements yet.")).toBeInTheDocument();
   });
 
+  test("filters even when NO column survives the row-zero type sniff", () => {
+    // The dangerous shape: the only accessor column holds a Date, and every
+    // other column is cell-only. TanStack would then rule that nothing is
+    // globally filterable and never call the filter at all, so the table would
+    // quietly show every row for every query. This is what
+    // getColumnCanGlobalFilter guards; without it this test shows both rows.
+    type DateRow = { id: string; createdAt: Date; label: string };
+    const rows: DateRow[] = [
+      { id: "a-1", createdAt: new Date("2026-08-12T09:35:00Z"), label: "Alpha" },
+      { id: "b-2", createdAt: new Date("2026-08-11T09:35:00Z"), label: "Beta" },
+    ];
+    const columns: ColumnDef<DateRow>[] = [
+      { accessorKey: "createdAt", header: "When", cell: () => <span>when</span> },
+      { id: "label", header: "Label", cell: ({ row }) => <span>{row.original.label}</span> },
+    ];
+
+    render(
+      <DataTable
+        data={rows}
+        columns={columns}
+        emptyState={<span>Nothing here.</span>}
+      />,
+    );
+    const input = screen.getAllByLabelText(/filter table/i)[0];
+    type(input, "Alpha");
+    expect(screen.getByText("Alpha")).toBeInTheDocument();
+    expect(screen.queryByText("Beta")).toBeNull();
+  });
+
   test("still rejects a query that matches nothing", () => {
     const input = renderTable();
     type(input, "zzzzz");
