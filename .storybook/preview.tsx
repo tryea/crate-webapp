@@ -27,7 +27,7 @@ const preview: Preview = {
     }),
     // Render each story on its true themed surface so light/dark are both faithful.
     (Story) => (
-      <div className="bg-background text-foreground rounded-lg p-8">
+      <div className="rounded-lg bg-background p-8 text-foreground">
         <Story />
       </div>
     ),

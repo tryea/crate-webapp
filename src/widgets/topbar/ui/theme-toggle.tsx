@@ -22,7 +22,9 @@ export function ThemeToggle() {
   function swap(event: React.MouseEvent<HTMLButtonElement>) {
     const root = document.documentElement;
     const next = root.classList.contains("dark") ? "light" : "dark";
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduce = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
 
     if (!document.startViewTransition || reduce) {
       setTheme(next);
@@ -61,7 +63,9 @@ export function ThemeToggle() {
       type="button"
       className="iconbtn"
       onClick={swap}
-      aria-label={resolvedDark ? "Switch to light theme" : "Switch to dark theme"}
+      aria-label={
+        resolvedDark ? "Switch to light theme" : "Switch to dark theme"
+      }
     >
       <Moon className="ic i-moon" strokeWidth={1.75} aria-hidden="true" />
       <Sun className="ic i-sun" strokeWidth={1.75} aria-hidden="true" />

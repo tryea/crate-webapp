@@ -17,15 +17,14 @@ import {
 
 // better-auth's built-in special rule for `/sign-in*` (getDefaultSpecialRules).
 const DEFAULT_SPECIAL_RULE = { window: 10, max: 3 } as const;
-const defaultRatePerSec = DEFAULT_SPECIAL_RULE.max / DEFAULT_SPECIAL_RULE.window;
+const defaultRatePerSec =
+  DEFAULT_SPECIAL_RULE.max / DEFAULT_SPECIAL_RULE.window;
 
 describe("DEC-028 credential rate-limit rule", () => {
   it("targets exactly better-auth's email sign-in route", () => {
     // createAuthEndpoint("/sign-in/email", …); customRules match exact path.
     expect(CREDENTIAL_SIGN_IN_PATH).toBe("/sign-in/email");
-    expect(Object.keys(credentialRateLimitRules)).toEqual([
-      "/sign-in/email",
-    ]);
+    expect(Object.keys(credentialRateLimitRules)).toEqual(["/sign-in/email"]);
   });
 
   it("wires the window/max into the customRules object", () => {

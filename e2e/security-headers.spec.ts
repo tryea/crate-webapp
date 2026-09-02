@@ -25,7 +25,9 @@ test.describe("security response headers (DEC-027)", () => {
 
     // Clickjacking (CWE-1021): both the legacy and the modern control.
     expect(headers["x-frame-options"]).toBe("DENY");
-    expect(headers["content-security-policy"]).toContain("frame-ancestors 'none'");
+    expect(headers["content-security-policy"]).toContain(
+      "frame-ancestors 'none'",
+    );
 
     // MIME-sniffing guard + referrer privacy + sensor lockdown.
     expect(headers["x-content-type-options"]).toBe("nosniff");

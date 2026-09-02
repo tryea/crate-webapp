@@ -54,7 +54,9 @@ export function ScopeBlock({ warehouses }: { warehouses: ScopeWarehouse[] }) {
   }
 
   function select(id: string | null) {
-    router.push(id ? `/dashboard?warehouse=${encodeURIComponent(id)}` : "/dashboard");
+    router.push(
+      id ? `/dashboard?warehouse=${encodeURIComponent(id)}` : "/dashboard",
+    );
   }
 
   return (
@@ -68,7 +70,7 @@ export function ScopeBlock({ warehouses }: { warehouses: ScopeWarehouse[] }) {
       <DropdownMenuContent align="start" className="w-56">
         <DropdownMenuItem onSelect={() => select(null)} className="gap-2">
           <Check
-            className={active ? "size-3.5 invisible" : "size-3.5"}
+            className={active ? "invisible size-3.5" : "size-3.5"}
             aria-hidden="true"
           />
           All warehouses
@@ -80,7 +82,9 @@ export function ScopeBlock({ warehouses }: { warehouses: ScopeWarehouse[] }) {
             className="gap-2"
           >
             <Check
-              className={active?.id === w.id ? "size-3.5" : "size-3.5 invisible"}
+              className={
+                active?.id === w.id ? "size-3.5" : "invisible size-3.5"
+              }
               aria-hidden="true"
             />
             {w.name} ({w.code})

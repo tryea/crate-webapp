@@ -38,7 +38,9 @@ export const Default: Story = {
         </p>
       </CardContent>
       <CardFooter>
-        <span className="text-muted-foreground text-xs">Updated 2026-05-30</span>
+        <span className="text-xs text-muted-foreground">
+          Updated 2026-05-30
+        </span>
       </CardFooter>
     </Card>
   ),
@@ -52,7 +54,9 @@ export const Small: Story = {
         <CardDescription>3 items below threshold</CardDescription>
       </CardHeader>
       <CardContent>
-        <p className="text-muted-foreground">Riverbend clinic, compact density.</p>
+        <p className="text-muted-foreground">
+          Riverbend clinic, compact density.
+        </p>
       </CardContent>
     </Card>
   ),
