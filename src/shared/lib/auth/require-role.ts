@@ -51,8 +51,10 @@ export async function getServerSessionResilient(): Promise<Session | null> {
  *     // ... safe to mutate
  *   }
  *
- * CI grep guardrail (DEC-003 §implementation gate) enforces every file in
- * src/app/<area>/{route.ts,actions.ts} contains `requireRole`.
+ * CI grep guardrail (DEC-003 §implementation gate, scripts/check-auth-guards.sh)
+ * enforces that every route.ts / actions.ts across the FSD layout — src/app,
+ * src/entities, src/features, src/widgets, src/screens (the real mutation
+ * surface is each entity's api/actions.ts) — contains `requireRole`.
  */
 export async function requireRole(min: Role): Promise<{
   session: Session;
