@@ -1,7 +1,7 @@
 # Crate: Inventory Management System
 
 [![CI](https://github.com/tryea/crate-webapp/actions/workflows/ci.yml/badge.svg)](https://github.com/tryea/crate-webapp/actions/workflows/ci.yml)
-[![Tests](https://img.shields.io/badge/jest-223%20passing-success?logo=jest)](https://github.com/tryea/crate-webapp/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/jest-267%20passing-success?logo=jest)](https://github.com/tryea/crate-webapp/actions/workflows/ci.yml)
 [![Council](https://img.shields.io/badge/built%20by-5%2Dvoice%20Council-blueviolet)](#how-this-repo-is-built)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey)](./LICENSE)
 
@@ -102,7 +102,7 @@ flowchart TD
 - **Auth:** [BetterAuth](https://better-auth.com) + Drizzle adapter
 - **i18n:** next-intl (cookie locale · en + id)
 - **CSV:** PapaParse (RFC 4180)
-- **Tests:** Jest 30 (223 unit specs · 13 suites) · Playwright 1.60 (14 E2E specs)
+- **Tests:** Jest 30 (267 specs · 18 suites) · Playwright 1.60 (25 tests · 17 files, including the auth setup project)
 
 ## Quick start (local)
 
@@ -137,11 +137,11 @@ bun run typecheck               # tsc --noEmit
 bun run lint                    # eslint + FSD boundaries
 bun run check:auth-guards       # grep-level requireRole check (9 handlers)
 bun run check:i18n-parity       # en/id message-key parity
-bun run test                    # jest, 223 specs across 13 suites
+bun run test                    # jest, 267 specs across 18 suites
 bun run build                   # production build (standalone)
 
 # E2E: main + nightly, against a Postgres 16 service
-bun run test:e2e                # playwright, 14 specs (9 journeys + RBAC + i18n + smoke)
+bun run test:e2e                # playwright, 25 tests in 17 files (needs SKIP_DB_E2E=0, as CI sets)
 
 # Local extra (not in CI)
 bun run check:concurrency       # advisory-lock decrement stress
