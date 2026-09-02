@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   flexRender,
   getCoreRowModel,
@@ -38,12 +38,25 @@ import { cn } from "@/shared/lib/utils";
  *
  * Numeric alignment: pass `meta: { align: "right" }` in your ColumnDef.
  */
+import {
+  matchesSearchQuery,
+  rowHaystack,
+  type RowSearchValue,
+} from "./global-filter";
+
 export type ColumnAlign = "left" | "right" | "center";
 
 declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface ColumnMeta<TData, TValue> {
     align?: ColumnAlign;
+    /**
+     * Text this column contributes to the global filter. Needed only when the
+     * rendered text is not reachable from the row itself, for example a name
+     * resolved through a lookup map. Columns whose text lives in the row are
+     * searched already.
+     */
+    searchValue?: RowSearchValue<TData>;
   }
 }
 
@@ -75,6 +88,26 @@ export function DataTable<T>({
   const [sorting, setSorting] = useState<SortingState>([]);
   const [filterInternal, setFilterInternal] = useState("");
 
+  const searchValues = useMemo(
+    () =>
+      columns
+        .map((column) => column.meta?.searchValue)
+        .filter((read): read is RowSearchValue<T> => typeof read === "function"),
+    [columns],
+  );
+
+  // Built once per data change rather than once per keystroke per column:
+  // TanStack calls the filter for every globally filterable column of a row.
+  const haystacks = useMemo(() => {
+    const cache = new WeakMap<object, string>();
+    for (const row of data) {
+      if (row && typeof row === "object") {
+        cache.set(row as object, rowHaystack(row, searchValues));
+      }
+    }
+    return cache;
+  }, [data, searchValues]);
+
   const isFilterControlled = globalFilterProp !== undefined;
   const globalFilter = isFilterControlled ? globalFilterProp : filterInternal;
   const setGlobalFilter = isFilterControlled
@@ -93,6 +126,19 @@ export function DataTable<T>({
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    // Search the row, not the column. Without both of these TanStack decides
+    // which columns are searchable from the value types of the FIRST row, and
+    // skips every column declared with `cell` alone. See ./global-filter.ts.
+    getColumnCanGlobalFilter: () => true,
+    globalFilterFn: (row, _columnId, value) => {
+      const original = row.original as unknown;
+      const cached =
+        original && typeof original === "object"
+          ? haystacks.get(original as object)
+          : undefined;
+      const haystack = cached ?? rowHaystack(row.original, searchValues);
+      return matchesSearchQuery(haystack, String(value ?? ""));
+    },
     getPaginationRowModel: virtualize ? undefined : getPaginationRowModel(),
     initialState: { pagination: { pageSize } },
   });
