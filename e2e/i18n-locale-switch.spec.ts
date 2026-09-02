@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 
 /**
  * DEC-007 spec: switching the UI language from the user menu re-renders
@@ -12,6 +12,28 @@ import { test, expect } from "@playwright/test";
  */
 const SKIP_REASON =
   "Requires live DB + seeded users (run db:migrate + db:seed first). Set SKIP_DB_E2E=0 to enable.";
+
+/**
+ * Open the topbar user menu and do not continue until it is actually open.
+ *
+ * `expect(page).toHaveURL(...)` in the beforeEach resolves as soon as the
+ * browser swaps the URL, which on the sign-in redirect happens while the new
+ * document is still loading. A click that lands in that window moves focus to
+ * the trigger natively but finds no React handler attached yet, so it is
+ * swallowed: the menu never opens and the spec then waits out its full timeout
+ * on an item that will never exist (observed on both `next dev` and a
+ * production build, with the trigger focused and no `menu` node in the tree).
+ *
+ * Only the ACT step is retried, never an assertion: the menu still has to open
+ * for real, and every behavioural assertion below is untouched.
+ */
+async function openUserMenu(page: Page, triggerName: string) {
+  const trigger = page.getByRole("button", { name: triggerName });
+  await expect(async () => {
+    await trigger.click();
+    await expect(page.getByRole("menu")).toBeVisible({ timeout: 2_000 });
+  }).toPass({ timeout: 30_000 });
+}
 
 test.describe("i18n · locale switch", () => {
   test.skip(process.env.SKIP_DB_E2E !== "0", SKIP_REASON);
@@ -40,7 +62,7 @@ test.describe("i18n · locale switch", () => {
     ).toBeVisible();
 
     // Switch to Indonesian via the user menu's language radio group.
-    await page.getByRole("button", { name: "User menu" }).click();
+    await openUserMenu(page, "User menu");
     await page
       .getByRole("menuitemradio", { name: "Bahasa Indonesia" })
       .click();
@@ -56,7 +78,7 @@ test.describe("i18n · locale switch", () => {
     await expect(sidebar.getByRole("link", { name: "Dasbor" })).toBeVisible();
 
     // Switch back to English to confirm the toggle is bidirectional.
-    await page.getByRole("button", { name: "Menu pengguna" }).click();
+    await openUserMenu(page, "Menu pengguna");
     await page.getByRole("menuitemradio", { name: "English" }).click();
     await expect(
       sidebar.getByRole("link", { name: "Dashboard" }),
