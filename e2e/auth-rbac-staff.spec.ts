@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { roleIndicator } from "./role-indicator";
 
 /**
  * DEC-003 spec 2/3: a signed-in `staff` user can read inventory surfaces
@@ -26,8 +27,16 @@ test.describe("auth · RBAC · staff", () => {
   });
 
   test("staff can see dashboard", async ({ page }) => {
-    await expect(page.getByText(/welcome, sam staff/i)).toBeVisible();
-    await expect(page.getByText(/signed in as.*staff/i)).toBeVisible();
+    // The dashboard opens with a one-sentence verdict, not a greeting, so
+    // there is no "Welcome, ..." to look for. Anchor on the panel heading
+    // instead: it is structural (always rendered) and it only appears once
+    // the protected shell has actually rendered for this role.
+    await expect(
+      page.getByRole("heading", { level: 2, name: "Needs you" }),
+    ).toBeVisible();
+    // Same reasoning as auth-rbac-admin: assert the role node exactly, the
+    // seeded name "Sam Staff" already contains the word "Staff".
+    await expect(roleIndicator(page)).toHaveText("Staff");
   });
 
   test("staff cannot reach /users (admin-only)", async ({ page }) => {

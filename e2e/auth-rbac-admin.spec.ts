@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { roleIndicator } from "./role-indicator";
 
 /**
  * DEC-003 spec 3/3: a signed-in `admin` user can reach every protected
@@ -25,7 +26,13 @@ test.describe("auth · RBAC · admin", () => {
   });
 
   test("admin sees dashboard with role indicator", async ({ page }) => {
-    await expect(page.getByText(/signed in as.*admin/i)).toBeVisible();
+    // The shell carries the signed-in role in the topbar profile button
+    // (`<span data-slot="user-role">`), not in a "signed in as ..." line.
+    // Scope to that node and assert its exact text: the seeded display names
+    // themselves contain the role word ("Admin", "Mira Manager", "Sam Staff"),
+    // so a loose text match on the button would still pass with the role
+    // indicator deleted, which would make this spec unable to fail.
+    await expect(roleIndicator(page)).toHaveText("Admin");
   });
 
   // Phase 2.3+ will add /users etc., for now we just confirm admin lands

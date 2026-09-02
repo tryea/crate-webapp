@@ -56,7 +56,9 @@ export function UserMenu({
         <span className="av">{initials}</span>
         <span className="who">
           <span className="nm2">{displayName}</span>
-          <span className="rl">{roleLabel}</span>
+          <span className="rl" data-slot="user-role">
+            {roleLabel}
+          </span>
         </span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
