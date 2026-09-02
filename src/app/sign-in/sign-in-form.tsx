@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Eye, EyeOff } from "lucide-react";
 import { signIn } from "@/shared/lib/auth/client";
+import { safeCallbackPath } from "@/shared/lib/auth/safe-redirect";
 import { Button } from "@/shared/ui/button";
 import {
   InputGroup,
@@ -18,7 +19,9 @@ export function SignInForm() {
   const t = useTranslations("auth.signIn");
   const router = useRouter();
   const sp = useSearchParams();
-  const callbackUrl = sp.get("callbackUrl") ?? "/dashboard";
+  // DEC-026: sanitize the query-supplied callback to a same-site path before it
+  // reaches either `router.push` (client hard-nav) or BetterAuth `callbackURL`.
+  const callbackUrl = safeCallbackPath(sp.get("callbackUrl"));
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
