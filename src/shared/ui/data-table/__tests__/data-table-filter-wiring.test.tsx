@@ -130,7 +130,8 @@ describe("DataTable global filter wiring", () => {
   test("does not match on a uuid fragment", () => {
     const input = renderTable();
     type(input, "3f0a1c9e");
-    expect(screen.getByText("No movements yet.")).toBeInTheDocument();
+    expect(screen.queryByText(/Cold Brew Coffee/)).toBeNull();
+    expect(screen.queryByText(/Mineral Water 600ml/)).toBeNull();
   });
 
   test("filters even when NO column survives the row-zero type sniff", () => {
@@ -165,6 +166,39 @@ describe("DataTable global filter wiring", () => {
   test("still rejects a query that matches nothing", () => {
     const input = renderTable();
     type(input, "zzzzz");
+    expect(screen.queryByText(/Cold Brew Coffee/)).toBeNull();
+    expect(screen.queryByText(/Mineral Water 600ml/)).toBeNull();
+  });
+});
+
+describe("DataTable empty states tell the two causes apart", () => {
+  test("a filter that matches nothing says so, and does NOT claim there is no data", () => {
+    const input = renderTable();
+    type(input, "zzzzz");
+    expect(screen.getByText(/No match for/)).toBeInTheDocument();
+    expect(screen.getByText(/zzzzz/)).toBeInTheDocument();
+    // the "no data yet" copy would be a lie here: the rows exist
+    expect(screen.queryByText("No movements yet.")).toBeNull();
+  });
+
+  test("no data at all still shows the table's own empty state", () => {
+    render(
+      <DataTable
+        data={[]}
+        columns={COLUMNS}
+        emptyState={<span>No movements yet.</span>}
+      />,
+    );
     expect(screen.getByText("No movements yet.")).toBeInTheDocument();
+    expect(screen.queryByText(/No match for/)).toBeNull();
+  });
+
+  test("clearing the filter brings every row back", () => {
+    const input = renderTable();
+    type(input, "zzzzz");
+    fireEvent.click(screen.getByRole("button", { name: /show all rows/i }));
+    expect(screen.getByText(/Cold Brew Coffee/)).toBeInTheDocument();
+    expect(screen.getByText(/Mineral Water 600ml/)).toBeInTheDocument();
+    expect(screen.queryByText(/No match for/)).toBeNull();
   });
 });

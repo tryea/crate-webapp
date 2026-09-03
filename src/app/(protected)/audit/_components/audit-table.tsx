@@ -134,7 +134,7 @@ export function AuditTable({ rows }: { rows: AuditTableRow[] }) {
       data={rows}
       columns={columns}
       virtualize
-      filterPlaceholder="Filter by user, action, resource, diff…"
+      filterPlaceholder="Filter by user, action, resource type…"
       toolbarRightSlot={
         rows.length > 0 ? (
           <Button onClick={handleExport} variant="outline" size="sm" className="gap-1.5">
