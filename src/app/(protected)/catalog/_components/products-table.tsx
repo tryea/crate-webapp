@@ -135,6 +135,12 @@ export function ProductsTable({
         id: "category",
         header: "Category",
         size: 140,
+        // Rendered from a lookup map, so the row itself carries only the id and
+        // the filter would never see the name. See shared/ui/data-table.
+        meta: {
+          searchValue: (row) =>
+            row.categoryId ? (categoriesById.get(row.categoryId) ?? null) : null,
+        },
         cell: ({ row }) =>
           row.original.categoryId ? (
             <span>{categoriesById.get(row.original.categoryId) ?? "none"}</span>
@@ -146,6 +152,10 @@ export function ProductsTable({
         id: "supplier",
         header: "Supplier",
         size: 160,
+        meta: {
+          searchValue: (row) =>
+            row.supplierId ? (suppliersById.get(row.supplierId) ?? null) : null,
+        },
         cell: ({ row }) =>
           row.original.supplierId ? (
             <span>{suppliersById.get(row.original.supplierId) ?? "none"}</span>
