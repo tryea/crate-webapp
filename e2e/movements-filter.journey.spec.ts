@@ -22,8 +22,15 @@ test.use({ storageState: authFile("manager") });
 
 const NONSENSE = "zzqqxx-no-such-value";
 
-/** Text of one cell of the first data row, addressed by its column header. */
-async function firstRowCell(page: Page, header: string): Promise<string> {
+/**
+ * The lines of one cell of the first data row, addressed by its column header.
+ *
+ * Lines, not one string: the Product cell stacks a name over a SKU, so its
+ * innerText carries a newline. Handing that whole string to `hasText` never
+ * matches, because Playwright compares against text whose whitespace has been
+ * normalised. Splitting here keeps each value usable on its own.
+ */
+async function firstRowCellLines(page: Page, header: string): Promise<string[]> {
   const headers = await page.getByRole("columnheader").allInnerTexts();
   const index = headers.findIndex((h) => h.trim().startsWith(header));
   expect(index, `column "${header}" is on screen`).toBeGreaterThan(-1);
@@ -31,7 +38,15 @@ async function firstRowCell(page: Page, header: string): Promise<string> {
   const firstDataRow = page.getByRole("row").nth(1);
   const cell = firstDataRow.getByRole("cell").nth(index);
   await expect(cell).toBeVisible();
-  return (await cell.innerText()).trim();
+  return (await cell.innerText())
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
+/** First line of that cell, which is the value a person would read aloud. */
+async function firstRowCell(page: Page, header: string): Promise<string> {
+  return (await firstRowCellLines(page, header))[0];
 }
 
 test.describe("movements · the filter searches what the screen shows", () => {
@@ -51,7 +66,7 @@ test.describe("movements · the filter searches what the screen shows", () => {
     await page.getByPlaceholder(/filter by product/i).fill(reason);
 
     // The row the value came from must survive its own value.
-    await expect(page.getByRole("row").filter({ hasText: product })).toBeVisible();
+    await expect(page.getByRole("row").filter({ hasText: product }).first()).toBeVisible();
     await expect(page.getByText(/No match for/)).toBeHidden();
   });
 
@@ -63,12 +78,12 @@ test.describe("movements · the filter searches what the screen shows", () => {
 
     // Product renders through `cell` with no accessorKey. TanStack skipped it
     // entirely before CPP-FILTER-2, so this query returned nothing.
-    const product = await firstRowCell(page, "Product");
-    const firstWord = product.split(/\s+/)[0];
+    const [name, sku] = await firstRowCellLines(page, "Product");
+    expect(sku, "the Product cell carries a SKU under the name").toBeTruthy();
 
-    await page.getByPlaceholder(/filter by product/i).fill(firstWord);
+    await page.getByPlaceholder(/filter by product/i).fill(sku);
 
-    await expect(page.getByRole("row").filter({ hasText: firstWord })).toBeVisible();
+    await expect(page.getByRole("row").filter({ hasText: name }).first()).toBeVisible();
     await expect(page.getByText(/No match for/)).toBeHidden();
   });
 
@@ -89,7 +104,7 @@ test.describe("movements · the filter searches what the screen shows", () => {
 
     await page.getByRole("button", { name: /show all rows/i }).click();
 
-    await expect(page.getByRole("row").filter({ hasText: product })).toBeVisible();
+    await expect(page.getByRole("row").filter({ hasText: product }).first()).toBeVisible();
     await expect(page.getByText(/No match for/)).toBeHidden();
   });
 });
