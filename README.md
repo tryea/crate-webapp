@@ -15,7 +15,7 @@ backorder is explicitly toggled), SQL-level RLS, and a tamper-evident audit log.
 
 ## Screenshots
 
-Dashboard: perpetual valuation, reorder signals, and the live movement feed, in both themes.
+Dashboard: what is at or below reorder, the latest movements, and four standing facts, in both themes.
 
 <table>
   <tr>
@@ -28,7 +28,7 @@ Append-only movement ledger: every stock change, filterable, sortable, audit-rea
 
 ![Movements ledger](./.github/screenshots/movements.png)
 
-Purchase orders: draft → sent → partial → received state machine:
+Purchase orders: the five-state machine, draft, sent, partial, received, cancelled:
 
 ![Purchase orders](./.github/screenshots/orders.png)
 
@@ -43,8 +43,9 @@ Purchase orders: draft → sent → partial → received state machine:
 
 - **Catalog CRUD**: products, categories, suppliers, warehouses + locations. Bulk CSV import (PapaParse + per-row Zod validation + a per-row error report).
 - **Inventory core**: Stock In / Out / Transfer (atomic two-sided) / Adjustment. Unit-tested stock math; `pg_advisory_xact_lock` + `checkDecrementAllowed` hold the line under concurrent decrements.
-- **Purchase orders**: draft → sent → partial → received state machine. Per-line receive in a single transaction. DB-level CHECK constraints surfaced as field-level UX via sentinel errors.
-- **Perpetual weighted-average cost valuation**: unit-tested; the dashboard surfaces the live total.
+- **Purchase orders**: five-state machine (draft, sent, partial, received, cancelled). Per-line receive in a single transaction. DB-level CHECK constraints surfaced as field-level UX via sentinel errors.
+- **Perpetual weighted-average cost valuation**: unit-tested; the dashboard surfaces the on-hand
+  quantity it derives from the same query, and the valuation total is a CSV card on `/reports`.
 - **Audit log**: every protected mutation appended in the same transaction as the action. Read-only `/audit` view with a virtualized DataTable + CSV export.
 - **Settings**: admin backorder toggle, wired through Stock Out / Transfer / Adjustment in real time.
 - **Reports**: stock-on-hand, valuation, and low-stock, all CSV-exportable.
@@ -84,7 +85,7 @@ flowchart TD
     ClientDB --> Rules
 ```
 
-- **Feature-Sliced Design** under `src/`, enforced by `eslint-plugin-boundaries` with a 7-element direction matrix; lint fails any upward import.
+- **Feature-Sliced Design** under `src/`, enforced by `eslint-plugin-boundaries` with an 8-element direction matrix; lint fails any upward import.
 - **Data flow**: React Server Components read; Server Actions mutate and `revalidatePath`. No client query cache to drift.
 - **CI grep guardrail**: `scripts/check-auth-guards.sh` fails any `route.ts` / `actions.ts` missing a `requireRole(...)` call. **9 handlers scanned, all guarded.**
 - **Two-role Postgres**: `postgres` (superuser, migrations only) + `app_user` (non-superuser, runtime). RLS policies fire on `app_user`; the superuser bypasses by design.
@@ -114,11 +115,11 @@ docker run -d --name crate-pg \
 
 # 2. Install + configure
 bun install
-cp .env.example .env.local      # set DATABASE_URL + DATABASE_URL_DIRECT (Postgres 16)
+# write .env.local yourself: DATABASE_URL + DATABASE_URL_DIRECT (Postgres 16)
 
 # 3. Schema, policies, seed
 bun run db:migrate              # Drizzle migrations (run as a superuser role)
-bun run db:rls                  # apply RLS policies + provision app_user
+bun run db:rls                  # apply the RLS .sql files (app_user must already exist)
 bun run db:seed                 # dev only, refuses if NODE_ENV=production
 
 # 4. Run dev
@@ -151,15 +152,16 @@ bun run check:concurrency       # advisory-lock decrement stress
 
 Crate is built by a 5-voice **Council** (Architect, Designer, Engineer, QA, and
 Red Team) that deliberates at every `[DECISION]` point and records the verdict
-before code is written. Twenty decision records (DEC-001 .. DEC-020) back the
-choices in this repo, from the persistence layer through the loading/error states.
-Development is issue-driven: every GitHub issue references its parent Decision Record.
+before code is written. Twenty-five decision records (DEC-001 .. DEC-029, with
+gaps) back the choices in this repo, from the persistence layer through Storybook
+UI consistency. Development is issue-driven: most issues name the Decision Record
+they implement, 7 of the 10 open and closed issues on 3 September 2026.
 
 Governance docs (the Constitution (`COUNCIL.md`), the phase + decision ledger
 (`PROGRESS.md`), per-decision records, deliberation transcripts, design locks, and
 deploy guides) live in the project workspace alongside this repo:
 
-- `docs/decisions/`: per-decision records (DEC-001 .. DEC-020)
+- `docs/decisions/`: per-decision records (DEC-001 .. DEC-029, with gaps)
 - `docs/council/`: full deliberation transcripts
 - `docs/design/`: UI direction locks · token system · DataTable API
 - `docs/phases/`: phase plans + Definition of Done
