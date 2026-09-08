@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Eye, EyeOff } from "lucide-react";
-import { signIn } from "@/shared/lib/auth/client";
-import { safeCallbackPath } from "@/shared/lib/auth/safe-redirect";
+import { signUp } from "@/shared/lib/auth/client";
 import { Button } from "@/shared/ui/button";
 import {
   InputGroup,
@@ -14,14 +14,15 @@ import {
   InputGroupInput,
 } from "@/shared/ui/input-group";
 
-export function SignInForm() {
-  const t = useTranslations("auth.signIn");
+/**
+ * The sign-up form, kept intact but NOT routed while FR-30's fence is up:
+ * ./page.tsx answers 404. FR-29 hand-off is one line, `return <SignUpForm />`.
+ */
+export function SignUpForm() {
+  const t = useTranslations("auth.signUp");
   const router = useRouter();
-  const sp = useSearchParams();
-  // DEC-026: sanitize the query-supplied callback to a same-site path before it
-  // reaches either `router.push` (client hard-nav) or BetterAuth `callbackURL`.
-  const callbackUrl = safeCallbackPath(sp.get("callbackUrl"));
 
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -33,13 +34,12 @@ export function SignInForm() {
     setError(null);
     setPending(true);
     try {
-      const res = await signIn.email({ email, password, callbackURL: callbackUrl });
+      const res = await signUp.email({ name, email, password });
       if (res.error) {
-        // Forgiving copy per Nadia's note: never leak which side was wrong.
-        setError(t("errorCredentials"));
+        setError(res.error.message ?? t("errorCreate"));
         return;
       }
-      router.push(callbackUrl);
+      router.push("/dashboard");
       router.refresh();
     } catch {
       setError(t("errorGeneric"));
@@ -53,10 +53,27 @@ export function SignInForm() {
       <header className="flex flex-col gap-1">
         <p className="text-sm text-muted-foreground">Crate</p>
         <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
-        <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
+        <p className="text-sm text-muted-foreground">
+          {t.rich("subtitle", {
+            role: (chunks) => <span className="font-medium">{chunks}</span>,
+          })}
+        </p>
       </header>
 
       <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
+        <label className="flex flex-col gap-1.5 text-sm">
+          <span className="font-medium">{t("name")}</span>
+          <input
+            type="text"
+            autoComplete="name"
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="h-9 rounded-md border border-input bg-background px-3 text-sm shadow-xs outline-none ring-ring/0 focus-visible:ring-2 focus-visible:ring-ring/40"
+            placeholder={t("namePlaceholder")}
+          />
+        </label>
+
         <label className="flex flex-col gap-1.5 text-sm">
           <span className="font-medium">{t("email")}</span>
           <input
@@ -71,10 +88,9 @@ export function SignInForm() {
         </label>
 
         <div className="flex flex-col gap-1.5 text-sm">
-          {/* Keep the visible <label> bound to the input by id so the input's
-              accessible name stays exactly "Password", the e2e specs use
-              getByLabel("Password", { exact: true }), which must NOT also
-              match the toggle's "Show password" aria-label. */}
+          {/* Visible <label> bound by id so the input's accessible name stays
+              exactly "Password" for getByLabel("Password", { exact: true }),
+              the toggle's "Show password" aria-label must not collide. */}
           <label htmlFor="password" className="font-medium">
             {t("password")}
           </label>
@@ -82,12 +98,12 @@ export function SignInForm() {
             <InputGroupInput
               id="password"
               type={showPassword ? "text" : "password"}
-              autoComplete="current-password"
+              autoComplete="new-password"
               required
+              minLength={8}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder={t("passwordPlaceholder")}
-              minLength={8}
             />
             <InputGroupAddon align="inline-end">
               <InputGroupButton
@@ -116,10 +132,15 @@ export function SignInForm() {
         </Button>
       </form>
 
-      {/* FR-30: the "Create an account" link is down while sign-up is fenced
-          off, a link to a 404 is worse than no link. The `auth.signIn.newHere`
-          and `createAccount` strings stay in messages/*.json for the FR-29
-          hand-off, and both locales still carry them so i18n parity holds. */}
+      <p className="text-sm text-muted-foreground">
+        {t("alreadyHave")}{" "}
+        <Link
+          href="/sign-in"
+          className="font-medium text-foreground underline-offset-4 hover:underline"
+        >
+          {t("signIn")}
+        </Link>
+      </p>
     </main>
   );
 }
