@@ -2,6 +2,7 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "@/db/client";
 import { credentialRateLimitRules } from "./rate-limit";
+import { signUpDisabled } from "./sign-up-gate";
 
 /**
  * BetterAuth server instance: single source of truth for sessions, sign-up
@@ -25,6 +26,11 @@ export const auth = betterAuth({
   database: drizzleAdapter(db, { provider: "pg" }),
   emailAndPassword: {
     enabled: true,
+    // FR-30: `enabled` still has to be true (it also governs /sign-in/email),
+    // so the door is closed with the separate `disableSignUp` flag, which
+    // better-auth checks at the top of the sign-up handler before it touches
+    // the DB. See ./sign-up-gate for the two locks and the FR-29 hand-off.
+    disableSignUp: signUpDisabled(),
     autoSignIn: true,
     minPasswordLength: 8,
     requireEmailVerification: false,

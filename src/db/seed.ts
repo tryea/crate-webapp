@@ -22,12 +22,25 @@ config({ path: ".env" });
 
 import * as s from "./schema";
 import { auth } from "@/shared/lib/auth/server";
+import { SEED_SIGN_UP_ENV } from "@/shared/lib/auth/sign-up-gate";
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL is required to run the seed.");
 }
 if (process.env.NODE_ENV === "production") {
   throw new Error("Refusing to run seed in production.");
+}
+// FR-30: sign-up is fenced off (see src/shared/lib/auth/sign-up-gate), and this
+// script is the one legitimate caller of BetterAuth's sign-up API. The opt-in
+// has to be in the environment BEFORE the process starts, because ESM hoists the
+// `auth` import above this file's body and betterAuth() reads the gate at
+// construction. `bun run db:seed` sets it, so say so instead of letting the
+// failure surface as a confusing "sign up is not enabled" from the auth layer.
+if (process.env[SEED_SIGN_UP_ENV] !== "1") {
+  throw new Error(
+    `Run the seed via \`bun run db:seed\` (it sets ${SEED_SIGN_UP_ENV}=1). ` +
+      "Sign-up is gated by FR-30 until FR-29 separates tenants.",
+  );
 }
 
 const client = postgres(process.env.DATABASE_URL, { max: 1 });
