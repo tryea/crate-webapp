@@ -72,6 +72,9 @@
       "submitting": "Sedang masuk…",
       "errorCredentials": "Kami tidak dapat memproses masuk dengan kredensial tersebut. Coba lagi.",
       "errorGeneric": "Terjadi kesalahan. Silakan coba lagi sebentar.",
+      "demoDivider": "atau",
+      "demoSubmit": "Jelajahi demo",
+      "demoHint": "Membuka ruang kerja contoh yang datanya sudah terisi. Tidak perlu akun.",
       "newHere": "Baru di sini?",
       "createAccount": "Buat akun"
     },

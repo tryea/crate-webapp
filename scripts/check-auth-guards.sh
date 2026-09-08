@@ -20,6 +20,11 @@ set -euo pipefail
 PUBLIC_ALLOWLIST=(
   # BetterAuth's own catch-all, handles its own auth + rate-limiting.
   "src/app/api/auth/[...all]/route.ts"
+  # FR-31 demo door: public on purpose. It exists so a visitor with NO
+  # credential can enter the demo, so requiring a role would defeat it. The
+  # credential it signs in with is held server-side in env, never taken from
+  # the request, and the handler writes nothing to the domain tables.
+  "src/app/api/demo/route.ts"
 )
 
 repo_root="$(cd "$(dirname "$0")/.." && pwd)"

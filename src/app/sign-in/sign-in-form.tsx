@@ -7,6 +7,10 @@ import { useTranslations } from "next-intl";
 import { Eye, EyeOff } from "lucide-react";
 import { signIn } from "@/shared/lib/auth/client";
 import { safeCallbackPath } from "@/shared/lib/auth/safe-redirect";
+import {
+  DEMO_FAILED_PARAM,
+  DEMO_FAILED_VALUE,
+} from "@/shared/lib/auth/demo-entry";
 import { Button } from "@/shared/ui/button";
 import {
   InputGroup,
@@ -15,7 +19,12 @@ import {
   InputGroupInput,
 } from "@/shared/ui/input-group";
 
-export function SignInForm() {
+/**
+ * `demoEnabled` is decided on the server (see ./page.tsx). A client
+ * component cannot read the env vars that configure the demo, and guessing
+ * from the client would show a button the server refuses to honour.
+ */
+export function SignInForm({ demoEnabled }: { demoEnabled: boolean }) {
   const t = useTranslations("auth.signIn");
   const router = useRouter();
   const sp = useSearchParams();
@@ -26,7 +35,14 @@ export function SignInForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // FR-31: /api/demo sends the visitor back here with this flag when the
+  // configured demo credential no longer opens the account. Reusing the
+  // generic copy keeps the operator problem from reading like the visitor
+  // typed something wrong.
+  const demoFailed = sp.get(DEMO_FAILED_PARAM) === DEMO_FAILED_VALUE;
+  const [error, setError] = useState<string | null>(
+    demoFailed ? t("errorGeneric") : null,
+  );
   const [pending, setPending] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
@@ -34,7 +50,11 @@ export function SignInForm() {
     setError(null);
     setPending(true);
     try {
-      const res = await signIn.email({ email, password, callbackURL: callbackUrl });
+      const res = await signIn.email({
+        email,
+        password,
+        callbackURL: callbackUrl,
+      });
       if (res.error) {
         // Forgiving copy per Nadia's note: never leak which side was wrong.
         setError(t("errorCredentials"));
@@ -66,7 +86,7 @@ export function SignInForm() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="h-9 rounded-md border border-input bg-background px-3 text-sm shadow-xs outline-none ring-ring/0 focus-visible:ring-2 focus-visible:ring-ring/40"
+            className="h-9 rounded-md border border-input bg-background px-3 text-sm shadow-xs ring-ring/0 outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
             placeholder={t("emailPlaceholder")}
           />
         </label>
@@ -117,9 +137,33 @@ export function SignInForm() {
         </Button>
       </form>
 
+      {demoEnabled ? (
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-3" aria-hidden="true">
+            <span className="h-px flex-1 bg-border" />
+            <span className="text-xs text-muted-foreground">
+              {t("demoDivider")}
+            </span>
+            <span className="h-px flex-1 bg-border" />
+          </div>
+          {/* A separate <form>: forms cannot nest, and a plain POST (no fetch,
+              no onClick) means the demo opens even if the visitor presses it
+              before this component has hydrated. */}
+          <form method="post" action="/api/demo">
+            <Button type="submit" variant="outline" className="w-full">
+              {t("demoSubmit")}
+            </Button>
+          </form>
+          <p className="text-sm text-muted-foreground">{t("demoHint")}</p>
+        </div>
+      ) : null}
+
       <p className="text-sm text-muted-foreground">
         {t("newHere")}{" "}
-        <Link href="/sign-up" className="font-medium text-foreground underline-offset-4 hover:underline">
+        <Link
+          href="/sign-up"
+          className="font-medium text-foreground underline-offset-4 hover:underline"
+        >
           {t("createAccount")}
         </Link>
       </p>
