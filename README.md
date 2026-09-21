@@ -9,7 +9,7 @@ A production-grade IMS, not a CRUD toy. Real transactional stock integrity:
 append-only movements, atomic two-sided transfers, no negative stock (unless
 backorder is explicitly toggled), SQL-level RLS, and a tamper-evident audit log.
 
-**Marketing site:** https://crate.ersaptaaristo.dev &nbsp;·&nbsp; **Live demo:** https://app.crate.ersaptaaristo.dev &nbsp;·&nbsp; both up when probed on 3 September 2026 at 03:02 WIB: marketing site 200, app 307 to `/sign-in`, sign-in page 200 with the login form served. The app is login-gated, so that redirect is the demo working rather than an outage; seeded demo logins are further down this page.
+**Marketing site:** https://crate.ersaptaaristo.dev &nbsp;·&nbsp; **Live demo:** https://app.crate.ersaptaaristo.dev &nbsp;·&nbsp; both up when probed on 3 September 2026 at 03:02 WIB: marketing site 200, app 307 to `/sign-in`, sign-in page 200 with the login form served. The app is login-gated, so that redirect is the demo working rather than an outage; how to get demo access is covered under [Quick start](#quick-start-local).
 
 ---
 
@@ -126,7 +126,7 @@ bun run db:seed                 # dev only, refuses if NODE_ENV=production
 bun run dev                     # http://localhost:3000
 ```
 
-Seeded demo logins: `manager@crate.local` / `ChangeMe!Manager` · `admin@crate.local` / `ChangeMe!Admin` · `staff@crate.local` / `ChangeMe!Staff`.
+Demo accounts: `bun run db:seed` creates one user per role (admin, manager, staff) in your local database; their sign-in details are defined in [`src/db/seed.ts`](./src/db/seed.ts) and only work against a database you seeded yourself. Access to the live demo is shared on request and is not published in this repository.
 
 ## Quality gates
 
