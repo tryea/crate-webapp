@@ -20,6 +20,13 @@ set -euo pipefail
 PUBLIC_ALLOWLIST=(
   # BetterAuth's own catch-all, handles its own auth + rate-limiting.
   "src/app/api/auth/[...all]/route.ts"
+  # FR-32 waitlist intake. Public by design: it takes an address from a
+  # stranger on the marketing page, who by definition has no account, so there
+  # is no role to require and no session to bind the row to. What stands in
+  # place of requireRole is a strict schema that accepts `{ email }` and
+  # nothing else, a 1 KB body ceiling, and an endpoint that sends nothing
+  # anywhere. The write itself lives in src/entities/waitlist/api/server.ts.
+  "src/app/api/waitlist/route.ts"
 )
 
 repo_root="$(cd "$(dirname "$0")/.." && pwd)"
