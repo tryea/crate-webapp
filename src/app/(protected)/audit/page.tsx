@@ -14,7 +14,8 @@ export default async function AuditLogPage() {
         </p>
         <h1 className="text-2xl font-semibold tracking-tight">Audit log</h1>
         <p className="text-sm text-muted-foreground">
-          Every protected mutation. Joined to the user that performed it.
+          Stock movements, purchase order receipts and status changes, and
+          settings updates, joined to the user that performed them.
         </p>
       </header>
 
