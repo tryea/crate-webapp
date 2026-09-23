@@ -146,7 +146,7 @@ export function AuditTable({ rows }: { rows: AuditTableRow[] }) {
         <EmptyState
           icon={History}
           title="No audit entries yet"
-          description="Every protected mutation lands here. Sign in / out, stock movements, PO receipts, all of it."
+          description="Record a stock movement, receive a purchase order line, or change a setting, and the entry lands here."
         />
       }
     />
