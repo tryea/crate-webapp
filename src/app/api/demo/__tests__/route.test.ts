@@ -29,6 +29,11 @@ jest.mock("@/shared/lib/auth/server", () => ({
 }));
 
 import { auth } from "@/shared/lib/auth/server";
+import {
+  DEMO_RATE_LIMIT_MAX,
+  DEMO_RATE_LIMIT_WINDOW,
+  resetDemoRateLimit,
+} from "@/shared/lib/auth/demo-rate-limit";
 import { POST } from "../route";
 
 const signInEmail = auth.api.signInEmail as unknown as jest.Mock;
@@ -47,11 +52,35 @@ function bukaEnv() {
   process.env[DEMO_PASSWORD_ENV] = PASSWORD;
 }
 
+/** FR-35: a knock carrying the forwarding header a proxy would have set. */
+function knockFrom(forwardedFor: string) {
+  return new NextRequest("http://localhost:3010/api/demo", {
+    method: "POST",
+    headers: { "x-forwarded-for": forwardedFor },
+  });
+}
+
+/**
+ * A fresh Response per call, not one shared object: the handler copies cookies
+ * off whatever it is handed, and a single instance reused across a loop would
+ * hide a handler that mutated it.
+ */
+function signInAlwaysSucceeds() {
+  signInEmail.mockImplementation(() => {
+    const fromAuth = new Response(null, { status: 200 });
+    fromAuth.headers.append("set-cookie", COOKIE_A);
+    fromAuth.headers.append("set-cookie", COOKIE_B);
+    return Promise.resolve(fromAuth);
+  });
+}
+
 describe("POST /api/demo", () => {
   const asli = { ...process.env };
 
   beforeEach(() => {
     signInEmail.mockReset();
+    // The counters outlive a request by design, so they must not outlive a test.
+    resetDemoRateLimit();
     delete process.env[DEMO_EMAIL_ENV];
     delete process.env[DEMO_PASSWORD_ENV];
   });
@@ -124,5 +153,88 @@ describe("POST /api/demo", () => {
 
     expect(res.status).toBe(303);
     expect(res.headers.get("location")).toBe("/sign-in?demo=unavailable");
+  });
+});
+
+/**
+ * FR-35 / tiket 278: the cap in front of the door.
+ *
+ * These run against the REAL limiter (only `auth/server` is mocked), so what is
+ * being measured is the handler plus the policy, not a restatement of the
+ * constants. The module's own arithmetic, its window, and its client key are
+ * measured separately in
+ * `src/shared/lib/auth/__tests__/demo-rate-limit.test.ts`.
+ */
+describe("POST /api/demo under the FR-35 cap", () => {
+  const asli = { ...process.env };
+  const CLIENT = "203.0.113.7";
+
+  beforeEach(() => {
+    signInEmail.mockReset();
+    resetDemoRateLimit();
+    bukaEnv();
+    signInAlwaysSucceeds();
+  });
+
+  afterAll(() => {
+    process.env = asli;
+  });
+
+  it("lets a client through up to the cap, each time with a real session", async () => {
+    for (let attempt = 1; attempt <= DEMO_RATE_LIMIT_MAX; attempt++) {
+      const res = await POST(knockFrom(CLIENT));
+      // Paired with the attempt number so a failure names WHICH call broke.
+      expect([attempt, res.status]).toEqual([attempt, 303]);
+      expect(res.headers.get("location")).toBe("/dashboard");
+      // Under the cap the visitor must still get the whole session, not just a
+      // redirect: a cap that quietly swallowed the cookies would pass a bare
+      // status check while leaving every visitor outside the app.
+      expect(res.headers.getSetCookie()).toEqual([COOKIE_A, COOKIE_B]);
+    }
+    expect(signInEmail).toHaveBeenCalledTimes(DEMO_RATE_LIMIT_MAX);
+  });
+
+  it("refuses the call past the cap, and that refusal writes nothing", async () => {
+    for (let spent = 0; spent < DEMO_RATE_LIMIT_MAX; spent++) {
+      await POST(knockFrom(CLIENT));
+    }
+    signInEmail.mockClear();
+
+    const res = await POST(knockFrom(CLIENT));
+
+    expect(res.status).toBe(429);
+    // The point of FR-35 is the live database, not the status code: a refusal
+    // that still called sign-in would still have minted a session row.
+    expect(signInEmail).not.toHaveBeenCalled();
+    expect(res.headers.getSetCookie()).toEqual([]);
+    // A refusal that cannot say when to come back is a dead end, not a cap.
+    const retryAfter = Number(res.headers.get("retry-after"));
+    expect(retryAfter).toBeGreaterThan(0);
+    expect(retryAfter).toBeLessThanOrEqual(DEMO_RATE_LIMIT_WINDOW);
+  });
+
+  it("counts per client, so one visitor cannot shut the door on another", async () => {
+    for (let spent = 0; spent < DEMO_RATE_LIMIT_MAX; spent++) {
+      await POST(knockFrom(CLIENT));
+    }
+
+    const stranger = await POST(knockFrom("198.51.100.4"));
+
+    expect(stranger.status).toBe(303);
+    expect(stranger.headers.getSetCookie()).toEqual([COOKIE_A, COOKIE_B]);
+  });
+
+  it("keys on the hop the proxy appended, so a forged header buys no fresh bucket", async () => {
+    // A proxy appends the address it saw to whatever the caller sent, so the
+    // caller owns every entry except the last. Keying on the FIRST entry, which
+    // is what better-auth's own `getIp` does, would hand this attacker a new
+    // bucket on every request and make the cap decorative.
+    for (let spent = 0; spent < DEMO_RATE_LIMIT_MAX; spent++) {
+      await POST(knockFrom(`10.0.0.${spent}, ${CLIENT}`));
+    }
+
+    const res = await POST(knockFrom(`192.0.2.99, ${CLIENT}`));
+
+    expect(res.status).toBe(429);
   });
 });

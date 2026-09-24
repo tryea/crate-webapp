@@ -7,6 +7,10 @@ import {
   DEMO_LANDING_PATH,
   demoCredential,
 } from "@/shared/lib/auth/demo-entry";
+import {
+  demoClientKey,
+  takeDemoRateLimitSlot,
+} from "@/shared/lib/auth/demo-rate-limit";
 
 /**
  * FR-31: the demo door. The visitor presses a button, the server holds the
@@ -24,6 +28,13 @@ export async function POST(req: NextRequest) {
   // No credential configured means the demo does not exist in this deployment.
   // 404 rather than 503: there is nothing here to come back for.
   if (!credential) return new NextResponse(null, { status: 404 });
+
+  // FR-31 leaves this door open to strangers on purpose; FR-35 is what keeps a
+  // stranger from walking through it without end. The cap sits AFTER the 404 so
+  // an unconfigured deployment stays a plain 404 and spends no state on probes,
+  // and BEFORE the sign-in call so a refused caller mints nothing.
+  const verdict = takeDemoRateLimitSlot(demoClientKey(req.headers));
+  if (!verdict.allowed) return tooManyDemoSessions(verdict.retryAfterSeconds);
 
   let signedIn: Response;
   try {
@@ -51,6 +62,26 @@ export async function POST(req: NextRequest) {
     res.headers.append("set-cookie", cookie);
   }
   return res;
+}
+
+/**
+ * 429, not the 303 the other refusals use. A visitor who clicks once never sees
+ * this, so the realistic reader is a script, and `Retry-After` is the answer a
+ * script can act on. Keeping it distinct from `?demo=unavailable` also keeps
+ * the operator signal honest: that flag means the credential is wrong, and a
+ * flood should not be able to dress itself up as a rotated password.
+ */
+function tooManyDemoSessions(retryAfterSeconds: number) {
+  return new NextResponse(
+    JSON.stringify({ message: "Too many requests. Please try again later." }),
+    {
+      status: 429,
+      headers: {
+        "content-type": "application/json",
+        "retry-after": String(retryAfterSeconds),
+      },
+    },
+  );
 }
 
 function demoUnavailable() {
