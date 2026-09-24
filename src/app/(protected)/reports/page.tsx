@@ -1,13 +1,11 @@
-import { asc, eq } from "drizzle-orm";
 import { requireRole } from "@/shared/lib/auth/require-role";
-import { db } from "@/db/client";
-import { locations, products, warehouses } from "@/db/schema";
 import {
   getAllStockLevelsServer,
   getValuationServer,
   listLowStockProductsServer,
 } from "@/entities/stock-movement/api/server";
 import { ReportSection } from "./_components/report-section";
+import { loadReportsLookups } from "./_lib/reports-data";
 
 const MONEY_FMT = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 0,
@@ -17,28 +15,13 @@ const MONEY_FMT = new Intl.NumberFormat("en-US", {
 export default async function ReportsPage() {
   await requireRole("staff");
 
-  const [levels, valuation, lowStock, productRows, locationRows] = await Promise.all([
-    getAllStockLevelsServer(),
-    getValuationServer(),
-    listLowStockProductsServer({ limit: 500 }),
-    db
-      .select({
-        id: products.id,
-        sku: products.sku,
-        name: products.name,
-        reorderPoint: products.reorderPoint,
-      })
-      .from(products)
-      .orderBy(asc(products.name)),
-    db
-      .select({
-        id: locations.id,
-        code: locations.code,
-        warehouseName: warehouses.name,
-      })
-      .from(locations)
-      .leftJoin(warehouses, eq(locations.warehouseId, warehouses.id)),
-  ]);
+  const [levels, valuation, lowStock, { productRows, locationRows }] =
+    await Promise.all([
+      getAllStockLevelsServer(),
+      getValuationServer(),
+      listLowStockProductsServer({ limit: 500 }),
+      loadReportsLookups(),
+    ]);
 
   const productsById = new Map(productRows.map((p) => [p.id, p]));
   const locationsById = new Map(locationRows.map((l) => [l.id, l]));
@@ -85,13 +68,11 @@ export default async function ReportsPage() {
   return (
     <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-6 py-8">
       <header className="flex flex-col gap-1">
-        <p className="eyebrow">
-          Insights
-        </p>
+        <p className="eyebrow">Insights</p>
         <h1 className="text-2xl font-semibold tracking-tight">Reports</h1>
         <p className="text-sm text-muted-foreground">
-          Snapshot exports. Each card downloads a CSV of the full dataset
-          (RFC 4180, UTF-8). Total value across stock:{" "}
+          Snapshot exports. Each card downloads a CSV of the full dataset (RFC
+          4180, UTF-8). Total value across stock:{" "}
           <span className="font-semibold text-foreground tabular-nums">
             {MONEY_FMT.format(Math.round(valuation.totalValue))}
           </span>
@@ -104,7 +85,12 @@ export default async function ReportsPage() {
         description={`${stockOnHandRows.length} (product × location) pairings with level > 0.`}
         rows={stockOnHandRows}
         filenameBase="stock-on-hand"
-        preview={<ReportPreview rows={stockOnHandRows.slice(0, 8)} numericKeys={["on_hand"]} />}
+        preview={
+          <ReportPreview
+            rows={stockOnHandRows.slice(0, 8)}
+            numericKeys={["on_hand"]}
+          />
+        }
       />
 
       <ReportSection
@@ -112,7 +98,12 @@ export default async function ReportsPage() {
         description={`${valuationRows.length} products with current on-hand × WAC. Sorted descending.`}
         rows={valuationRows}
         filenameBase="valuation"
-        preview={<ReportPreview rows={valuationRows.slice(0, 8)} numericKeys={["on_hand", "wac", "total_value"]} />}
+        preview={
+          <ReportPreview
+            rows={valuationRows.slice(0, 8)}
+            numericKeys={["on_hand", "wac", "total_value"]}
+          />
+        }
       />
 
       <ReportSection
@@ -120,7 +111,12 @@ export default async function ReportsPage() {
         description={`${lowStockRows.length} products at or below reorder point.`}
         rows={lowStockRows}
         filenameBase="low-stock"
-        preview={<ReportPreview rows={lowStockRows.slice(0, 8)} numericKeys={["on_hand", "reorder_point", "deficit"]} />}
+        preview={
+          <ReportPreview
+            rows={lowStockRows.slice(0, 8)}
+            numericKeys={["on_hand", "reorder_point", "deficit"]}
+          />
+        }
       />
     </main>
   );
