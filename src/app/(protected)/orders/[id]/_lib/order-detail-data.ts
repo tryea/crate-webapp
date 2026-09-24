@@ -1,6 +1,6 @@
 import "server-only";
 import { asc, eq } from "drizzle-orm";
-import { db } from "@/db/client";
+import { withReadContext } from "@/shared/lib/auth/read-context";
 import { products } from "@/db/schema";
 
 /**
@@ -9,14 +9,18 @@ import { products } from "@/db/schema";
  * test can call.
  */
 export async function loadOrderDetailProducts() {
-  return db
-    .select({
-      id: products.id,
-      sku: products.sku,
-      name: products.name,
-      costPrice: products.costPrice,
-    })
-    .from(products)
-    .where(eq(products.isActive, true))
-    .orderBy(asc(products.name));
+  return withReadContext(
+    async (tx) =>
+      tx
+        .select({
+          id: products.id,
+          sku: products.sku,
+          name: products.name,
+          costPrice: products.costPrice,
+        })
+        .from(products)
+        .where(eq(products.isActive, true))
+        .orderBy(asc(products.name)),
+    "loadOrderDetailProducts",
+  );
 }

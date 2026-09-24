@@ -1,6 +1,6 @@
 import "server-only";
 import { eq } from "drizzle-orm";
-import { db } from "@/db/client";
+import { withReadContext } from "@/shared/lib/auth/read-context";
 import { settings } from "@/db/schema";
 import {
   STOCK_SETTINGS_DEFAULTS,
@@ -18,11 +18,15 @@ import {
  * Until a row is explicitly inserted, allowBackorder is `false`.
  */
 export async function getStockSettingsServer(): Promise<StockSettings> {
-  const [row] = await db
-    .select()
-    .from(settings)
-    .where(eq(settings.key, STOCK_SETTINGS_KEY))
-    .limit(1);
+  const [row] = await withReadContext(
+    async (tx) =>
+      tx
+        .select()
+        .from(settings)
+        .where(eq(settings.key, STOCK_SETTINGS_KEY))
+        .limit(1),
+    "getStockSettingsServer",
+  );
 
   if (!row) return STOCK_SETTINGS_DEFAULTS;
 

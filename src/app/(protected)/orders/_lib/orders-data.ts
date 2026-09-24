@@ -1,6 +1,6 @@
 import "server-only";
 import { asc } from "drizzle-orm";
-import { db } from "@/db/client";
+import { withReadContext } from "@/shared/lib/auth/read-context";
 import { suppliers, warehouses } from "@/db/schema";
 
 /**
@@ -9,20 +9,24 @@ import { suppliers, warehouses } from "@/db/schema";
  * test can call.
  */
 export async function loadOrdersLookups() {
-  const [supplierRows, warehouseRows] = await Promise.all([
-    db
-      .select({ id: suppliers.id, name: suppliers.name })
-      .from(suppliers)
-      .orderBy(asc(suppliers.name)),
-    db
-      .select({
-        id: warehouses.id,
-        name: warehouses.name,
-        code: warehouses.code,
-      })
-      .from(warehouses)
-      .orderBy(asc(warehouses.name)),
-  ]);
+  const [supplierRows, warehouseRows] = await withReadContext(
+    async (tx) =>
+      Promise.all([
+        tx
+          .select({ id: suppliers.id, name: suppliers.name })
+          .from(suppliers)
+          .orderBy(asc(suppliers.name)),
+        tx
+          .select({
+            id: warehouses.id,
+            name: warehouses.name,
+            code: warehouses.code,
+          })
+          .from(warehouses)
+          .orderBy(asc(warehouses.name)),
+      ]),
+    "loadOrdersLookups",
+  );
 
   return { supplierRows, warehouseRows };
 }

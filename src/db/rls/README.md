@@ -29,9 +29,18 @@ Policies then reference these via `current_setting('app.current_user_id', true)`
 
 The current DB client is a single shared connection pool, so the GUC
 binding requires either (a) per-request transactions or (b) connection
-pinning per-request via `postgres.js` `reserve()`. This is a Phase 8
-hardening task, wiring noted in `src/shared/lib/auth/session-binding.ts`
-(to be added).
+pinning per-request via `postgres.js` `reserve()`. Option (a) is what
+shipped, on both halves: `withUserContext`
+(`src/shared/lib/auth/session-binding.ts`) binds every write, and
+`withReadContext` (`src/shared/lib/auth/read-context.ts`, ticket 989)
+binds every read and REFUSES one that carries no identity. `reserve()`
+is still unused anywhere in the code.
+
+Note for anyone writing a policy from here on: a read reaching the
+database now always carries an identity, so the `allow when nobody is
+asking` opening in the 0003 USING clauses no longer describes the app's
+own reads. It still describes Better Auth, which reads `user` and
+`session` on this same connection before any identity exists.
 
 ## Files in this directory
 

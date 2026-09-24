@@ -68,7 +68,9 @@ for f in "${handlers[@]}"; do
   # user context. Direct `db.transaction(` / `db.insert|update|delete(` in a
   # handler means the write skips `withUserContext` → the 0003 policies see
   # an unbound query and the per-user enforcement silently does not apply.
-  # Reads (`db.select`) stay allowed unbound, list pages don't need binding.
+  # Reads are NO LONGER allowed unbound (ticket 989, FR-29): they are bound
+  # by `withReadContext` and swept by scripts/check-read-binding.sh, which
+  # is the gate that covers them. This one still only judges writes.
   if grep -qE "db\.(transaction|insert|update|delete)\(" "$f"; then
     if ! grep -q "withUserContext(" "$f"; then
       echo "✗ UNBOUND WRITE: $f"
