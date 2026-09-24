@@ -72,6 +72,9 @@
       "submitting": "Signing in…",
       "errorCredentials": "We couldn't sign you in with those credentials. Try again.",
       "errorGeneric": "Something went wrong. Please retry in a moment.",
+      "demoDivider": "or",
+      "demoSubmit": "Explore the demo",
+      "demoHint": "Opens a sample workspace that already has data in it. No account needed.",
       "newHere": "New here?",
       "createAccount": "Create an account"
     },
