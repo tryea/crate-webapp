@@ -4,10 +4,15 @@ import { withReadContext } from "@/shared/lib/auth/read-context";
 import { locations, products, warehouses } from "@/db/schema";
 
 /**
- * Shared server loader for the new-movement form pages. All three flows
- * (stock-in, stock-out, transfer) need the same dropdown payloads.
+ * Dropdown payloads for the stock-in form.
+ *
+ * Deliberately NOT folded into the sibling `loadMovementFormData`, which
+ * carries the same two queries for stock-out, transfer and adjustment. The
+ * duplication predates this move and merging the two is a behaviour question
+ * for the route set, not part of binding the read path. Moved out of the page
+ * unchanged so the route's read set has a name that a test can call.
  */
-export async function loadMovementFormData() {
+export async function loadStockInFormData() {
   const [productRows, locationRows] = await withReadContext(
     async (tx) =>
       Promise.all([
@@ -26,7 +31,7 @@ export async function loadMovementFormData() {
           .leftJoin(warehouses, eq(locations.warehouseId, warehouses.id))
           .orderBy(asc(warehouses.name), asc(locations.code)),
       ]),
-    "loadMovementFormData",
+    "loadStockInFormData",
   );
 
   const locationOptions = locationRows.map((l) => ({

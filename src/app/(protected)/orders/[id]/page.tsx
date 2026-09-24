@@ -1,17 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getFormatter } from "next-intl/server";
-import { asc, eq } from "drizzle-orm";
 import { ChevronLeft } from "lucide-react";
 import { requireRole } from "@/shared/lib/auth/require-role";
-import { db } from "@/db/client";
-import { products } from "@/db/schema";
 import { getPurchaseOrderServer } from "@/entities/purchase-order/api/server";
 import { Badge } from "@/shared/ui/badge";
 import { cn } from "@/shared/lib/utils";
 import { PoHeaderActions } from "./_components/po-header-actions";
 import { PoLinesSection } from "./_components/po-lines-section";
 import { PoReceiveForm } from "./_components/po-receive-form";
+import { loadOrderDetailProducts } from "./_lib/order-detail-data";
 
 const STATUS_CLASSES: Record<string, string> = {
   draft: "bg-muted text-muted-foreground-strong border-border",
@@ -40,16 +38,7 @@ export default async function PurchaseOrderDetailPage({
 
   const [detail, productRows] = await Promise.all([
     getPurchaseOrderServer(id),
-    db
-      .select({
-        id: products.id,
-        sku: products.sku,
-        name: products.name,
-        costPrice: products.costPrice,
-      })
-      .from(products)
-      .where(eq(products.isActive, true))
-      .orderBy(asc(products.name)),
+    loadOrderDetailProducts(),
   ]);
 
   if (!detail) notFound();
@@ -71,14 +60,12 @@ export default async function PurchaseOrderDetailPage({
         </Link>
         <header className="flex flex-wrap items-end justify-between gap-4 pt-2">
           <div className="flex flex-col gap-1">
-            <p className="eyebrow">
-              Purchase order
-            </p>
-            <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-3">
+            <p className="eyebrow">Purchase order</p>
+            <h1 className="flex items-center gap-3 text-2xl font-semibold tracking-tight">
               <span className="font-mono">{po.poNumber}</span>
               <Badge
                 variant="outline"
-                className={cn("font-medium border", STATUS_CLASSES[po.status])}
+                className={cn("border font-medium", STATUS_CLASSES[po.status])}
               >
                 {STATUS_LABEL[po.status]}
               </Badge>

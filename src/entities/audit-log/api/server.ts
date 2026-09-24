@@ -1,6 +1,6 @@
 import "server-only";
 import { desc, eq } from "drizzle-orm";
-import { db } from "@/db/client";
+import { withReadContext } from "@/shared/lib/auth/read-context";
 import { auditLog, user as authUser } from "@/db/schema";
 
 export interface AuditRow {
@@ -15,19 +15,23 @@ export interface AuditRow {
 }
 
 export async function listAuditLogServer(limit = 500): Promise<AuditRow[]> {
-  return db
-    .select({
-      id: auditLog.id,
-      action: auditLog.action,
-      resourceType: auditLog.resourceType,
-      resourceId: auditLog.resourceId,
-      userName: authUser.name,
-      userEmail: authUser.email,
-      diff: auditLog.diff,
-      createdAt: auditLog.createdAt,
-    })
-    .from(auditLog)
-    .leftJoin(authUser, eq(auditLog.userId, authUser.id))
-    .orderBy(desc(auditLog.createdAt))
-    .limit(limit);
+  return withReadContext(
+    async (tx) =>
+      tx
+        .select({
+          id: auditLog.id,
+          action: auditLog.action,
+          resourceType: auditLog.resourceType,
+          resourceId: auditLog.resourceId,
+          userName: authUser.name,
+          userEmail: authUser.email,
+          diff: auditLog.diff,
+          createdAt: auditLog.createdAt,
+        })
+        .from(auditLog)
+        .leftJoin(authUser, eq(auditLog.userId, authUser.id))
+        .orderBy(desc(auditLog.createdAt))
+        .limit(limit),
+    "listAuditLogServer",
+  );
 }
