@@ -29,6 +29,13 @@
       "when": 1790192802818,
       "tag": "0003_waitlist_signup",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790278044401,
+      "tag": "0004_waitlist_grants",
+      "breakpoints": true
     }
   ]
 }
