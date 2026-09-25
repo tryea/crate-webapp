@@ -93,6 +93,7 @@ function makeBarrier(parties: number, timeoutMs: number) {
  */
 async function attemptStockOut(
   gate: Gate,
+  companyId: string,
   productId: string,
   locationId: string,
   qty: number,
@@ -112,6 +113,7 @@ async function attemptStockOut(
     if (!decision.ok) return "blocked";
 
     await tx.insert(stockMovements).values({
+      companyId,
       productId,
       locationId,
       type: "stock_out",
@@ -151,16 +153,18 @@ interface ScenarioResult {
 async function runScenario(
   label: string,
   gate: Gate,
+  companyId: string,
   locationId: string,
 ): Promise<ScenarioResult> {
   const sku = `E2E-CONC-${label}-${Date.now()}`;
   const [product] = await db
     .insert(products)
-    .values({ sku, name: `Concurrency Proof (${label})` })
+    .values({ companyId, sku, name: `Concurrency Proof (${label})` })
     .returning();
 
   // Deterministic start level: a single +5 stock-in at the location.
   await db.insert(stockMovements).values({
+    companyId,
     productId: product.id,
     locationId,
     type: "stock_in",
@@ -170,8 +174,8 @@ async function runScenario(
 
   const barrier = makeBarrier(2, 1500);
   const results = await Promise.all([
-    attemptStockOut(gate, product.id, locationId, 5, barrier),
-    attemptStockOut(gate, product.id, locationId, 5, barrier),
+    attemptStockOut(gate, companyId, product.id, locationId, 5, barrier),
+    attemptStockOut(gate, companyId, product.id, locationId, 5, barrier),
   ]);
 
   const winners = results.filter((r) => r === "won").length;
@@ -194,13 +198,29 @@ async function runScenario(
 
 async function main() {
   // Movements must attach to a real location, reuse the first seeded one.
-  const [loc] = await db.select({ id: locations.id }).from(locations).limit(1);
+  //
+  // FR-29 / ticket 1009: the rows this script writes have to name their owner,
+  // because the `company_id` default is gone. The owner is READ OFF THE
+  // LOCATION rather than taken from a constant: the product and the movements
+  // have to belong to the same company as the bin they sit in, and on a
+  // database with more than one company a constant would either write into the
+  // wrong one or hand the foreign keys a mismatch that the advisory-lock proof
+  // would then get blamed for.
+  const [loc] = await db
+    .select({ id: locations.id, companyId: locations.companyId })
+    .from(locations)
+    .limit(1);
   assert(loc, "No seeded location found, run `bun run db:seed` first.");
 
   console.log(
     "→ Scenario A: REAL locked gate (getLevelLocked, pg_advisory_xact_lock)",
   );
-  const locked = await runScenario("LOCKED", getLevelLocked, loc.id);
+  const locked = await runScenario(
+    "LOCKED",
+    getLevelLocked,
+    loc.companyId,
+    loc.id,
+  );
   console.log(
     `   winners=${locked.winners} blocked=${locked.blocked} finalLevel=${locked.finalLevel} (${locked.sku})`,
   );
@@ -214,7 +234,7 @@ async function main() {
   console.log(
     "→ Scenario B: NAIVE gate (plain SUM, NO advisory lock), counterfactual",
   );
-  const naive = await runScenario("NAIVE", getLevelNaive, loc.id);
+  const naive = await runScenario("NAIVE", getLevelNaive, loc.companyId, loc.id);
   console.log(
     `   winners=${naive.winners} blocked=${naive.blocked} finalLevel=${naive.finalLevel} (${naive.sku})`,
   );

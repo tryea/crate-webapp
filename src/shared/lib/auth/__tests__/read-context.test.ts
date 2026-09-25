@@ -87,18 +87,19 @@ beforeAll(async () => {
       ('${ADMIN}', 'Ada', 'ada@example.test', true, 'admin');
     -- Ticket 1004 made every read filter by the company the caller belongs to,
     -- so a membership is now part of what "a signed-in operator" means. One
-    -- company, and every row below takes it from the column default, which is
-    -- the shape the database ships in. The refusal for a user with NO
+    -- company, named on every row below: ticket 1009 took the column default
+    -- off, so an insert that leaves company_id out is refused rather than
+    -- owned by whoever the default pointed at. The refusal for a user with NO
     -- membership is a different contract and lives in
     -- src/__tests__/tenant-read-isolation.test.ts.
     insert into company_members (company_id, user_id) values
       ('${SINGLE_COMPANY_ID}', '${ADMIN}');
-    insert into products (sku, name) values
-      ('A-100', 'Hex bolt'),
-      ('A-200', 'Wing nut'),
-      ('A-300', 'Torque key');
-    insert into settings (key, value) values
-      ('stock', '{"allowBackorder": true}'::jsonb);
+    insert into products (company_id, sku, name) values
+      ('${SINGLE_COMPANY_ID}', 'A-100', 'Hex bolt'),
+      ('${SINGLE_COMPANY_ID}', 'A-200', 'Wing nut'),
+      ('${SINGLE_COMPANY_ID}', 'A-300', 'Torque key');
+    insert into settings (company_id, key, value) values
+      ('${SINGLE_COMPANY_ID}', 'stock', '{"allowBackorder": true}'::jsonb);
   `);
   mockDb = drizzle(mockPglite);
 }, 60_000);

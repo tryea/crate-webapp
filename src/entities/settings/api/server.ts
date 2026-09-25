@@ -17,15 +17,13 @@ import {
  * stock is forbidden unless a setting explicitly allows backorder."
  * Until a row is explicitly inserted, allowBackorder is `false`.
  *
- * THE COMPANY PREDICATE CHANGES WHAT "DOESN'T EXIST" MEANS HERE, and that is
- * the point. `key` is still the primary key of this table, so it holds one row
- * per config domain for the whole installation (see the note in
- * src/db/schema/settings.ts; the composite key is item 4 of
- * src/db/rls/TENANT-SEPARATION.md and its own piece of work). A company that
- * does not own the single `stock` row therefore reads no row and falls back to
- * the defaults, which is the safe direction: the fallback forbids backorder.
- * The alternative, looking up the key alone, would hand that company the other
- * one's switch.
+ * THE COMPANY PREDICATE IS THE WHOLE OF THE LOOKUP NOW. Since ticket 1009 the
+ * primary key of this table is `(company_id, key)`, so a company that has
+ * never saved its settings owns no `stock` row and reads the defaults, and a
+ * company that has saved them reads its own row rather than whichever one the
+ * installation happened to hold. The defaults are the safe direction to fall
+ * back to: they forbid backorder. Looking the key up alone would now return an
+ * arbitrary company's switch, because more than one row may carry it.
  */
 export async function getStockSettingsServer(): Promise<StockSettings> {
   const [row] = await withCompanyReadContext(

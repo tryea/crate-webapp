@@ -50,6 +50,13 @@
       "when": 1790299757581,
       "tag": "0006_company_membership",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790313944999,
+      "tag": "0007_company_scoped_settings",
+      "breakpoints": true
     }
   ]
 }
