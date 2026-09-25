@@ -1,6 +1,6 @@
 import "server-only";
-import { asc, eq } from "drizzle-orm";
-import { withReadContext } from "@/shared/lib/auth/read-context";
+import { and, asc, eq } from "drizzle-orm";
+import { withCompanyReadContext } from "@/shared/lib/auth/company-context";
 import { locations, products, warehouses } from "@/db/schema";
 
 /**
@@ -11,15 +11,22 @@ import { locations, products, warehouses } from "@/db/schema";
  * duplication predates this move and merging the two is a behaviour question
  * for the route set, not part of binding the read path. Moved out of the page
  * unchanged so the route's read set has a name that a test can call.
+ *
+ * The company predicate is repeated here rather than shared for the same
+ * reason: the copy is the thing that has to be scoped, and a reader comparing
+ * the two files should see the same filter twice rather than wonder which of
+ * them is the exception.
  */
 export async function loadStockInFormData() {
-  const [productRows, locationRows] = await withReadContext(
-    async (tx) =>
+  const [productRows, locationRows] = await withCompanyReadContext(
+    async (tx, companyId) =>
       Promise.all([
         tx
           .select({ id: products.id, sku: products.sku, name: products.name })
           .from(products)
-          .where(eq(products.isActive, true))
+          .where(
+            and(eq(products.isActive, true), eq(products.companyId, companyId)),
+          )
           .orderBy(asc(products.name)),
         tx
           .select({
@@ -28,7 +35,14 @@ export async function loadStockInFormData() {
             warehouseName: warehouses.name,
           })
           .from(locations)
-          .leftJoin(warehouses, eq(locations.warehouseId, warehouses.id))
+          .leftJoin(
+            warehouses,
+            and(
+              eq(locations.warehouseId, warehouses.id),
+              eq(warehouses.companyId, companyId),
+            ),
+          )
+          .where(eq(locations.companyId, companyId))
           .orderBy(asc(warehouses.name), asc(locations.code)),
       ]),
     "loadStockInFormData",

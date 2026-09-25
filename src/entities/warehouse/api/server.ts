@@ -1,6 +1,6 @@
 import "server-only";
-import { asc, eq } from "drizzle-orm";
-import { withReadContext } from "@/shared/lib/auth/read-context";
+import { and, asc, eq } from "drizzle-orm";
+import { withCompanyReadContext } from "@/shared/lib/auth/company-context";
 import {
   locations,
   warehouses,
@@ -9,8 +9,13 @@ import {
 } from "@/db/schema";
 
 export async function listWarehousesServer(): Promise<Warehouse[]> {
-  return withReadContext(
-    async (tx) => tx.select().from(warehouses).orderBy(asc(warehouses.name)),
+  return withCompanyReadContext(
+    async (tx, companyId) =>
+      tx
+        .select()
+        .from(warehouses)
+        .where(eq(warehouses.companyId, companyId))
+        .orderBy(asc(warehouses.name)),
     "listWarehousesServer",
   );
 }
@@ -18,23 +23,39 @@ export async function listWarehousesServer(): Promise<Warehouse[]> {
 export async function getWarehouseServer(
   id: string,
 ): Promise<Warehouse | null> {
-  const rows = await withReadContext(
-    async (tx) =>
-      tx.select().from(warehouses).where(eq(warehouses.id, id)).limit(1),
+  const rows = await withCompanyReadContext(
+    async (tx, companyId) =>
+      tx
+        .select()
+        .from(warehouses)
+        .where(and(eq(warehouses.id, id), eq(warehouses.companyId, companyId)))
+        .limit(1),
     "getWarehouseServer",
   );
   return rows[0] ?? null;
 }
 
+/**
+ * `locations` carries its own `company_id` (migration 0005) rather than
+ * inheriting through `warehouse_id`, so the predicate goes on the column that
+ * is actually read. Filtering only by `warehouseId` would hand another
+ * company's aisles to anyone who can name its warehouse id, and the warehouse
+ * detail page takes that id straight from the URL.
+ */
 export async function listLocationsServer(
   warehouseId: string,
 ): Promise<Location[]> {
-  return withReadContext(
-    async (tx) =>
+  return withCompanyReadContext(
+    async (tx, companyId) =>
       tx
         .select()
         .from(locations)
-        .where(eq(locations.warehouseId, warehouseId))
+        .where(
+          and(
+            eq(locations.warehouseId, warehouseId),
+            eq(locations.companyId, companyId),
+          ),
+        )
         .orderBy(asc(locations.code)),
     "listLocationsServer",
   );

@@ -1,6 +1,6 @@
 import "server-only";
-import { eq } from "drizzle-orm";
-import { withReadContext } from "@/shared/lib/auth/read-context";
+import { and, eq } from "drizzle-orm";
+import { withCompanyReadContext } from "@/shared/lib/auth/company-context";
 import { settings } from "@/db/schema";
 import {
   STOCK_SETTINGS_DEFAULTS,
@@ -16,14 +16,29 @@ import {
  * Defaults intentionally bake in the COUNCIL §0 standing rule: "Negative
  * stock is forbidden unless a setting explicitly allows backorder."
  * Until a row is explicitly inserted, allowBackorder is `false`.
+ *
+ * THE COMPANY PREDICATE CHANGES WHAT "DOESN'T EXIST" MEANS HERE, and that is
+ * the point. `key` is still the primary key of this table, so it holds one row
+ * per config domain for the whole installation (see the note in
+ * src/db/schema/settings.ts; the composite key is item 4 of
+ * src/db/rls/TENANT-SEPARATION.md and its own piece of work). A company that
+ * does not own the single `stock` row therefore reads no row and falls back to
+ * the defaults, which is the safe direction: the fallback forbids backorder.
+ * The alternative, looking up the key alone, would hand that company the other
+ * one's switch.
  */
 export async function getStockSettingsServer(): Promise<StockSettings> {
-  const [row] = await withReadContext(
-    async (tx) =>
+  const [row] = await withCompanyReadContext(
+    async (tx, companyId) =>
       tx
         .select()
         .from(settings)
-        .where(eq(settings.key, STOCK_SETTINGS_KEY))
+        .where(
+          and(
+            eq(settings.key, STOCK_SETTINGS_KEY),
+            eq(settings.companyId, companyId),
+          ),
+        )
         .limit(1),
     "getStockSettingsServer",
   );

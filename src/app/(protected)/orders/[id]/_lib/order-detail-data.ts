@@ -1,6 +1,6 @@
 import "server-only";
-import { asc, eq } from "drizzle-orm";
-import { withReadContext } from "@/shared/lib/auth/read-context";
+import { and, asc, eq } from "drizzle-orm";
+import { withCompanyReadContext } from "@/shared/lib/auth/company-context";
 import { products } from "@/db/schema";
 
 /**
@@ -9,8 +9,8 @@ import { products } from "@/db/schema";
  * test can call.
  */
 export async function loadOrderDetailProducts() {
-  return withReadContext(
-    async (tx) =>
+  return withCompanyReadContext(
+    async (tx, companyId) =>
       tx
         .select({
           id: products.id,
@@ -19,7 +19,9 @@ export async function loadOrderDetailProducts() {
           costPrice: products.costPrice,
         })
         .from(products)
-        .where(eq(products.isActive, true))
+        .where(
+          and(eq(products.isActive, true), eq(products.companyId, companyId)),
+        )
         .orderBy(asc(products.name)),
     "loadOrderDetailProducts",
   );

@@ -51,7 +51,7 @@ jest.mock("@/shared/lib/auth/require-role", () => ({
 }));
 
 import { db } from "@/db/client";
-import { products } from "@/db/schema";
+import { products, SINGLE_COMPANY_ID } from "@/db/schema";
 import { listProductsServer } from "@/entities/product/api/server";
 import { listUsersServer } from "@/entities/user/api/server";
 import { getStockSettingsServer } from "@/entities/settings/api/server";
@@ -85,6 +85,14 @@ beforeAll(async () => {
   await mockPglite.exec(`
     insert into "user" (id, name, email, email_verified, role) values
       ('${ADMIN}', 'Ada', 'ada@example.test', true, 'admin');
+    -- Ticket 1004 made every read filter by the company the caller belongs to,
+    -- so a membership is now part of what "a signed-in operator" means. One
+    -- company, and every row below takes it from the column default, which is
+    -- the shape the database ships in. The refusal for a user with NO
+    -- membership is a different contract and lives in
+    -- src/__tests__/tenant-read-isolation.test.ts.
+    insert into company_members (company_id, user_id) values
+      ('${SINGLE_COMPANY_ID}', '${ADMIN}');
     insert into products (sku, name) values
       ('A-100', 'Hex bolt'),
       ('A-200', 'Wing nut'),
