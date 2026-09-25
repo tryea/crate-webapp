@@ -136,6 +136,7 @@ export async function listRecentMovementsServer(
       tx
         .select({
           id: stockMovements.id,
+          companyId: stockMovements.companyId,
           productId: stockMovements.productId,
           locationId: stockMovements.locationId,
           type: stockMovements.type,

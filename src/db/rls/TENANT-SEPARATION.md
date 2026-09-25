@@ -1,8 +1,27 @@
 # Tenant separation: what it costs (FR-29 survey)
 
-Read-only survey. Nothing in this document has been built: no migration, no
-policy, no column. It exists so that the estimate for FR-29 is written against
+Read-only survey. It exists so that the estimate for FR-29 is written against
 measured facts instead of a guess.
+
+**Status, 25 September 2026.** This was written when nothing in it had been
+built. Two items have since landed, and the body below is left exactly as it
+was measured on 24 September, because rewriting it would erase the before
+picture the work is being judged against. What is no longer true:
+
+- Item 2, bind the read path: landed. `withReadContext`
+  (`src/shared/lib/auth/read-context.ts`) binds all 23 read functions and the 5
+  pages that queried directly, and refuses an unbound read rather than
+  returning it empty. §3 below describes the state before that.
+- Item 3, the owner column and the composite unique indexes: landed in
+  `src/db/migrations/0005_company_ownership.sql`. All ten domain tables now
+  carry a NOT NULL `company_id`, every row that predated the column is
+  backfilled to the single company, and the four indexes §2 calls global are
+  `(company_id, ...)`. The table in §2 that reads "Owner column: none" is the
+  before picture. `src/db/__tests__/tenant-ownership.test.ts` holds both halves.
+
+Still exactly as written below: items 1, 4, 5, 6, 8 and 9. Item 7's SQL half is
+partly covered by the test named above, the two-account Playwright spec is not
+written.
 
 Measured 24 September 2026 against `main` at `09a3615`. Every claim below cites
 a file and a line. Where a fact could not be measured from this machine, it says

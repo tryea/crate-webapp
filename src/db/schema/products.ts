@@ -8,12 +8,14 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { categories, suppliers } from "./catalog";
+import { companyId } from "./companies";
 import { id, timestamps } from "./_shared";
 
 export const products = pgTable(
   "products",
   {
     id: id(),
+    ...companyId(),
     sku: text("sku").notNull(),
     barcode: text("barcode"),
     name: text("name").notNull(),
@@ -36,7 +38,7 @@ export const products = pgTable(
     isActive: boolean("is_active").notNull().default(true),
     ...timestamps(),
   },
-  (t) => [uniqueIndex("products_sku_idx").on(t.sku)],
+  (t) => [uniqueIndex("products_sku_idx").on(t.companyId, t.sku)],
 );
 
 export type Product = typeof products.$inferSelect;

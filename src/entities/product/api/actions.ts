@@ -306,7 +306,12 @@ export async function importProductsAction(
             .insert(products)
             .values(insertValues)
             .onConflictDoUpdate({
-              target: products.sku,
+              // The SKU index is composite since FR-29 (company_id, sku), and
+              // ON CONFLICT has to name a real unique index: a bare
+              // `products.sku` target now raises "no unique or exclusion
+              // constraint matching the ON CONFLICT specification" and every
+              // import dies on the first row.
+              target: [products.companyId, products.sku],
               set: {
                 name: insertValues.name,
                 description: insertValues.description,

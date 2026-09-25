@@ -12,6 +12,7 @@ import {
 import { locations } from "./warehouses";
 import { products } from "./products";
 import { user } from "./_auth";
+import { companyId } from "./companies";
 import { createdAtOnly, id } from "./_shared";
 
 /**
@@ -65,6 +66,7 @@ export const stockMovements = pgTable(
   "stock_movements",
   {
     id: id(),
+    ...companyId(),
     productId: uuid("product_id")
       .notNull()
       .references(() => products.id, { onDelete: "restrict" }),
