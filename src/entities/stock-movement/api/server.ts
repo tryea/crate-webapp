@@ -1,6 +1,6 @@
 import "server-only";
 import { and, asc, desc, eq, gte, inArray, sql } from "drizzle-orm";
-import { withReadContext } from "@/shared/lib/auth/read-context";
+import { withCompanyReadContext } from "@/shared/lib/auth/company-context";
 import type { Tx } from "@/shared/lib/auth/session-binding";
 import {
   locations,
@@ -36,12 +36,22 @@ export interface WarehouseScope {
  * Takes the bound `tx` rather than the bare `db` handle. The subquery is
  * inlined into the outer statement either way, so this is about reading the
  * file and seeing one executor, not about a second round trip.
+ *
+ * The company is a parameter for the same reason it is everywhere else in this
+ * file: this subquery is the id list three of the filters below are built on,
+ * so leaving it unscoped would let a warehouse id from the other company widen
+ * those filters instead of narrowing them.
  */
-function locationsOf(tx: Tx, warehouseId: string) {
+function locationsOf(tx: Tx, warehouseId: string, companyId: string) {
   return tx
     .select({ id: locations.id })
     .from(locations)
-    .where(eq(locations.warehouseId, warehouseId));
+    .where(
+      and(
+        eq(locations.warehouseId, warehouseId),
+        eq(locations.companyId, companyId),
+      ),
+    );
 }
 
 /**
@@ -52,8 +62,8 @@ export async function getStockLevelServer(
   productId: string,
   locationId: string,
 ): Promise<number> {
-  const [row] = await withReadContext(
-    async (tx) =>
+  const [row] = await withCompanyReadContext(
+    async (tx, companyId) =>
       tx
         .select({
           total: sql<number>`COALESCE(SUM(${stockMovements.quantity}), 0)::int`,
@@ -63,6 +73,7 @@ export async function getStockLevelServer(
           and(
             eq(stockMovements.productId, productId),
             eq(stockMovements.locationId, locationId),
+            eq(stockMovements.companyId, companyId),
           ),
         ),
     "getStockLevelServer",
@@ -78,8 +89,8 @@ export async function getStockLevelServer(
 export async function getAllStockLevelsServer(): Promise<
   Array<{ productId: string; locationId: string; level: number }>
 > {
-  return withReadContext(
-    async (tx) =>
+  return withCompanyReadContext(
+    async (tx, companyId) =>
       tx
         .select({
           productId: stockMovements.productId,
@@ -87,6 +98,7 @@ export async function getAllStockLevelsServer(): Promise<
           level: sql<number>`SUM(${stockMovements.quantity})::int`,
         })
         .from(stockMovements)
+        .where(eq(stockMovements.companyId, companyId))
         .groupBy(stockMovements.productId, stockMovements.locationId),
     "getAllStockLevelsServer",
   );
@@ -99,14 +111,15 @@ export async function getAllStockLevelsServer(): Promise<
 export async function getTotalStockByProductServer(): Promise<
   Map<string, number>
 > {
-  const rows = await withReadContext(
-    async (tx) =>
+  const rows = await withCompanyReadContext(
+    async (tx, companyId) =>
       tx
         .select({
           productId: stockMovements.productId,
           level: sql<number>`SUM(${stockMovements.quantity})::int`,
         })
         .from(stockMovements)
+        .where(eq(stockMovements.companyId, companyId))
         .groupBy(stockMovements.productId),
     "getTotalStockByProductServer",
   );
@@ -131,8 +144,8 @@ export async function listRecentMovementsServer(
   >
 > {
   const { limit = 50, warehouseId } = opts;
-  return withReadContext(
-    async (tx) =>
+  return withCompanyReadContext(
+    async (tx, companyId) =>
       tx
         .select({
           id: stockMovements.id,
@@ -153,9 +166,30 @@ export async function listRecentMovementsServer(
           locationCode: locations.code,
         })
         .from(stockMovements)
-        .leftJoin(products, eq(stockMovements.productId, products.id))
-        .leftJoin(locations, eq(stockMovements.locationId, locations.id))
-        .where(warehouseId ? eq(locations.warehouseId, warehouseId) : undefined)
+        // Product name and location code are columns this query RETURNS, so
+        // both joins carry the predicate as well. In the ON clause, not the
+        // WHERE: a movement whose product row was removed keeps its line in
+        // the ledger with a null name, which is how it read before.
+        .leftJoin(
+          products,
+          and(
+            eq(stockMovements.productId, products.id),
+            eq(products.companyId, companyId),
+          ),
+        )
+        .leftJoin(
+          locations,
+          and(
+            eq(stockMovements.locationId, locations.id),
+            eq(locations.companyId, companyId),
+          ),
+        )
+        .where(
+          and(
+            eq(stockMovements.companyId, companyId),
+            warehouseId ? eq(locations.warehouseId, warehouseId) : undefined,
+          ),
+        )
         .orderBy(desc(stockMovements.createdAt))
         .limit(limit),
     "listRecentMovementsServer",
@@ -184,8 +218,8 @@ export async function listLowStockProductsServer(
   opts: WarehouseScope & { limit?: number } = {},
 ): Promise<LowStockProductRow[]> {
   const { limit = 50, warehouseId } = opts;
-  return withReadContext(
-    async (tx) =>
+  return withCompanyReadContext(
+    async (tx, companyId) =>
       tx
         .select({
           productId: products.id,
@@ -199,19 +233,31 @@ export async function listLowStockProductsServer(
         // product with zero movements in this warehouse must still surface, at
         // on-hand 0, because "nothing here at all" is the most urgent low-stock
         // case there is. In WHERE the NULL row from the LEFT JOIN would drop it.
+        //
+        // The company predicate on the movements side therefore goes in the
+        // JOIN too, for the same reason and with the same consequence: in the
+        // WHERE it would drop exactly the products this company holds none of
+        // yet. The one on `products` is a genuine filter and belongs in the
+        // WHERE, which is where it is.
         .leftJoin(
           stockMovements,
           warehouseId
             ? and(
                 eq(stockMovements.productId, products.id),
+                eq(stockMovements.companyId, companyId),
                 inArray(
                   stockMovements.locationId,
-                  locationsOf(tx, warehouseId),
+                  locationsOf(tx, warehouseId, companyId),
                 ),
               )
-            : eq(stockMovements.productId, products.id),
+            : and(
+                eq(stockMovements.productId, products.id),
+                eq(stockMovements.companyId, companyId),
+              ),
         )
-        .where(eq(products.isActive, true))
+        .where(
+          and(eq(products.isActive, true), eq(products.companyId, companyId)),
+        )
         .groupBy(products.id)
         .having(
           sql`COALESCE(SUM(${stockMovements.quantity}), 0) <= ${products.reorderPoint}`,
@@ -236,8 +282,8 @@ export async function countActiveTransfersServer(
 ): Promise<number> {
   const { hours = 24, warehouseId } = opts;
   const since = new Date(Date.now() - hours * 60 * 60 * 1000);
-  const [row] = await withReadContext(
-    async (tx) =>
+  const [row] = await withCompanyReadContext(
+    async (tx, companyId) =>
       tx
         .select({
           total: sql<number>`COUNT(DISTINCT ${stockMovements.transferGroupId})::int`,
@@ -247,8 +293,12 @@ export async function countActiveTransfersServer(
           and(
             eq(stockMovements.type, "transfer_out"),
             gte(stockMovements.createdAt, since),
+            eq(stockMovements.companyId, companyId),
             warehouseId
-              ? inArray(stockMovements.locationId, locationsOf(tx, warehouseId))
+              ? inArray(
+                  stockMovements.locationId,
+                  locationsOf(tx, warehouseId, companyId),
+                )
               : undefined,
           ),
         ),
@@ -266,8 +316,8 @@ export async function countStockOutsServer(
 ): Promise<number> {
   const { hours = 24, warehouseId } = opts;
   const since = new Date(Date.now() - hours * 60 * 60 * 1000);
-  const [row] = await withReadContext(
-    async (tx) =>
+  const [row] = await withCompanyReadContext(
+    async (tx, companyId) =>
       tx
         .select({ total: sql<number>`COUNT(*)::int` })
         .from(stockMovements)
@@ -275,8 +325,12 @@ export async function countStockOutsServer(
           and(
             eq(stockMovements.type, "stock_out"),
             gte(stockMovements.createdAt, since),
+            eq(stockMovements.companyId, companyId),
             warehouseId
-              ? inArray(stockMovements.locationId, locationsOf(tx, warehouseId))
+              ? inArray(
+                  stockMovements.locationId,
+                  locationsOf(tx, warehouseId, companyId),
+                )
               : undefined,
           ),
         ),
@@ -303,8 +357,8 @@ export async function getValuationServer(opts: WarehouseScope = {}): Promise<{
   totalValue: number;
 }> {
   const { warehouseId } = opts;
-  const rows = await withReadContext(
-    async (tx) =>
+  const rows = await withCompanyReadContext(
+    async (tx, companyId) =>
       tx
         .select({
           productId: stockMovements.productId,
@@ -315,9 +369,15 @@ export async function getValuationServer(opts: WarehouseScope = {}): Promise<{
         })
         .from(stockMovements)
         .where(
-          warehouseId
-            ? inArray(stockMovements.locationId, locationsOf(tx, warehouseId))
-            : undefined,
+          and(
+            eq(stockMovements.companyId, companyId),
+            warehouseId
+              ? inArray(
+                  stockMovements.locationId,
+                  locationsOf(tx, warehouseId, companyId),
+                )
+              : undefined,
+          ),
         ),
     "getValuationServer",
   );

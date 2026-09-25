@@ -45,6 +45,7 @@ jest.mock("@/shared/lib/auth/require-role", () => ({
   getServerSession: async () => session,
 }));
 
+import { SINGLE_COMPANY_ID } from "@/db/schema";
 import { listAuditLogServer } from "@/entities/audit-log/api/server";
 import {
   listCategoriesServer,
@@ -112,6 +113,16 @@ async function seed(pg: PGlite) {
     insert into "user" (id, name, email, email_verified, role) values
       ('${ADMIN}', 'Ada', 'ada@example.test', true, 'admin'),
       ('${STAFF}', 'Sam', 'sam@example.test', true, 'staff');
+
+    -- Ticket 1004 scoped every read to the caller's company, so both operators
+    -- need a membership to read anything at all. They share one, and every row
+    -- below takes the same company from the column default, which keeps this
+    -- suite measuring what it was built to measure: on a single-company
+    -- database the numbers do not move. A second company is a different
+    -- question and has its own suite.
+    insert into company_members (company_id, user_id) values
+      ('${SINGLE_COMPANY_ID}', '${ADMIN}'),
+      ('${SINGLE_COMPANY_ID}', '${STAFF}');
 
     insert into warehouses (id, name, code) values
       ('${W1}', 'Main', 'MAIN'),

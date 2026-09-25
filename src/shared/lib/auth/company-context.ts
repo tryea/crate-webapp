@@ -1,7 +1,11 @@
 import "server-only";
 import { cache } from "react";
 import { sql } from "drizzle-orm";
-import { resolveReadIdentity, withReadContext } from "./read-context";
+import {
+  resolveReadIdentity,
+  UnboundReadError,
+  withReadContext,
+} from "./read-context";
 import type { Role } from "./require-role";
 import { withUserContext, type Tx } from "./session-binding";
 
@@ -174,4 +178,69 @@ export async function withCompanyContext<T>(
 ): Promise<T> {
   const companyId = await resolveCompanyId();
   return withUserContext(userId, role, (tx) => fn(tx, companyId));
+}
+
+/**
+ * FR-29 (ticket 1004, "CPP-TENANT-6"): a bound read transaction that also
+ * knows WHOSE rows it is allowed to return.
+ *
+ * THE READ COUNTERPART OF `withCompanyContext`. Ticket 989 gave every read an
+ * identity; 1003 made every write name its owner. Between them the database
+ * now holds rows that say which company they belong to, and the screens still
+ * show all of them: a `select` with no company predicate returns the other
+ * company's products, ledger and audit trail unchanged. This is the helper
+ * that closes that half.
+ *
+ * WHY THE ID IS A PARAMETER, AGAIN. Same reason the write side hands it in:
+ * the predicate is visible at every `.where(eq(table.companyId, companyId))`,
+ * so a reader can see which reads are scoped and a reviewer can see which are
+ * not. A filter applied invisibly underneath (a Drizzle global, a driver hook)
+ * would be shorter and would make an omission unreadable.
+ *
+ * WHY NOT A ROW LEVEL SECURITY POLICY. A policy that hides another company's
+ * rows returns fewer rows; a policy that denies an unscoped read returns zero.
+ * Both are invisible on screen: an empty table looks the same whether the
+ * filter worked, the filter was forgotten, or the company genuinely owns
+ * nothing. The refusal in this path is an exception instead, for the same
+ * reason `UnboundReadError` is one (`read-context.ts`). Policies stay
+ * available as a second layer; they are not the layer that is load bearing
+ * here.
+ *
+ * Usage in a read helper:
+ *
+ *   export async function listProductsServer(): Promise<Product[]> {
+ *     return withCompanyReadContext(
+ *       (tx, companyId) =>
+ *         tx.select().from(products).where(eq(products.companyId, companyId)),
+ *       "listProductsServer",
+ *     );
+ *   }
+ *
+ * TWO REFUSALS, NOT ONE, AND THE CLASS IS THE DIFFERENCE. No session at all
+ * is `UnboundReadError`, the refusal ticket 989 put on every read, and it
+ * carries `context` so the message names the read that was refused rather than
+ * leaving a caller to guess. A session whose user belongs to no company is
+ * `NoCompanyError`, and it names the user id. Collapsing the two would lose
+ * the half of the diagnosis that says whether the account is signed out or
+ * unplaced, which are a sign-in redirect and an administrative problem
+ * respectively. `src/shared/lib/auth/__tests__/read-context.test.ts` pins the
+ * first, `src/__tests__/tenant-read-isolation.test.ts` the second.
+ *
+ * Both happen BEFORE the read transaction opens, so a caller who cannot name a
+ * company never reaches a statement, and neither is ever an empty result: a
+ * screen that renders an empty table cannot be told apart from one whose
+ * company has no rows.
+ *
+ * @throws UnboundReadError when the request carries no session.
+ * @throws NoCompanyError when the acting user belongs to no company.
+ */
+export async function withCompanyReadContext<T>(
+  fn: (tx: Tx, companyId: string) => Promise<T>,
+  context = "read",
+): Promise<T> {
+  const identity = await resolveReadIdentity();
+  if (!identity) throw new UnboundReadError(context);
+
+  const companyId = await resolveCompanyId();
+  return withReadContext((tx) => fn(tx, companyId), context);
 }
