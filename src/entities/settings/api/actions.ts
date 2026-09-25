@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { sql } from "drizzle-orm";
 import { auditLog, settings } from "@/db/schema";
 import { requireRole } from "@/shared/lib/auth/require-role";
-import { withUserContext } from "@/shared/lib/auth/session-binding";
+import { withCompanyContext } from "@/shared/lib/auth/company-context";
 import type { ActionResult } from "@/shared/lib/server-action/types";
 import { unexpectedActionError } from "@/shared/lib/server-action/errors";
 import {
@@ -36,13 +36,14 @@ export async function updateStockSettingsAction(
   }
 
   try {
-    await withUserContext(user.id, user.role, async (tx) => {
+    await withCompanyContext(user.id, user.role, async (tx, companyId) => {
       await tx
         .insert(settings)
         .values({
           key: STOCK_SETTINGS_KEY,
           value: parsed.data,
           updatedAt: new Date(),
+          companyId,
         })
         .onConflictDoUpdate({
           target: settings.key,
@@ -53,6 +54,7 @@ export async function updateStockSettingsAction(
         });
 
       await tx.insert(auditLog).values({
+        companyId,
         userId: user.id,
         action: "update",
         resourceType: "settings",

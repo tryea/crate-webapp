@@ -2,6 +2,8 @@ import "server-only";
 import { cache } from "react";
 import { sql } from "drizzle-orm";
 import { resolveReadIdentity, withReadContext } from "./read-context";
+import type { Role } from "./require-role";
+import { withUserContext, type Tx } from "./session-binding";
 
 /**
  * FR-29 (ticket 997, "CPP-TENANT-4"): which company the person making this
@@ -129,3 +131,47 @@ export const resolveCompanyId = cache(async (): Promise<string> => {
 
   return rows[0].company_id;
 });
+
+/**
+ * FR-29 (ticket 1003, "CPP-TENANT-5"): a bound write transaction that also
+ * knows WHOSE rows it is writing.
+ *
+ * WHAT IT REPLACES AND WHY. `withUserContext` binds the acting user to the
+ * transaction, which is what a policy needs to judge a write. It cannot say
+ * which company the new row belongs to, so every insert since migration 0005
+ * has been getting its `company_id` from the column DEFAULT. A default is a
+ * single hard-coded company id: on a database with two companies in it, every
+ * row written by either of them would be stamped with the first one. The
+ * separation would exist in the schema and nowhere in the data.
+ *
+ * THE ORDER IS THE CONTRACT. The company is resolved BEFORE the transaction
+ * opens, so a caller who cannot name a company never reaches a write at all:
+ * `resolveCompanyId` throws, and nothing was begun to roll back. Resolving it
+ * inside the callback would make the refusal arrive mid-transaction, after
+ * earlier statements in the same callback had already run.
+ *
+ * WHY THE ID IS A PARAMETER AND NOT SOMETHING THE CALLBACK FETCHES. Handing
+ * `companyId` in makes it visible at every `.values({ ..., companyId })`: the
+ * insert names its owner in the source, so a reader can see which writes are
+ * stamped and a reviewer can see which are not. A helper that stamped rows
+ * invisibly (a driver hook, a Drizzle default) would be shorter and would make
+ * the omission unreadable.
+ *
+ * Usage in a Server Action, after requireRole:
+ *
+ *   const { user } = await requireRole("manager");
+ *   const [row] = await withCompanyContext(user.id, user.role, (tx, companyId) =>
+ *     tx.insert(products).values({ ...parsed.data, companyId }).returning(),
+ *   );
+ *
+ * @throws NoCompanyError before any statement runs, when the acting user
+ * belongs to no company. Never falls back to `SINGLE_COMPANY_ID`.
+ */
+export async function withCompanyContext<T>(
+  userId: string,
+  role: Role,
+  fn: (tx: Tx, companyId: string) => Promise<T>,
+): Promise<T> {
+  const companyId = await resolveCompanyId();
+  return withUserContext(userId, role, (tx) => fn(tx, companyId));
+}

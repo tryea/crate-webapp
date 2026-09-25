@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db/client";
 import { products, type Product } from "@/db/schema";
 import { requireRole } from "@/shared/lib/auth/require-role";
+import { withCompanyContext } from "@/shared/lib/auth/company-context";
 import { withUserContext } from "@/shared/lib/auth/session-binding";
 import type { ActionResult } from "@/shared/lib/server-action/types";
 import { unexpectedActionError } from "@/shared/lib/server-action/errors";
@@ -30,8 +31,14 @@ export async function createProductAction(
   }
 
   try {
-    const [row] = await withUserContext(user.id, user.role, async (tx) =>
-      tx.insert(products).values(toProductInsert(parsed.data)).returning(),
+    const [row] = await withCompanyContext(
+      user.id,
+      user.role,
+      async (tx, companyId) =>
+        tx
+          .insert(products)
+          .values({ ...toProductInsert(parsed.data), companyId })
+          .returning(),
     );
     revalidatePath("/catalog");
     return { ok: true, data: row };
@@ -130,12 +137,16 @@ export async function recreateProductAction(
 ): Promise<ActionResult<Product>> {
   const { user } = await requireRole("manager");
   try {
-    const [restored] = await withUserContext(user.id, user.role, async (tx) =>
-      tx
-        .insert(products)
-        .values(row)
-        .onConflictDoNothing()
-        .returning(),
+    // Client input: the resolved company overrides the one the row carries.
+    const [restored] = await withCompanyContext(
+      user.id,
+      user.role,
+      async (tx, companyId) =>
+        tx
+          .insert(products)
+          .values({ ...row, companyId })
+          .onConflictDoNothing()
+          .returning(),
     );
     revalidatePath("/catalog");
     return { ok: true, data: restored ?? row };
@@ -281,12 +292,13 @@ export async function importProductsAction(
   let updated = 0;
 
   try {
-    await withUserContext(user.id, user.role, async (tx) => {
+    await withCompanyContext(user.id, user.role, async (tx, companyId) => {
       for (const { rowNumber, data } of valid) {
         const categoryId = data.categorySlug ? catBySlug.get(data.categorySlug) ?? null : null;
         const supplierId = data.supplierName ? supByName.get(data.supplierName) ?? null : null;
 
         const insertValues = {
+          companyId,
           sku: data.sku,
           name: data.name,
           description: data.description,

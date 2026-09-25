@@ -8,6 +8,7 @@ import {
   type PurchaseOrder,
 } from "@/db/schema";
 import { requireRole } from "@/shared/lib/auth/require-role";
+import { withCompanyContext } from "@/shared/lib/auth/company-context";
 import { withUserContext } from "@/shared/lib/auth/session-binding";
 import type { ActionResult } from "@/shared/lib/server-action/types";
 import { unexpectedActionError } from "@/shared/lib/server-action/errors";
@@ -44,19 +45,23 @@ export async function createPurchaseOrderAction(
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
       const poNumber = await nextPoNumberServer();
-      const [row] = await withUserContext(user.id, user.role, async (tx) =>
-        tx
-          .insert(purchaseOrders)
-          .values({
-            poNumber,
-            supplierId: parsed.data.supplierId,
-            warehouseId: parsed.data.warehouseId,
-            status: "draft",
-            expectedDate: parsed.data.expectedDate || null,
-            notes: parsed.data.notes || null,
-            createdBy: user.id,
-          })
-          .returning(),
+      const [row] = await withCompanyContext(
+        user.id,
+        user.role,
+        async (tx, companyId) =>
+          tx
+            .insert(purchaseOrders)
+            .values({
+              companyId,
+              poNumber,
+              supplierId: parsed.data.supplierId,
+              warehouseId: parsed.data.warehouseId,
+              status: "draft",
+              expectedDate: parsed.data.expectedDate || null,
+              notes: parsed.data.notes || null,
+              createdBy: user.id,
+            })
+            .returning(),
       );
       revalidatePath("/orders");
       return { ok: true, data: row };
@@ -116,16 +121,20 @@ export async function addPoLineAction(
   }
 
   try {
-    const [row] = await withUserContext(user.id, user.role, async (tx) =>
-      tx
-        .insert(poLines)
-        .values({
-          poId: idParse.data,
-          productId: parsed.data.productId,
-          quantityOrdered: parsed.data.quantityOrdered,
-          unitCost: parsed.data.unitCost,
-        })
-        .returning({ id: poLines.id }),
+    const [row] = await withCompanyContext(
+      user.id,
+      user.role,
+      async (tx, companyId) =>
+        tx
+          .insert(poLines)
+          .values({
+            companyId,
+            poId: idParse.data,
+            productId: parsed.data.productId,
+            quantityOrdered: parsed.data.quantityOrdered,
+            unitCost: parsed.data.unitCost,
+          })
+          .returning({ id: poLines.id }),
     );
     revalidatePath(`/orders/${idParse.data}`);
     return { ok: true, data: row };
@@ -202,7 +211,7 @@ export async function receivePoAction(
   }
 
   try {
-    const result = await withUserContext(user.id, user.role, async (tx) => {
+    const result = await withCompanyContext(user.id, user.role, async (tx, companyId) => {
       // Fetch the PO + its lines + the first location of the warehouse.
       const [po] = await tx
         .select()
@@ -251,6 +260,7 @@ export async function receivePoAction(
         const [movement] = await tx
           .insert(stockMovements)
           .values({
+            companyId,
             productId: line.productId,
             locationId: destLoc.id,
             type: "stock_in",
@@ -272,6 +282,7 @@ export async function receivePoAction(
 
         // 3. audit row
         await tx.insert(auditLog).values({
+          companyId,
           userId: user.id,
           action: "po_receive",
           resourceType: "po_line",
@@ -314,6 +325,7 @@ export async function receivePoAction(
           .where(eq(purchaseOrders.id, po.id));
 
         await tx.insert(auditLog).values({
+          companyId,
           userId: user.id,
           action: "po_status_change",
           resourceType: "purchase_order",
