@@ -15,6 +15,7 @@ import { products } from "./products";
 import { suppliers } from "./catalog";
 import { user } from "./_auth";
 import { warehouses } from "./warehouses";
+import { companyId } from "./companies";
 import { id, timestamps } from "./_shared";
 
 export const poStatusEnum = pgEnum("po_status", [
@@ -29,6 +30,7 @@ export const purchaseOrders = pgTable(
   "purchase_orders",
   {
     id: id(),
+    ...companyId(),
     poNumber: text("po_number").notNull(),
     supplierId: uuid("supplier_id")
       .notNull()
@@ -45,7 +47,7 @@ export const purchaseOrders = pgTable(
     }),
     ...timestamps(),
   },
-  (t) => [uniqueIndex("po_number_idx").on(t.poNumber)],
+  (t) => [uniqueIndex("po_number_idx").on(t.companyId, t.poNumber)],
 );
 
 /**
@@ -57,6 +59,7 @@ export const poLines = pgTable(
   "po_lines",
   {
     id: id(),
+    ...companyId(),
     poId: uuid("po_id")
       .notNull()
       .references(() => purchaseOrders.id, { onDelete: "cascade" }),

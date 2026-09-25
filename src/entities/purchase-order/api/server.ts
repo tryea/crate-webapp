@@ -29,6 +29,7 @@ export async function listPurchaseOrdersServer(
       tx
         .select({
           id: purchaseOrders.id,
+          companyId: purchaseOrders.companyId,
           poNumber: purchaseOrders.poNumber,
           supplierId: purchaseOrders.supplierId,
           warehouseId: purchaseOrders.warehouseId,
@@ -80,6 +81,7 @@ export async function getPurchaseOrderServer(id: string): Promise<{
     const lines = await tx
       .select({
         id: poLines.id,
+        companyId: poLines.companyId,
         poId: poLines.poId,
         productId: poLines.productId,
         quantityOrdered: poLines.quantityOrdered,

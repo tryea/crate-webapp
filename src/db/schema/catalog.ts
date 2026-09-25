@@ -5,6 +5,7 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
+import { companyId } from "./companies";
 import { id, timestamps } from "./_shared";
 
 /**
@@ -14,6 +15,7 @@ export const categories = pgTable(
   "categories",
   {
     id: id(),
+    ...companyId(),
     name: text("name").notNull(),
     slug: text("slug").notNull(),
     parentId: uuid("parent_id").references((): AnyPgColumn => categories.id, {
@@ -21,11 +23,12 @@ export const categories = pgTable(
     }),
     ...timestamps(),
   },
-  (t) => [uniqueIndex("categories_slug_idx").on(t.slug)],
+  (t) => [uniqueIndex("categories_slug_idx").on(t.companyId, t.slug)],
 );
 
 export const suppliers = pgTable("suppliers", {
   id: id(),
+  ...companyId(),
   name: text("name").notNull(),
   contactEmail: text("contact_email"),
   contactPhone: text("contact_phone"),
