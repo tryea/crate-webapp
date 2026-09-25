@@ -344,6 +344,22 @@ async function main() {
     return d;
   };
 
+  /**
+   * Today's ledger rows need one guarantee `at` cannot give. A wall-clock
+   * moment that has not arrived yet stamps a movement in the FUTURE, and the
+   * ledger is read `desc(createdAt)`, so that row outranks every real movement
+   * until the clock catches up: a seed run at 09:00 puts "today 16:35" on top
+   * of the row a user records at 09:05. `todayAt` keeps the wall-clock moment
+   * once it has passed, and otherwise pins the row shortly before the seed
+   * instant. `minutesBeforeSeed` is distinct and decreasing down the block
+   * below, so the order of today's activity survives either branch.
+   */
+  const todayAt = (hhmm: string, minutesBeforeSeed: number) => {
+    const wall = at(0, hhmm);
+    const cap = new Date(seededAt.getTime() - minutesBeforeSeed * 60_000);
+    return wall < cap ? wall : cap;
+  };
+
   console.log("⟶ purchase orders (all five states)…");
   // Every receipt in the ledger below quotes one of these PO numbers, and the
   // quantity received on the line matches what the ledger actually booked,
@@ -567,12 +583,12 @@ async function main() {
   writeOff(at(1, "14:15"), "CLN-001", "SBY-E", "A1", 3, "Leaking cap, disposed");
   sell(at(1, "17:00"), "CLN-002", "SBY-E", "A1", 28, "SO-2026-0209");
 
-  receive(at(0, "08:20"), "BEV-001", "JKT-C", "A1", 480, "PO-2026-011", "1560.00");
-  sell(at(0, "10:05"), "SNK-001", "JKT-C", "A2", 21, "SO-2026-0212");
-  transfer(at(0, "11:50"), "STA-002", ["JKT-C", "B1"], ["SBY-E", "B1"], 12, "TRF-2026-0061");
-  sell(at(0, "13:30"), "STA-002", "JKT-C", "B1", 52, "SO-2026-0215");
-  sell(at(0, "15:10"), "CLN-001", "SBY-E", "A1", 9, "SO-2026-0217");
-  recount(at(0, "16:35"), "BEV-002", "JKT-C", "A1", -2, "Cycle count A1, two bottles unaccounted");
+  receive(todayAt("08:20", 50), "BEV-001", "JKT-C", "A1", 480, "PO-2026-011", "1560.00");
+  sell(todayAt("10:05", 40), "SNK-001", "JKT-C", "A2", 21, "SO-2026-0212");
+  transfer(todayAt("11:50", 30), "STA-002", ["JKT-C", "B1"], ["SBY-E", "B1"], 12, "TRF-2026-0061");
+  sell(todayAt("13:30", 20), "STA-002", "JKT-C", "B1", 52, "SO-2026-0215");
+  sell(todayAt("15:10", 10), "CLN-001", "SBY-E", "A1", 9, "SO-2026-0217");
+  recount(todayAt("16:35", 5), "BEV-002", "JKT-C", "A1", -2, "Cycle count A1, two bottles unaccounted");
 
   // Fail loudly rather than seed a state the API itself would have rejected.
   assertNeverNegative(ledger);

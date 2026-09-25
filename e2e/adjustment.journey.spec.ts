@@ -18,6 +18,13 @@ import { authFile } from "../playwright/roles";
  * data order), so the first `Adjustment` row is deterministically the one we
  * just recorded, robust against ledger accumulation across reseeds.
  *
+ * That "most-recent is ours" premise rests on a seed invariant, so it is worth
+ * naming where the guard lives: `todayAt` in src/db/seed.ts stamps today's
+ * rows no later than the seed instant. Before it existed the seeded cycle
+ * count was written at the wall-clock "today 16:35", which outranks our row on
+ * every run that starts earlier in the day, and this spec failed on the `-6`
+ * assertion below for the clock alone.
+ *
  * Self-contained against the persistent DB: Phase 1 stock-ins +30 at A1 so the
  * valid −6 can't depend on accumulated state (survives a fresh reseed). Notes
  * are REQUIRED on adjustments (Zod min(1)), filled in BOTH adjustment phases,
