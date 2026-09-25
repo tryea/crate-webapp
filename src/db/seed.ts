@@ -107,6 +107,7 @@ async function main() {
       ${s.warehouses},
       ${s.suppliers},
       ${s.categories},
+      ${s.companyMembers},
       ${s.verification},
       ${s.session},
       ${s.account},
@@ -133,6 +134,22 @@ async function main() {
     password: "ChangeMe!Staff",
     role: "staff",
   });
+
+  // FR-29 / ticket 997: an account with no membership is REFUSED by
+  // `resolveCompanyId`, not quietly given the default company. Migration 0006
+  // backfills the accounts that existed when it ran; these three are created
+  // after it, so the seed has to say where they belong or it would hand the
+  // e2e suite three users that no company owns.
+  console.log("⟶ company membership…");
+  await db
+    .insert(s.companyMembers)
+    .values(
+      [admin, manager, staff].map((u) => ({
+        companyId: s.SINGLE_COMPANY_ID,
+        userId: u.id,
+      })),
+    )
+    .onConflictDoNothing();
 
   console.log("⟶ categories…");
   const cats = await db
