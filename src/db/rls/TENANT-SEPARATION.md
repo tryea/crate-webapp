@@ -19,9 +19,21 @@ picture the work is being judged against. What is no longer true:
   `(company_id, ...)`. The table in §2 that reads "Owner column: none" is the
   before picture. `src/db/__tests__/tenant-ownership.test.ts` holds both halves.
 
-Still exactly as written below: items 1, 4, 5, 6, 8 and 9. Item 7's SQL half is
-partly covered by the test named above, the two-account Playwright spec is not
-written.
+- Item 6, membership: the membership half landed, tenant creation did not.
+  `company_members` (`src/db/migrations/0006_company_membership.sql`) joins a
+  user to a company, every account that predated it is backfilled to the single
+  company, and `resolveCompanyId`
+  (`src/shared/lib/auth/company-context.ts`) answers "which company is asking"
+  from the session, refusing an account that belongs to none rather than
+  handing back the default. §1's "no membership table" is the before picture.
+  There is still no way to CREATE a company, so a second tenant still cannot
+  come into existence, and nothing writes or filters by the company id yet:
+  §2's `settings` single row, the shared PO number sequence, and the default on
+  `company_id` are all untouched.
+
+Still exactly as written below: items 1, 4, 5, 8 and 9, and the creation half
+of item 6. Item 7's SQL half is partly covered by the tests named above, the
+two-account Playwright spec is not written.
 
 Measured 24 September 2026 against `main` at `09a3615`. Every claim below cites
 a file and a line. Where a fact could not be measured from this machine, it says
