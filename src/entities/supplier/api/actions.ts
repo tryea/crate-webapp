@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { suppliers, type Supplier } from "@/db/schema";
 import { requireRole } from "@/shared/lib/auth/require-role";
+import { withCompanyContext } from "@/shared/lib/auth/company-context";
 import { withUserContext } from "@/shared/lib/auth/session-binding";
 import type { ActionResult } from "@/shared/lib/server-action/types";
 import { unexpectedActionError } from "@/shared/lib/server-action/errors";
@@ -28,8 +29,14 @@ export async function createSupplierAction(
   }
 
   try {
-    const [row] = await withUserContext(user.id, user.role, async (tx) =>
-      tx.insert(suppliers).values(parsed.data).returning(),
+    const [row] = await withCompanyContext(
+      user.id,
+      user.role,
+      async (tx, companyId) =>
+        tx
+          .insert(suppliers)
+          .values({ ...parsed.data, companyId })
+          .returning(),
     );
     revalidatePath("/catalog/suppliers");
     return { ok: true, data: row };
@@ -105,12 +112,17 @@ export async function recreateSupplierAction(
   const { user } = await requireRole("manager");
 
   try {
-    const [restored] = await withUserContext(user.id, user.role, async (tx) =>
-      tx
-        .insert(suppliers)
-        .values(row)
-        .onConflictDoNothing()
-        .returning(),
+    // Same reason as recreateCategoryAction: the row is client input, so the
+    // resolved company overrides the one it carries.
+    const [restored] = await withCompanyContext(
+      user.id,
+      user.role,
+      async (tx, companyId) =>
+        tx
+          .insert(suppliers)
+          .values({ ...row, companyId })
+          .onConflictDoNothing()
+          .returning(),
     );
     revalidatePath("/catalog/suppliers");
     return { ok: true, data: restored ?? row };

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { categories, type Category } from "@/db/schema";
 import { requireRole } from "@/shared/lib/auth/require-role";
+import { withCompanyContext } from "@/shared/lib/auth/company-context";
 import { withUserContext } from "@/shared/lib/auth/session-binding";
 import type { ActionResult } from "@/shared/lib/server-action/types";
 import { unexpectedActionError } from "@/shared/lib/server-action/errors";
@@ -34,8 +35,14 @@ export async function createCategoryAction(
   }
 
   try {
-    const [row] = await withUserContext(user.id, user.role, async (tx) =>
-      tx.insert(categories).values(parsed.data).returning(),
+    const [row] = await withCompanyContext(
+      user.id,
+      user.role,
+      async (tx, companyId) =>
+        tx
+          .insert(categories)
+          .values({ ...parsed.data, companyId })
+          .returning(),
     );
     revalidatePath("/catalog/categories");
     return { ok: true, data: row };
@@ -148,12 +155,18 @@ export async function recreateCategoryAction(
   const { user } = await requireRole("manager");
 
   try {
-    const [restored] = await withUserContext(user.id, user.role, async (tx) =>
-      tx
-        .insert(categories)
-        .values(row)
-        .onConflictDoNothing()
-        .returning(),
+    // `row` arrives from the client, so it carries whatever `companyId` the
+    // caller sent. The resolved one is spread last on purpose: an undo must
+    // restore into the caller's own company, never into one they named.
+    const [restored] = await withCompanyContext(
+      user.id,
+      user.role,
+      async (tx, companyId) =>
+        tx
+          .insert(categories)
+          .values({ ...row, companyId })
+          .onConflictDoNothing()
+          .returning(),
     );
     revalidatePath("/catalog/categories");
     return { ok: true, data: restored ?? row };

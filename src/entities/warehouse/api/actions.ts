@@ -9,6 +9,7 @@ import {
   type Warehouse,
 } from "@/db/schema";
 import { requireRole } from "@/shared/lib/auth/require-role";
+import { withCompanyContext } from "@/shared/lib/auth/company-context";
 import { withUserContext } from "@/shared/lib/auth/session-binding";
 import type { ActionResult } from "@/shared/lib/server-action/types";
 import { unexpectedActionError } from "@/shared/lib/server-action/errors";
@@ -38,8 +39,14 @@ export async function createWarehouseAction(
   }
 
   try {
-    const [row] = await withUserContext(user.id, user.role, async (tx) =>
-      tx.insert(warehouses).values(parsed.data).returning(),
+    const [row] = await withCompanyContext(
+      user.id,
+      user.role,
+      async (tx, companyId) =>
+        tx
+          .insert(warehouses)
+          .values({ ...parsed.data, companyId })
+          .returning(),
     );
     revalidatePath("/catalog/warehouses");
     return { ok: true, data: row };
@@ -138,12 +145,16 @@ export async function recreateWarehouseAction(
 ): Promise<ActionResult<Warehouse>> {
   const { user } = await requireRole("manager");
   try {
-    const [restored] = await withUserContext(user.id, user.role, async (tx) =>
-      tx
-        .insert(warehouses)
-        .values(row)
-        .onConflictDoNothing()
-        .returning(),
+    // Client input: the resolved company overrides the one the row carries.
+    const [restored] = await withCompanyContext(
+      user.id,
+      user.role,
+      async (tx, companyId) =>
+        tx
+          .insert(warehouses)
+          .values({ ...row, companyId })
+          .onConflictDoNothing()
+          .returning(),
     );
     revalidatePath("/catalog/warehouses");
     return { ok: true, data: restored ?? row };
@@ -173,11 +184,14 @@ export async function createLocationAction(
   }
 
   try {
-    const [row] = await withUserContext(user.id, user.role, async (tx) =>
-      tx
-        .insert(locations)
-        .values({ ...parsed.data, warehouseId: whParse.data })
-        .returning(),
+    const [row] = await withCompanyContext(
+      user.id,
+      user.role,
+      async (tx, companyId) =>
+        tx
+          .insert(locations)
+          .values({ ...parsed.data, warehouseId: whParse.data, companyId })
+          .returning(),
     );
     revalidatePath(`/catalog/warehouses/${whParse.data}`);
     return { ok: true, data: row };
@@ -275,12 +289,16 @@ export async function recreateLocationAction(
 ): Promise<ActionResult<Location>> {
   const { user } = await requireRole("manager");
   try {
-    const [restored] = await withUserContext(user.id, user.role, async (tx) =>
-      tx
-        .insert(locations)
-        .values(row)
-        .onConflictDoNothing()
-        .returning(),
+    // Client input: the resolved company overrides the one the row carries.
+    const [restored] = await withCompanyContext(
+      user.id,
+      user.role,
+      async (tx, companyId) =>
+        tx
+          .insert(locations)
+          .values({ ...row, companyId })
+          .onConflictDoNothing()
+          .returning(),
     );
     revalidatePath(`/catalog/warehouses/${row.warehouseId}`);
     return { ok: true, data: restored ?? row };

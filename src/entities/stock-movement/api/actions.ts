@@ -10,7 +10,7 @@ import {
   type StockMovement,
 } from "@/db/schema";
 import { requireRole } from "@/shared/lib/auth/require-role";
-import { withUserContext } from "@/shared/lib/auth/session-binding";
+import { withCompanyContext } from "@/shared/lib/auth/company-context";
 import type { ActionResult } from "@/shared/lib/server-action/types";
 import { unexpectedActionError } from "@/shared/lib/server-action/errors";
 import {
@@ -92,10 +92,11 @@ export async function stockInAction(
     : null;
 
   try {
-    const row = await withUserContext(user.id, user.role, async (tx) => {
+    const row = await withCompanyContext(user.id, user.role, async (tx, companyId) => {
       const [movement] = await tx
         .insert(stockMovements)
         .values({
+          companyId,
           productId: parsed.data.productId,
           locationId: parsed.data.locationId,
           type: "stock_in",
@@ -109,6 +110,7 @@ export async function stockInAction(
         .returning();
 
       await tx.insert(auditLog).values({
+        companyId,
         userId: user.id,
         action: "stock_movement",
         resourceType: "stock_movement",
@@ -152,7 +154,7 @@ export async function stockOutAction(
   }
 
   try {
-    const row = await withUserContext(user.id, user.role, async (tx) => {
+    const row = await withCompanyContext(user.id, user.role, async (tx, companyId) => {
       const currentLevel = await getLevelLocked(
         tx,
         parsed.data.productId,
@@ -174,6 +176,7 @@ export async function stockOutAction(
         .values({
           productId: parsed.data.productId,
           locationId: parsed.data.locationId,
+          companyId,
           type: "stock_out",
           reason: parsed.data.reason,
           quantity: -parsed.data.quantity, // server flips sign
@@ -184,6 +187,7 @@ export async function stockOutAction(
         .returning();
 
       await tx.insert(auditLog).values({
+        companyId,
         userId: user.id,
         action: "stock_movement",
         resourceType: "stock_movement",
@@ -234,7 +238,7 @@ export async function transferAction(
   }
 
   try {
-    const result = await withUserContext(user.id, user.role, async (tx) => {
+    const result = await withCompanyContext(user.id, user.role, async (tx, companyId) => {
       const sourceLevel = await getLevelLocked(
         tx,
         parsed.data.productId,
@@ -259,6 +263,7 @@ export async function transferAction(
       });
 
       const sourceShared = {
+        companyId,
         reference: parsed.data.reference || null,
         notes: parsed.data.notes || null,
         createdBy: user.id,
@@ -292,6 +297,7 @@ export async function transferAction(
 
       await tx.insert(auditLog).values([
         {
+          companyId,
           userId: user.id,
           action: "stock_movement",
           resourceType: "stock_movement",
@@ -299,6 +305,7 @@ export async function transferAction(
           diff: auditDiff("transfer_out", source),
         },
         {
+          companyId,
           userId: user.id,
           action: "stock_movement",
           resourceType: "stock_movement",
@@ -352,7 +359,7 @@ export async function adjustmentAction(
   if (!shape.ok) return { ok: false, error: shape.error };
 
   try {
-    const row = await withUserContext(user.id, user.role, async (tx) => {
+    const row = await withCompanyContext(user.id, user.role, async (tx, companyId) => {
       if (parsed.data.delta < 0) {
         const currentLevel = await getLevelLocked(
           tx,
@@ -375,6 +382,7 @@ export async function adjustmentAction(
         .values({
           productId: parsed.data.productId,
           locationId: parsed.data.locationId,
+          companyId,
           type: "adjustment",
           reason: parsed.data.reason,
           quantity: parsed.data.delta,
@@ -384,6 +392,7 @@ export async function adjustmentAction(
         .returning();
 
       await tx.insert(auditLog).values({
+        companyId,
         userId: user.id,
         action: "stock_movement",
         resourceType: "stock_movement",
