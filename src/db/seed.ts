@@ -151,14 +151,25 @@ async function main() {
     )
     .onConflictDoNothing();
 
+  /**
+   * FR-29 / ticket 1009: the `company_id` DEFAULT came off all ten domain
+   * tables, so an insert that does not name its owner is now refused by the
+   * database rather than silently stamped with the first company. This script
+   * is the one caller left that may legitimately reach for the constant: it
+   * builds the dataset before anybody signs in, so there is no session for
+   * `resolveCompanyId` to answer from. Every request path resolves the company
+   * from the membership instead, and refuses when it cannot.
+   */
+  const owner = { companyId: s.SINGLE_COMPANY_ID };
+
   console.log("⟶ categories…");
   const cats = await db
     .insert(s.categories)
     .values([
-      { name: "Beverages", slug: "beverages" },
-      { name: "Snacks", slug: "snacks" },
-      { name: "Stationery", slug: "stationery" },
-      { name: "Cleaning", slug: "cleaning" },
+      { ...owner, name: "Beverages", slug: "beverages" },
+      { ...owner, name: "Snacks", slug: "snacks" },
+      { ...owner, name: "Stationery", slug: "stationery" },
+      { ...owner, name: "Cleaning", slug: "cleaning" },
     ])
     .returning();
 
@@ -167,16 +178,19 @@ async function main() {
     .insert(s.suppliers)
     .values([
       {
+        ...owner,
         name: "Aria Distributors",
         contactEmail: "orders@aria-dist.example",
         contactPhone: "+62 21 555 0101",
       },
       {
+        ...owner,
         name: "Nadia Wholesale",
         contactEmail: "sales@nadia-wholesale.example",
         contactPhone: "+62 21 555 0202",
       },
       {
+        ...owner,
         name: "Reza Trading Co",
         contactEmail: "po@reza-trading.example",
         contactPhone: "+62 21 555 0303",
@@ -188,8 +202,8 @@ async function main() {
   const whs = await db
     .insert(s.warehouses)
     .values([
-      { name: "Jakarta Central", code: "JKT-C", address: "Jl. Sudirman 1" },
-      { name: "Surabaya East", code: "SBY-E", address: "Jl. Tunjungan 1" },
+      { ...owner, name: "Jakarta Central", code: "JKT-C", address: "Jl. Sudirman 1" },
+      { ...owner, name: "Surabaya East", code: "SBY-E", address: "Jl. Tunjungan 1" },
     ])
     .returning();
 
@@ -197,9 +211,9 @@ async function main() {
     .insert(s.locations)
     .values(
       whs.flatMap((w) => [
-        { warehouseId: w.id, code: "A1", name: "Aisle A · Bin 1" },
-        { warehouseId: w.id, code: "A2", name: "Aisle A · Bin 2" },
-        { warehouseId: w.id, code: "B1", name: "Aisle B · Bin 1" },
+        { ...owner, warehouseId: w.id, code: "A1", name: "Aisle A · Bin 1" },
+        { ...owner, warehouseId: w.id, code: "A2", name: "Aisle A · Bin 2" },
+        { ...owner, warehouseId: w.id, code: "B1", name: "Aisle B · Bin 1" },
       ]),
     )
     .returning();
@@ -214,6 +228,7 @@ async function main() {
     .insert(s.products)
     .values([
       {
+        ...owner,
         sku: "BEV-001",
         name: "Mineral Water 600ml",
         categoryId: cats[0].id,
@@ -224,6 +239,7 @@ async function main() {
         reorderPoint: 240,
       },
       {
+        ...owner,
         sku: "BEV-002",
         name: "Cold Brew Coffee 250ml",
         categoryId: cats[0].id,
@@ -234,6 +250,7 @@ async function main() {
         reorderPoint: 60,
       },
       {
+        ...owner,
         sku: "SNK-001",
         name: "Mixed Nuts 200g",
         categoryId: cats[1].id,
@@ -244,6 +261,7 @@ async function main() {
         reorderPoint: 50,
       },
       {
+        ...owner,
         sku: "SNK-002",
         name: "Cassava Chips 180g",
         categoryId: cats[1].id,
@@ -254,6 +272,7 @@ async function main() {
         reorderPoint: 45,
       },
       {
+        ...owner,
         sku: "STA-001",
         name: "A5 Notebook · 80gsm",
         categoryId: cats[2].id,
@@ -264,6 +283,7 @@ async function main() {
         reorderPoint: 30,
       },
       {
+        ...owner,
         sku: "STA-002",
         name: "Gel Pen 0.5mm · Box of 12",
         categoryId: cats[2].id,
@@ -274,6 +294,7 @@ async function main() {
         reorderPoint: 24,
       },
       {
+        ...owner,
         sku: "CLN-001",
         name: "All-Purpose Cleaner 1L",
         categoryId: cats[3].id,
@@ -284,6 +305,7 @@ async function main() {
         reorderPoint: 24,
       },
       {
+        ...owner,
         sku: "CLN-002",
         name: "Microfiber Cloth · 5-pack",
         categoryId: cats[3].id,
@@ -359,6 +381,7 @@ async function main() {
     .insert(s.purchaseOrders)
     .values(
       poSpecs.map((po) => ({
+        ...owner,
         poNumber: po.no,
         supplierId: sups[po.sup].id,
         warehouseId: whByCode.get(po.wh)!.id,
@@ -376,6 +399,7 @@ async function main() {
   await db.insert(s.poLines).values(
     poSpecs.flatMap((po) =>
       po.lines.map(([sku, ordered, received, cost]) => ({
+        ...owner,
         poId: poByNumber.get(po.no)!.id,
         productId: P(sku as string).id,
         quantityOrdered: ordered as number,
@@ -413,6 +437,7 @@ async function main() {
     when: Date, sku: string, wh: string, code: string, qty: number, po: string, cost: string,
   ) => {
     ledger.push({
+      ...owner,
       productId: P(sku).id, locationId: bin(wh, code).id,
       type: "stock_in", reason: "purchase", quantity: qty, unitCost: cost,
       reference: po, notes: `Goods received against ${po}`,
@@ -422,6 +447,7 @@ async function main() {
 
   const sell = (when: Date, sku: string, wh: string, code: string, qty: number, so: string) => {
     ledger.push({
+      ...owner,
       productId: P(sku).id, locationId: bin(wh, code).id,
       type: "stock_out", reason: "sale", quantity: -qty,
       reference: so, notes: "Sale fulfillment",
@@ -431,6 +457,7 @@ async function main() {
 
   const writeOff = (when: Date, sku: string, wh: string, code: string, qty: number, note: string) => {
     ledger.push({
+      ...owner,
       productId: P(sku).id, locationId: bin(wh, code).id,
       type: "stock_out", reason: "damage", quantity: -qty,
       notes: note, createdBy: staff.id, createdAt: when,
@@ -439,6 +466,7 @@ async function main() {
 
   const recount = (when: Date, sku: string, wh: string, code: string, delta: number, note: string) => {
     ledger.push({
+      ...owner,
       productId: P(sku).id, locationId: bin(wh, code).id,
       type: "adjustment", reason: "count_correction", quantity: delta,
       notes: note, createdBy: staff.id, createdAt: when,
@@ -452,6 +480,7 @@ async function main() {
   ) => {
     const group = crypto.randomUUID();
     ledger.push({
+      ...owner,
       productId: P(sku).id, locationId: bin(from[0], from[1]).id,
       type: "transfer_out", reason: "transfer", quantity: -qty,
       reference: ref, transferGroupId: group,
@@ -459,6 +488,7 @@ async function main() {
       createdBy: manager.id, createdAt: when,
     });
     ledger.push({
+      ...owner,
       productId: P(sku).id, locationId: bin(to[0], to[1]).id,
       type: "transfer_in", reason: "transfer", quantity: qty,
       reference: ref, transferGroupId: group,
@@ -471,6 +501,7 @@ async function main() {
     when: Date, sku: string, wh: string, code: string, qty: number, rma: string,
   ) => {
     ledger.push({
+      ...owner,
       productId: P(sku).id, locationId: bin(wh, code).id,
       type: "stock_in", reason: "return_from_customer", quantity: qty,
       unitCost: P(sku).costPrice, reference: rma,

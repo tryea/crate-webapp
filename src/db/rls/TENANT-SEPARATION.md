@@ -4,8 +4,8 @@ Read-only survey. It exists so that the estimate for FR-29 is written against
 measured facts instead of a guess.
 
 **Status, 25 September 2026.** This was written when nothing in it had been
-built. Two items have since landed, and the body below is left exactly as it
-was measured on 24 September, because rewriting it would erase the before
+built. Several items have since landed, and the body below is left exactly as
+it was measured on 24 September, because rewriting it would erase the before
 picture the work is being judged against. What is no longer true:
 
 - Item 2, bind the read path: landed. `withReadContext`
@@ -27,12 +27,29 @@ picture the work is being judged against. What is no longer true:
   from the session, refusing an account that belongs to none rather than
   handing back the default. §1's "no membership table" is the before picture.
   There is still no way to CREATE a company, so a second tenant still cannot
-  come into existence, and nothing writes or filters by the company id yet:
-  §2's `settings` single row, the shared PO number sequence, and the default on
-  `company_id` are all untouched.
+  come into existence. §2's "nothing writes or filters by the company id yet"
+  is the before picture for tickets 1003 and 1004: every write names its
+  company and every read filters by it.
 
-Still exactly as written below: items 1, 4, 5, 8 and 9, and the creation half
-of item 6. Item 7's SQL half is partly covered by the tests named above, the
+- Item 4, `settings` and its reader: landed in ticket 1009. The primary key is
+  `(company_id, key)` (`src/db/migrations/0007_company_scoped_settings.sql`),
+  so the backorder switch §2 calls a single installation-wide row is one row
+  per company, and the upsert's ON CONFLICT target names both columns. The
+  second reader §2 does not mention, `getAllowBackorder` in
+  `src/entities/stock-movement/api/actions.ts`, takes the company too, because
+  it is the gate that decides whether a sale may go negative.
+
+  The same ticket took the `company_id` DEFAULT off all ten tables. §2's
+  "backfill is cheap" paragraph describes what the default was for; with every
+  write naming its own company it had one job left, which was to hide a write
+  that forgot. An insert that omits the column now raises 23502, and the
+  Drizzle insert type requires the field, so `bun run typecheck` refuses an
+  unowned insert anywhere in the repo, including `src/db/seed.ts` and
+  `scripts/concurrency-check.ts`, which no test drives.
+  `src/__tests__/tenant-settings-and-defaults.test.ts` holds all of it.
+
+Still exactly as written below: items 1, 5, 8 and 9, and the creation half of
+item 6. Item 7's SQL half is partly covered by the tests named above, the
 two-account Playwright spec is not written.
 
 Measured 24 September 2026 against `main` at `09a3615`. Every claim below cites

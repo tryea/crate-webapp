@@ -29,8 +29,13 @@ export const companies = pgTable("companies", {
 /**
  * The one company that exists today. A fixed id rather than a generated one
  * because two separate things have to name the same row without talking to
- * each other: the migration that inserts it, and the column default that every
- * domain table uses until writes learn to resolve a company of their own.
+ * each other: the migration that inserts it, and every caller that has to
+ * stand in for a membership it cannot look up. The column default was the
+ * third such caller and is gone as of ticket 1009; what is left is
+ * `src/db/seed.ts`, which builds the demo dataset before anybody signs in.
+ * Nothing in a request path may reach for this constant: `resolveCompanyId`
+ * refuses rather than falling back to it, and that refusal is what keeps
+ * tenant separation a fact instead of a claim.
  */
 export const SINGLE_COMPANY_ID = "00000000-0000-4000-8000-000000000001";
 
@@ -38,13 +43,22 @@ export const SINGLE_COMPANY_ID = "00000000-0000-4000-8000-000000000001";
  * Owner column for a domain table. Reused via spread the same way `id()` and
  * `timestamps()` are.
  *
- * ON THE DEFAULT: it is scaffolding with a known removal date, not a resting
- * state. Nothing in the app can answer "which company is this write for" yet,
- * because a user has no membership to read it from (survey §1). Until write
- * binding lands, the default is what keeps every new row owned rather than
- * leaving the column nullable and the invariant unenforceable. The moment a
- * write path can name its own company, this default comes off and the column
- * stays NOT NULL.
+ * THE DEFAULT IS GONE, AND ITS ABSENCE IS THE POINT (ticket 1009). It was
+ * scaffolding with a known removal date: between migration 0005 and ticket
+ * 1003 no write could answer "which company is this for", so a hard-coded
+ * default was what kept every new row owned instead of leaving the column
+ * nullable and the invariant unenforceable. 1003 gave every write a company
+ * of its own and 1004 gave every read one, so the default now has exactly one
+ * remaining job, which is to hide a write that forgot: on a database with two
+ * companies in it, such a row is silently stamped with the first one and the
+ * separation exists in the schema and nowhere in the data. Without a default
+ * that same write raises 23502 (not_null_violation) at the statement.
+ *
+ * REMOVING IT IS ALSO WHAT MAKES THE TYPE CHECKER LOAD BEARING. A column that
+ * is `notNull()` with a default is OPTIONAL in Drizzle's `$inferInsert`, so
+ * `tsc` was blind to every `.values({ ... })` that omitted the owner. With the
+ * default gone the field is required, and `bun run typecheck` refuses an
+ * unowned insert anywhere in the repo, including the scripts no test drives.
  *
  * `restrict` on delete, not `cascade`: deleting a company should refuse while
  * it still owns stock, rather than quietly taking the ledger with it.
@@ -52,7 +66,6 @@ export const SINGLE_COMPANY_ID = "00000000-0000-4000-8000-000000000001";
 export const companyId = () => ({
   companyId: uuid("company_id")
     .notNull()
-    .default(SINGLE_COMPANY_ID)
     .references(() => companies.id, { onDelete: "restrict" }),
 });
 

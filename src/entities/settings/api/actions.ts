@@ -20,6 +20,17 @@ import {
  * audit row commits with the settings change.
  *
  * UPSERT via ON CONFLICT: the row may not exist yet on first save.
+ *
+ * THE CONFLICT TARGET IS THE COMPANY'S ROW, NOT THE INSTALLATION'S (ticket
+ * 1009). `settings` keyed on `key` alone held one row per config domain for
+ * everybody, and this upsert targeted it: a second company saving its
+ * backorder switch did not get a row, it overwrote the first company's value
+ * and then read the defaults itself, because the read has carried a company
+ * predicate since ticket 1004. With the primary key now `(company_id, key)`
+ * the target names both columns, so each company's save lands on its own row
+ * and inserts one when it has none. A bare `settings.key` target no longer
+ * matches a unique index at all and would fail the save outright, which is the
+ * safer of the two ways to be wrong and is not the way this is wrong.
  */
 export async function updateStockSettingsAction(
   input: StockSettingsFormValues,
@@ -46,7 +57,7 @@ export async function updateStockSettingsAction(
           companyId,
         })
         .onConflictDoUpdate({
-          target: settings.key,
+          target: [settings.companyId, settings.key],
           set: {
             value: parsed.data,
             updatedAt: new Date(),

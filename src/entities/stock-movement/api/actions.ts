@@ -2,8 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { randomUUID } from "node:crypto";
-import { eq } from "drizzle-orm";
-import { db } from "@/db/client";
+import { and, eq } from "drizzle-orm";
 import {
   auditLog,
   stockMovements,
@@ -20,7 +19,7 @@ import {
 } from "../domain/stock-math";
 // DEC-013 advisory-lock gate, extracted to a plain module (DEC-015) so the
 // concurrency proof can import the real function, see ./level-lock.
-import { getLevelLocked } from "./level-lock";
+import { getLevelLocked, type Tx } from "./level-lock";
 import {
   adjustmentFormSchema,
   stockInFormSchema,
@@ -38,12 +37,31 @@ import { settings as settingsTable } from "@/db/schema";
  * boundaries (DEC-002) forbid entity→entity imports, so we query the
  * raw table here rather than calling the settings entity's server fn.
  * Default false matches COUNCIL §0 + STOCK_SETTINGS_DEFAULTS.
+ *
+ * THE COMPANY IS AN ARGUMENT BECAUSE THE TABLE HOLDS MORE THAN ONE ROW NOW
+ * (ticket 1009). Keyed on `key` alone, `where key = 'stock' limit 1` was the
+ * only row there was; keyed on `(company_id, key)`, it is whichever row
+ * Postgres reaches first, so one company's backorder switch would decide
+ * whether another company's stock-out is allowed to go negative. The caller
+ * already holds both the company and the transaction, so both are passed in.
+ *
+ * READ THROUGH `tx`, NOT THE BARE `db` HANDLE. This gate decides whether the
+ * movement inserted a few lines later is permitted, and on the pooled client
+ * a separate handle is a separate connection outside that transaction: the
+ * value read could be one a concurrent save has since replaced, and the read
+ * carries none of the transaction's bound identity. Same transaction, same
+ * snapshot, same identity as the write it guards.
  */
-async function getAllowBackorder(): Promise<boolean> {
-  const [row] = await db
+async function getAllowBackorder(tx: Tx, companyId: string): Promise<boolean> {
+  const [row] = await tx
     .select({ value: settingsTable.value })
     .from(settingsTable)
-    .where(eq(settingsTable.key, "stock"))
+    .where(
+      and(
+        eq(settingsTable.key, "stock"),
+        eq(settingsTable.companyId, companyId),
+      ),
+    )
     .limit(1);
   const v = row?.value as { allowBackorder?: unknown } | null;
   return v?.allowBackorder === true;
@@ -160,7 +178,7 @@ export async function stockOutAction(
         parsed.data.productId,
         parsed.data.locationId,
       );
-      const allowBackorder = await getAllowBackorder();
+      const allowBackorder = await getAllowBackorder(tx, companyId);
       const gate = checkDecrementAllowed({
         currentLevel,
         decrementBy: parsed.data.quantity,
@@ -244,7 +262,7 @@ export async function transferAction(
         parsed.data.productId,
         parsed.data.sourceLocationId,
       );
-      const allowBackorder = await getAllowBackorder();
+      const allowBackorder = await getAllowBackorder(tx, companyId);
       const gate = checkDecrementAllowed({
         currentLevel: sourceLevel,
         decrementBy: parsed.data.quantity,
@@ -366,7 +384,7 @@ export async function adjustmentAction(
           parsed.data.productId,
           parsed.data.locationId,
         );
-        const allowBackorder = await getAllowBackorder();
+        const allowBackorder = await getAllowBackorder(tx, companyId);
         const gate = checkDecrementAllowed({
           currentLevel,
           decrementBy: Math.abs(parsed.data.delta),
