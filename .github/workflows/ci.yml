@@ -67,6 +67,15 @@ jobs:
       BETTER_AUTH_URL: "http://localhost:3010"
       NEXT_PUBLIC_APP_URL: "http://localhost:3010"
       SKIP_DB_E2E: "0"
+      # The demo door is fail-closed (src/shared/lib/auth/demo-entry.ts):
+      # with either variable missing the button is not rendered and
+      # POST /api/demo answers 404, so the three e2e/demo-entry.spec.ts
+      # specs cannot pass once SKIP_DB_E2E=0 has stripped their skip guard.
+      # These name the manager account `bun run db:seed` writes into the
+      # throwaway service database below (src/db/seed.ts); the deployed
+      # demo credential is a different value and lives in the stack env.
+      CRATE_DEMO_EMAIL: "manager@crate.local"
+      CRATE_DEMO_PASSWORD: "ChangeMe!Manager"
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v1
